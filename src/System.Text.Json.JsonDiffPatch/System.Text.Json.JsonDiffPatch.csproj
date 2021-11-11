@@ -6,8 +6,30 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PackageId>SystemTextJson.JsonDiffPatch</PackageId>
+    <PackageTags>diff;json;patch;text-json;system-text-json;jsondiffpath</PackageTags>
+    <Description>Extends System.Text.Json to support JSON diffing and patching.</Description>
+    <Authors>Wei Chen</Authors>
+    <PackageProjectUrl>https://github.com/weichch/system-text-json-jsondiffpath</PackageProjectUrl>
+    <Copyright>Copyright © Wei Chen 2021</Copyright>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Version>1.0.0-dev.1</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\icon.png" Link="Packaging\icon.png" Pack="true" PackagePath="\"/>
+    <None Include="..\..\LICENSE" Link="Packaging\LICENSE" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
 </Project>

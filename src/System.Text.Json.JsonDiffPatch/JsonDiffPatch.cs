@@ -14,13 +14,15 @@ namespace System.Text.Json.JsonDiffPatch
                 return new ObjectDiff(leftObj, rightObj).GetDelta();
             }
 
-            if (left is JsonArray leftArray && right is JsonArray rightArray)
-            {
+            //if (left is JsonArray leftArray && right is JsonArray rightArray)
+            //{
 
-            }
+            //}
 
-            var diff = new JsonArray(left, right);
-            return diff;
+            //var diff = new JsonArray(left, right);
+            //return diff;
+
+            throw new NotSupportedException();
         }
     }
 }
