@@ -1,11 +1,16 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json.Nodes;
 
-namespace System.Text.Json.JsonDiffPatch
+namespace System.Text.Json.Diffs
 {
+    /// <summary>
+    /// Implements JSON object diff:
+    /// <see link="https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#object-with-inner-changes"/>
+    /// </summary>
     internal readonly struct ObjectDiff
     {
+        private const int Deleted = 0;
+
         private readonly JsonObject _left;
         private readonly JsonObject _right;
 
@@ -29,14 +34,14 @@ namespace System.Text.Json.JsonDiffPatch
                     // Deleted: https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#deleted
                     diff ??= new JsonObject();
                     diff[prop] = new JsonArray(
-                        Clone(leftValue),
-                        0,
-                        DeltaTypes.Deleted);
+                        leftValue.Clone(),
+                        Deleted,
+                        Deleted);
                 }
                 else
                 {
                     // Modified: https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#modified
-                    var valueDiff = JsonDiffPatch.Diff(leftValue, rightValue);
+                    var valueDiff = JsonDiffPatcher.Diff(leftValue, rightValue);
                     if (valueDiff is not null)
                     {
                         diff ??= new JsonObject();
@@ -52,23 +57,11 @@ namespace System.Text.Json.JsonDiffPatch
                 {
                     // Added: https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#added
                     diff ??= new JsonObject();
-                    diff[prop] = new JsonArray(Clone(rightValue));
+                    diff[prop] = new JsonArray(rightValue.Clone());
                 }
             }
 
             return diff;
-        }
-
-        private static JsonNode? Clone(JsonNode? node)
-        {
-            return node switch
-            {
-                null => null,
-                JsonObject obj => new JsonObject(obj),
-                JsonArray array => new JsonArray(array.Select(Clone).ToArray()),
-                JsonValue value => JsonValue.Create(value),
-                _ => throw new NotSupportedException($"JsonNode of type '{node.GetType().Name}' is not supported.")
-            };
         }
     }
 }

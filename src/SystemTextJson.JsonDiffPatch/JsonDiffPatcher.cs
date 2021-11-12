@@ -1,8 +1,9 @@
-﻿using System.Text.Json.Nodes;
+﻿using System.Text.Json.Diffs;
+using System.Text.Json.Nodes;
 
-namespace System.Text.Json.JsonDiffPatch
+namespace System.Text.Json
 {
-    public static class JsonDiffPatch
+    public static class JsonDiffPatcher
     {
         public static JsonNode? Diff(JsonNode? left, JsonNode? right)
         {
@@ -19,10 +20,13 @@ namespace System.Text.Json.JsonDiffPatch
 
             //}
 
-            //var diff = new JsonArray(left, right);
-            //return diff;
+            if (!left.MemoryEquals(right))
+            {
+                var diff = new JsonArray(left, right);
+                return diff;
+            }
 
-            throw new NotSupportedException();
+            return null;
         }
     }
 }

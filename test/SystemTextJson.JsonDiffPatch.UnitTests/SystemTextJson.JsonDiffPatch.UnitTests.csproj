@@ -1,8 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -20,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\System.Text.Json.JsonDiffPatch\System.Text.Json.JsonDiffPatch.csproj" />
+    <ProjectReference Include="..\..\src\SystemTextJson.JsonDiffPatch\SystemTextJson.JsonDiffPatch.csproj" />
   </ItemGroup>
 
 </Project>
