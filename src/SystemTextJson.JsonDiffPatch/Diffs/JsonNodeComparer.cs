@@ -5,11 +5,7 @@ namespace System.Text.Json.Diffs
 {
     internal static class JsonNodeComparer
     {
-        /// <summary>
-        /// Compares two <see cref="JsonNode"/> objects and returns whether
-        /// the objects are deeply equal to each other.
-        /// </summary>
-        public static bool DeepEquals(JsonNode? node1, JsonNode? node2)
+        public static bool AreEqual(JsonNode? node1, JsonNode? node2)
         {
             Debug.Assert(node1 is null or JsonObject or JsonArray or JsonValue);
             Debug.Assert(node2 is null or JsonObject or JsonArray or JsonValue);
@@ -58,7 +54,7 @@ namespace System.Text.Json.Diffs
                     return false;
                 }
 
-                if (!DeepEquals(obj1Value, obj2Value))
+                if (!AreEqual(obj1Value, obj2Value))
                 {
                     // Value not equal
                     return false;
@@ -83,7 +79,7 @@ namespace System.Text.Json.Diffs
 
             for (var i = 0; i < arr1.Count; i++)
             {
-                if (!DeepEquals(arr1[i], arr2[i]))
+                if (!AreEqual(arr1[i], arr2[i]))
                 {
                     return false;
                 }
@@ -122,9 +118,9 @@ namespace System.Text.Json.Diffs
                         return true;
                     // The two below should not happen and it's not efficient comparison
                     case JsonValueKind.Object:
-                        return DeepEquals(JsonObject.Create(element1), JsonObject.Create(element2));
+                        return AreEqual(JsonObject.Create(element1), JsonObject.Create(element2));
                     case JsonValueKind.Array:
-                        return DeepEquals(JsonArray.Create(element1), JsonArray.Create(element2));
+                        return AreEqual(JsonArray.Create(element1), JsonArray.Create(element2));
                     default:
                         Debug.Assert(false, $"Unknown value kind '{element1.ValueKind}'.");
                         break;

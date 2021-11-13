@@ -32,11 +32,8 @@ namespace System.Text.Json.Diffs
                 if (!_right.TryGetPropertyValue(prop, out var rightValue))
                 {
                     // Deleted: https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#deleted
-                    diff ??= new JsonObject();
-                    diff[prop] = new JsonArray(
-                        leftValue.Clone(),
-                        Deleted,
-                        Deleted);
+                    diff ??= JsonDelta.Object();
+                    diff[prop] = JsonDelta.Deleted(leftValue);
                 }
                 else
                 {
@@ -44,7 +41,7 @@ namespace System.Text.Json.Diffs
                     var valueDiff = JsonDiffPatcher.Diff(leftValue, rightValue);
                     if (valueDiff is not null)
                     {
-                        diff ??= new JsonObject();
+                        diff ??= JsonDelta.Object();
                         diff[prop] = valueDiff;
                     }
                 }
@@ -56,8 +53,8 @@ namespace System.Text.Json.Diffs
                 if (!_left.ContainsKey(prop))
                 {
                     // Added: https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#added
-                    diff ??= new JsonObject();
-                    diff[prop] = new JsonArray(rightValue.Clone());
+                    diff ??= JsonDelta.Object();
+                    diff[prop] = JsonDelta.Added(rightValue);
                 }
             }
 

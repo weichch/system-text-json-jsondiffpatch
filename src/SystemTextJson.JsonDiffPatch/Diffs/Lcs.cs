@@ -6,6 +6,9 @@ namespace System.Text.Json.Diffs
 {
     internal readonly struct Lcs
     {
+        private const int Equal = 1;
+        private const int DeepEqual = 2;
+
         private readonly List<LcsEntry>? _entries;
 
         public Lcs(List<LcsEntry> entries)
@@ -13,7 +16,7 @@ namespace System.Text.Json.Diffs
             _entries = entries;
         }
 
-        public static Lcs Get(Span<JsonNode?> x,  Span<JsonNode?> y)
+        public static Lcs Get(Span<JsonNode?> x,  Span<JsonNode?> y, ArrayItemMatch match)
         {
             if (x.Length == 0 || y.Length == 0)
             {
@@ -26,12 +29,12 @@ namespace System.Text.Json.Diffs
             var matrixLength = m * n;
             var matrixRented = ArrayPool<int>.Shared.Rent(matrixLength);
             var matrix = matrixRented.AsSpan(0, matrixLength);
-            var equalityMatrixRented = ArrayPool<bool>.Shared.Rent(matrixLength);
-            var equalityMatrix = equalityMatrixRented.AsSpan(0, matrixLength);
+            var matchMatrixRented = ArrayPool<int>.Shared.Rent(matrixLength);
+            var matchMatrix = matchMatrixRented.AsSpan(0, matrixLength);
 
             // Initializes the matrix
             matrix.Fill(0);
-            equalityMatrix.Fill(false);
+            matchMatrix.Fill(0);
 
             try
             {
@@ -41,34 +44,34 @@ namespace System.Text.Json.Diffs
                 //
                 // Given a matrix:
                 // 
-                //   X 0 1 2 3 ... M
-                // Y
+                //   Y 0 1 2 3 ... N
+                // X
                 // 0
                 // 1
                 // 2
                 // .
                 // .
-                // N
+                // M
                 // 
                 // One-dimensional representation is:
-                // [ [Y=0, X=[0 1 2 3 ... M]], [Y=1, X=[0 1 2 3 ... M]], ..., [Y=N, X=[0 1 2 3 ... M]] ]
+                // [ [X=0, Y=[0 1 2 3 ... N]], [X=1, X=[0 1 2 3 ... N]], ..., [X=N, X=[0 1 2 3 ... N]] ]
 
                 for (var i = 1; i < m; i++)
                 {
                     for (var j = 1; j < n; j++)
                     {
-                        if (x[i - 1].DeepEquals(y[j - 1]))
+                        if (match(x[i - 1], i - 1, y[j - 1], j - 1, out var deepEqual))
                         {
-                            matrix[j * m + i] = 1 + matrix[(j - 1) * m + (i - 1)];
-                            equalityMatrix[j * m + i] = true;
+                            matrix[i * n + j] = 1 + matrix[(i - 1) * n + (j - 1)];
+                            matchMatrix[i * n + j] = deepEqual ? DeepEqual : Equal;
                         }
                         else
                         {
-                            matrix[j * m + i] = Math.Max(
+                            matrix[i * n + j] = Math.Max(
                                 // above
-                                matrix[(j - 1) * m + i],
+                                matrix[(i - 1) * n + j],
                                 // left
-                                matrix[j * m + (i - 1)]);
+                                matrix[i * n + (j - 1)]);
                         }
                     }
                 }
@@ -80,10 +83,10 @@ namespace System.Text.Json.Diffs
                     return default;
                 }
 
-                var entries = new List<LcsEntry>(Math.Min(x.Length, y.Length));
+                var entries = new List<LcsEntry>(matrix[matrixLength - 1]);
                 for (int i = m - 1, j = n - 1; i > 0 && j > 0;)
                 {
-                    if (equalityMatrix[j * m + i])
+                    if (matchMatrix[i * n + j]>0)
                     {
                         // X[i - 1] == Y [j - 1]
                         entries.Insert(0, new(x[i - 1], i - 1, j - 1));
@@ -92,19 +95,17 @@ namespace System.Text.Json.Diffs
                     }
                     else
                     {
-                        var valueAbove = matrix[(j - 1) * m + i];
-                        var valueLeft = matrix[j * m + (i - 1)];
-                        // This movement MUST BE identical to:
-                        // https://github.com/benjamine/jsondiffpatch/blob/a8cde4c666a8a25d09d8f216c7f19397f2e1b569/src/filters/lcs.js#L59
+                        var valueAbove = matrix[(i - 1) * n + j];
+                        var valueLeft = matrix[i * n + (j - 1)];
                         if (valueAbove > valueLeft)
                         {
                             // Move to above
-                            j--;
+                            i--;
                         }
                         else
                         {
                             // Move to left
-                            i--;
+                            j--;
                         }
                     }
                 }
@@ -114,7 +115,7 @@ namespace System.Text.Json.Diffs
             finally
             {
                 ArrayPool<int>.Shared.Return(matrixRented);
-                ArrayPool<bool>.Shared.Return(equalityMatrixRented);
+                ArrayPool<int>.Shared.Return(matchMatrixRented);
             }
         }
 

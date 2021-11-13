@@ -17,12 +17,12 @@ namespace System.Text.Json
 
             if (left is JsonArray leftArr && right is JsonArray rightArr)
             {
-                return new ArrayDiff(leftArr, rightArr).GetDelta();
+                return new ArrayDiff(leftArr, rightArr, null).GetDelta();
             }
 
             if (!left.DeepEquals(right))
             {
-                var diff = new JsonArray(left, right);
+                var diff = JsonDelta.Modified(left, right);
                 return diff;
             }
 

@@ -33,7 +33,7 @@ namespace System.Text.Json
         /// </summary>
         public static bool DeepEquals(this JsonNode? node0, JsonNode? node)
         {
-            return JsonNodeComparer.DeepEquals(node0, node);
+            return JsonNodeComparer.AreEqual(node0, node);
         }
     }
 }
