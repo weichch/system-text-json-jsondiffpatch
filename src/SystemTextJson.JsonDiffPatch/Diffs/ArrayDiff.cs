@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Nodes;
 
 namespace System.Text.Json.Diffs
@@ -22,6 +23,11 @@ namespace System.Text.Json.Diffs
 
         public JsonObject? GetDelta()
         {
+            Span<JsonNode?> trimmedLeft = _left.ToArray();
+            Span<JsonNode?> trimmedRight = _right.ToArray();
+
+            var lcs = Lcs.Get(trimmedLeft, trimmedRight);
+
             return null;
         }
     }

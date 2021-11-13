@@ -15,12 +15,12 @@ namespace System.Text.Json
                 return new ObjectDiff(leftObj, rightObj).GetDelta();
             }
 
-            //if (left is JsonArray leftArray && right is JsonArray rightArray)
-            //{
+            if (left is JsonArray leftArr && right is JsonArray rightArr)
+            {
+                return new ArrayDiff(leftArr, rightArr).GetDelta();
+            }
 
-            //}
-
-            if (!left.MemoryEquals(right))
+            if (!left.DeepEquals(right))
             {
                 var diff = new JsonArray(left, right);
                 return diff;

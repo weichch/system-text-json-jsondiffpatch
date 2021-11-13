@@ -7,10 +7,10 @@ namespace System.Text.Json
     /// <summary>
     /// Provides extensions to <see cref="JsonNode"/>.
     /// </summary>
-    internal static class JsonNodeExtensions
+    public static class JsonNodeExtensions
     {
         /// <summary>
-        /// Creates a deep clone of the <see cref="JsonNode"/>.
+        /// Creates a clone of the <see cref="JsonNode"/>.
         /// </summary>
         public static T? Clone<T>(this T? node)
             where T : JsonNode
@@ -29,13 +29,11 @@ namespace System.Text.Json
         }
 
         /// <summary>
-        /// Returns if two <see cref="JsonNode"/> are equal by comparing raw bytes.
+        /// Determines whether two <see cref="JsonNode"/> objects are deeply equal.
         /// </summary>
-        public static bool MemoryEquals(this JsonNode? node0, JsonNode? node)
+        public static bool DeepEquals(this JsonNode? node0, JsonNode? node)
         {
-            using var buffer1 = JsonBytes.FromNode(node0);
-            using var buffer2 = JsonBytes.FromNode(node);
-            return buffer1.Equals(buffer2);
+            return JsonNodeComparer.DeepEquals(node0, node);
         }
     }
 }
