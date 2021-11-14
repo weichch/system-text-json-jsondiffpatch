@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Nodes;
+﻿using System.Diagnostics;
+using System.Text.Json.Nodes;
 
 namespace System.Text.Json.Diffs
 {
@@ -64,7 +65,8 @@ namespace System.Text.Json.Diffs
             }
 
             EnsureDeltaType(nameof(ArrayChange), isArrayChange: true);
-            Result!.AsObject().Add(isLeft ? $"_{index:D}" : $"{index:D}", innerChange.Result.Clone());
+            Debug.Assert(innerChange.Result.Parent is null);
+            Result!.AsObject().Add(isLeft ? $"_{index:D}" : $"{index:D}", innerChange.Result);
         }
 
         public void ObjectChange(string propertyName, JsonDiffDelta innerChange)
@@ -75,7 +77,8 @@ namespace System.Text.Json.Diffs
             }
 
             EnsureDeltaType(nameof(ObjectChange));
-            Result!.AsObject().Add(propertyName, innerChange.Result.Clone());
+            Debug.Assert(innerChange.Result.Parent is null);
+            Result!.AsObject().Add(propertyName, innerChange.Result);
         }
 
         private void EnsureDeltaType(string opName, int count = 0, int opType = 0,

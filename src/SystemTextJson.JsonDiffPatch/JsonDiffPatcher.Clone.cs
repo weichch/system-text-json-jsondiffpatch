@@ -17,9 +17,7 @@ namespace System.Text.Json
                 null => (JsonNode?) null,
                 JsonObject obj => new JsonObject(obj.Select(kvp =>
                     new KeyValuePair<string, JsonNode?>(kvp.Key, kvp.Value.Clone())), obj.Options),
-                JsonArray array => array.Options is null
-                    ? new JsonArray(array.Select(Clone).ToArray())
-                    : new JsonArray(array.Options.Value, array.Select(Clone).ToArray()),
+                JsonArray array => CloneArray(array),
                 JsonValue value => CloneJsonValue(value),
                 _ => throw new NotSupportedException(
                     $"JsonNode of type '{node.GetType().Name}' is not supported.")
@@ -62,6 +60,17 @@ namespace System.Text.Json
             };
 
             return cloned;
+        }
+
+        private static JsonArray CloneArray(JsonArray arr)
+        {
+            var newArr = new JsonArray(arr.Options);
+            foreach (var cloned in arr.Select(Clone))
+            {
+                newArr.Add(cloned);
+            }
+
+            return newArr;
         }
     }
 }
