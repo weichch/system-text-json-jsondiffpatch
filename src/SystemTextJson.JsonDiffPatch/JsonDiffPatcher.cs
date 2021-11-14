@@ -1,32 +1,38 @@
-﻿using System.Text.Json.Diffs;
+﻿using System.Diagnostics;
+using System.Text.Json.Diffs;
 using System.Text.Json.Nodes;
 
 namespace System.Text.Json
 {
-    public static class JsonDiffPatcher
+    public static partial class JsonDiffPatcher
     {
-        public static JsonNode? Diff(JsonNode? left, JsonNode? right)
+        public static JsonNode? Diff(JsonNode? left, JsonNode? right, JsonDiffOptions options = default)
         {
+            var delta = new JsonDiffDelta();
+
             left ??= string.Empty;
             right ??= string.Empty;
 
             if (left is JsonObject leftObj && right is JsonObject rightObj)
             {
-                return new ObjectDiff(leftObj, rightObj).GetDelta();
+                DiffObject(ref delta, leftObj, rightObj, options);
+                return delta.Result;
             }
 
             if (left is JsonArray leftArr && right is JsonArray rightArr)
             {
-                return new ArrayDiff(leftArr, rightArr, null).GetDelta();
+                DiffArray(ref delta, leftArr, rightArr, options);
+                return delta.Result;
             }
 
             if (!left.DeepEquals(right))
             {
-                var diff = JsonDelta.Modified(left, right);
-                return diff;
+                delta.Modified(left, right);
+                return delta.Result;
             }
 
-            return null;
+            Debug.Assert(delta.Result is null);
+            return delta.Result;
         }
     }
 }
