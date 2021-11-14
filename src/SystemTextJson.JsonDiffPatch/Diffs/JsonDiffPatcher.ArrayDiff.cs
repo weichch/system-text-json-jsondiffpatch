@@ -132,7 +132,7 @@ namespace System.Text.Json
                     {
                         // Added, detect if it's moved item
                         var isMoved = false;
-                        if (options.DetectArrayMove && removedIndices is not null)
+                        if (!options.SuppressDetectArrayMove && removedIndices is not null)
                         {
                             for (var j = 0; j < removedIndices.Count; j++)
                             {

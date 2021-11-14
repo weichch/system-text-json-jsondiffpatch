@@ -8,9 +8,9 @@ namespace System.Text.Json
     public struct JsonDiffOptions
     {
         /// <summary>
-        /// Specifies whether to detect array move. Default value is <c>false</c>.
+        /// Specifies whether to suppress detect array move. Default value is <c>false</c>.
         /// </summary>
-        public bool DetectArrayMove { get; set; }
+        public bool SuppressDetectArrayMove { get; set; }
 
         /// <summary>
         /// Specifies whether to include moved item value. See
