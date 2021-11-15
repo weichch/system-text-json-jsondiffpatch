@@ -5,6 +5,8 @@ namespace System.Text.Json
 {
     static partial class JsonDiffPatcher
     {
+        private delegate bool TryGetValue<T>(out T value) where T : IEquatable<T>;
+
         /// <summary>
         /// Determines whether two <see cref="JsonNode"/> objects are deeply equal.
         /// </summary>
@@ -98,39 +100,92 @@ namespace System.Text.Json
             var ret2 = val2.TryGetValue<object>(out var innerValue2);
             Debug.Assert(ret2);
 
-            if (innerValue1 is JsonElement element1 && innerValue2 is JsonElement element2)
+            var e1 = Cast<JsonElement>(innerValue1);
+            var e2 = Cast<JsonElement>(innerValue2);
+
+            if (e1.HasValue && e2.HasValue)
             {
-                if (element1.ValueKind != element2.ValueKind)
+                if (e1.Value.ValueKind != e2.Value.ValueKind)
                 {
                     return false;
                 }
 
-                switch (element1.ValueKind)
+                switch (e1.Value.ValueKind)
                 {
                     case JsonValueKind.False:
                     case JsonValueKind.True:
-                        return element1.GetBoolean().Equals(element2.GetBoolean());
+                        return e1.Value.GetBoolean().Equals(e2.Value.GetBoolean());
                     case JsonValueKind.String:
-                        return CompareStringElement(element1, element2);
+                        return CompareStringElement(e1.Value, e2.Value);
                     case JsonValueKind.Number:
-                        return CompareNumberElement(element1, element2);
+                        return CompareNumberElement(e1.Value, e2.Value);
                     case JsonValueKind.Null:
                     case JsonValueKind.Undefined:
                         return true;
                     // The two below should not happen and it's not efficient comparison
                     case JsonValueKind.Object:
-                        return DeepEquals(JsonObject.Create(element1), JsonObject.Create(element2));
+                        return DeepEquals(JsonObject.Create(e1.Value), JsonObject.Create(e2.Value));
                     case JsonValueKind.Array:
-                        return DeepEquals(JsonArray.Create(element1), JsonArray.Create(element2));
+                        return DeepEquals(JsonArray.Create(e1.Value), JsonArray.Create(e2.Value));
                     default:
-                        Debug.Assert(false, $"Unknown value kind '{element1.ValueKind}'.");
+                        Debug.Assert(false, $"Unknown value kind '{e1.Value.ValueKind}'.");
                         break;
                 }
+            }
+            else if (e1.HasValue || e2.HasValue)
+            {
+                // We have a complex case here, that one of the values is represented by CLR object
+                // and another is by JsonElement, we need to convert the JSON element to the right type
+                var objValue = e1.HasValue ? innerValue2 : innerValue1;
+                var element = (e1 ?? e2)!.Value;
+
+                // This list must be identical to the list in JsonDiffPatcher.CloneJsonValue
+                return objValue switch
+                {
+                    null => element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined,
+                    bool actualValue => element.ValueKind is JsonValueKind.True or JsonValueKind.False
+                                        && actualValue.Equals(element.GetBoolean()),
+                    byte actualValue => ElementValueEquals(actualValue, element.TryGetByte),
+                    char actualValue => element.ValueKind == JsonValueKind.String
+                                        && string.Equals(element.GetString(), $"{actualValue}"),
+                    DateTime actualValue => ElementValueEquals(actualValue, element.TryGetDateTime),
+                    DateTimeOffset actualValue => ElementValueEquals(actualValue, element.TryGetDateTimeOffset),
+                    decimal actualValue => ElementValueEquals(actualValue, element.TryGetDecimal),
+                    double actualValue => ElementValueEquals(actualValue, element.TryGetDouble),
+                    Guid actualValue => ElementValueEquals(actualValue, element.TryGetGuid),
+                    short actualValue => ElementValueEquals(actualValue, element.TryGetInt16),
+                    int actualValue => ElementValueEquals(actualValue, element.TryGetInt32),
+                    long actualValue => ElementValueEquals(actualValue, element.TryGetInt64),
+                    sbyte actualValue => ElementValueEquals(actualValue, element.TryGetSByte),
+                    float actualValue => ElementValueEquals(actualValue, element.TryGetSingle),
+                    string actualValue => element.ValueKind == JsonValueKind.String
+                                          && string.Equals(element.GetString(), actualValue),
+                    ushort actualValue => ElementValueEquals(actualValue, element.TryGetUInt16),
+                    uint actualValue => ElementValueEquals(actualValue, element.TryGetUInt32),
+                    ulong actualValue => ElementValueEquals(actualValue, element.TryGetUInt64),
+                    _ => false
+                };
             }
 
             // We don't have JSON value type, fallback to object equals
             // This do not support unboxing objects and use overloaded operators
             return Equals(innerValue1, innerValue2);
+
+            static T? Cast<T>(object? obj) where T : struct
+            {
+                if (obj is T value)
+                {
+                    return value;
+                }
+
+                return default;
+            }
+
+            static bool ElementValueEquals<T>(T actualValue, TryGetValue<T> func)
+                where T : struct, IEquatable<T>
+            {
+                return func(out var value) && actualValue.Equals(value);
+            }
         }
 
         private static bool CompareStringElement(JsonElement element1, JsonElement element2)

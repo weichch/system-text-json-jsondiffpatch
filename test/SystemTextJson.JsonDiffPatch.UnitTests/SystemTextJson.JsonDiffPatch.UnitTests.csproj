@@ -23,10 +23,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Examples\left.json">
+    <None Update="Examples\demo_left.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Examples\right.json">
+    <None Update="Examples\demo_result.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Examples\demo_right.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -1,0 +1,82 @@
+﻿{
+  "summary": [
+    "@@ -638,17 +638,17 @@\n via, Bra\n-z\n+s\n il,  %0aCh\n@@ -916,20 +916,13 @@\n re a\n-lso known as\n+.k.a.\n  Car\n",
+    0,
+    2
+  ],
+  "surface": [
+    17840000,
+    0,
+    0
+  ],
+  "demographics": {
+    "population": [
+      385742554,
+      385744896
+    ]
+  },
+  "languages": {
+    "2": [
+      "inglés"
+    ],
+    "_t": "a",
+    "_2": [
+      "english",
+      0,
+      0
+    ]
+  },
+  "countries": {
+    "0": {
+      "capital": [
+        "Buenos Aires",
+        "Rawson"
+      ]
+    },
+    "9": [
+      {
+        "name": "Antártida",
+        "unasur": false
+      }
+    ],
+    "10": {
+      "population": [
+        42888594
+      ]
+    },
+    "_t": "a",
+    "_4": [
+      "",
+      10,
+      3
+    ],
+    "_8": [
+      "",
+      2,
+      3
+    ],
+    "_10": [
+      {
+        "name": "Uruguay",
+        "capital": "Montevideo",
+        "independence": "1825-08-24T12:20:56.000Z",
+        "unasur": true
+      },
+      0,
+      0
+    ],
+    "_11": [
+      {
+        "name": "Venezuela",
+        "capital": "Caracas",
+        "independence": "1811-07-04T12:20:56.000Z",
+        "unasur": true
+      },
+      0,
+      0
+    ]
+  },
+  "spanishName": [
+    "Sudamérica"
+  ]
+}
