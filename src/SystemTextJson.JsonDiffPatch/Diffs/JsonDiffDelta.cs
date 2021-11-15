@@ -64,9 +64,19 @@ namespace System.Text.Json.Diffs
                 return;
             }
 
+            var result = innerChange.Result;
+            Debug.Assert(result.Parent is null);
+
+            if (result.Parent is not null)
+            {
+                // This can be very slow. We don't want this to happen but
+                // in the meantime, we can't fail the operation due to this
+                result = result.Clone();
+            }
+
             EnsureDeltaType(nameof(ArrayChange), isArrayChange: true);
-            Debug.Assert(innerChange.Result.Parent is null);
-            Result!.AsObject().Add(isLeft ? $"_{index:D}" : $"{index:D}", innerChange.Result);
+            var obj = Result!.AsObject();
+            obj.Add(isLeft ? $"_{index:D}" : $"{index:D}", result);
         }
 
         public void ObjectChange(string propertyName, JsonDiffDelta innerChange)
@@ -76,9 +86,28 @@ namespace System.Text.Json.Diffs
                 return;
             }
 
+            var result = innerChange.Result;
+            Debug.Assert(result.Parent is null);
+
+            if (result.Parent is not null)
+            {
+                // This can be very slow. We don't want this to happen but
+                // in the meantime, we can't fail the operation due to this
+                result = result.Clone();
+            }
+
             EnsureDeltaType(nameof(ObjectChange));
-            Debug.Assert(innerChange.Result.Parent is null);
-            Result!.AsObject().Add(propertyName, innerChange.Result);
+            var obj = Result!.AsObject();
+            obj.Add(propertyName, result);
+        }
+
+        public void Text(string diff)
+        {
+            EnsureDeltaType(nameof(Text), count: 3, opType: OpTypeTextDiff);
+            var arr = Result!.AsArray();
+            arr[0] = diff;
+            arr[1] = 0;
+            arr[2] = OpTypeTextDiff;
         }
 
         private void EnsureDeltaType(string opName, int count = 0, int opType = 0,

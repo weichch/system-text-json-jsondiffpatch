@@ -9,10 +9,6 @@ namespace System.Text.Json.Diffs
     /// <param name="indexX">The index of <paramref name="x"/> in array1.</param>
     /// <param name="y">The element in array2.</param>
     /// <param name="indexY">The index of <paramref name="y"/> in array2.</param>
-    public delegate bool ArrayItemMatch(
-        JsonNode? x,
-        int indexX,
-        JsonNode? y,
-        int indexY,
-        out bool deepEqual);
+    public delegate bool ArrayItemMatch(JsonNode? x, int indexX,
+        JsonNode? y, int indexY, out bool deepEqual);
 }

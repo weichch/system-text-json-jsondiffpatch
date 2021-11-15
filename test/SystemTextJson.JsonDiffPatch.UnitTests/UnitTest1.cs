@@ -19,13 +19,16 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         [Fact]
         public void Test1()
         {
-            var json = $"{{ \"a\" : [{string.Join(",", Enumerable.Range(1, 1000))}] }}";
+            var json = $"{{ \"t\":\"abcd\", \"a\" : [{string.Join(",", Enumerable.Range(1, 1000))}] }}";
             var left = JsonNode.Parse(json);
-            var right = JsonNode.Parse("{ \"a\" : [] }");
+            var right = JsonNode.Parse("{ \"t\":\"abcde\", \"a\" : [] }");
 
 
             var sw = Stopwatch.StartNew();
-            var diff = JsonDiffPatcher.Diff(left, right);
+            var diff = JsonDiffPatcher.Diff(left, right, new JsonDiffOptions
+            {
+                TextDiffMinLength = 10
+            });
             sw.Stop();
 
             _testOutputHelper.WriteLine(sw.Elapsed.TotalMilliseconds.ToString());

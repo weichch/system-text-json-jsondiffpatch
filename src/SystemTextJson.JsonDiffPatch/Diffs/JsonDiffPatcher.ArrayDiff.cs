@@ -15,7 +15,7 @@ namespace System.Text.Json
             ref JsonDiffDelta delta,
             JsonArray left, 
             JsonArray right,
-            JsonDiffOptions options)
+            in JsonDiffOptionsView options)
         {
             // Both are empty arrays
             if (left.Count == 0 && right.Count == 0)
@@ -177,7 +177,7 @@ namespace System.Text.Json
                 JsonArray right,
                 int rightIndex,
                 bool deepEqual,
-                JsonDiffOptions options)
+                in JsonDiffOptionsView options)
             {
                 if (deepEqual)
                 {

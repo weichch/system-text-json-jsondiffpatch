@@ -14,7 +14,7 @@ namespace System.Text.Json
             ref JsonDiffDelta delta, 
             JsonObject left, 
             JsonObject right,
-            JsonDiffOptions options)
+            in JsonDiffOptionsView options)
         {
             var leftProperties = (left as IDictionary<string, JsonNode?>).Keys;
             var rightProperties = (right as IDictionary<string, JsonNode?>).Keys;
