@@ -109,13 +109,11 @@ namespace System.Text.Json
                 {
                     case JsonValueKind.False:
                     case JsonValueKind.True:
-                        return element1.GetBoolean().CompareTo(element2.GetBoolean()) == 0;
+                        return element1.GetBoolean().Equals(element2.GetBoolean());
                     case JsonValueKind.String:
-                        return string.Equals(element1.GetString(), element2.GetString(), StringComparison.Ordinal);
+                        return CompareStringElement(element1, element2);
                     case JsonValueKind.Number:
-                        // We can't know the exact type of the number in CLR, so decimal is used
-                        // This might cause precision loss for doubles passed as numbers
-                        return element1.GetDecimal().CompareTo(element2.GetDecimal()) == 0;
+                        return CompareNumberElement(element1, element2);
                     case JsonValueKind.Null:
                     case JsonValueKind.Undefined:
                         return true;
@@ -133,6 +131,48 @@ namespace System.Text.Json
             // We don't have JSON value type, fallback to object equals
             // This do not support unboxing objects and use overloaded operators
             return Equals(innerValue1, innerValue2);
+        }
+
+        private static bool CompareStringElement(JsonElement element1, JsonElement element2)
+        {
+            if (element1.TryGetDateTimeOffset(out var d1)
+                && element2.TryGetDateTimeOffset(out var d2))
+            {
+                return d1.Equals(d2);
+            }
+
+            if (element1.TryGetDateTime(out var dt1)
+                && element2.TryGetDateTime(out var dt2))
+            {
+                return dt1.Equals(dt2);
+            }
+
+            if (element1.TryGetGuid(out var g1)
+                && element2.TryGetGuid(out var g2))
+            {
+                return g1.Equals(g2);
+            }
+
+            return string.Equals(element1.GetString(), element2.GetString(), StringComparison.Ordinal);
+        }
+
+        private static bool CompareNumberElement(JsonElement element1, JsonElement element2)
+        {
+            // We can't know the exact type of the number in CLR, so decimal is used as the first choice
+            // This might cause precision loss for doubles passed as numbers if the underlying parse
+            // method in System.Text.Json allows this conversion
+            if (element1.TryGetDecimal(out var m1) && element2.TryGetDecimal(out var m2))
+            {
+                return m1.Equals(m2);
+            }
+
+            // If numbers are not decimal, try doubles
+            if (element1.TryGetDouble(out var d1) && element2.TryGetDouble(out var d2))
+            {
+                return d1.Equals(d2);
+            }
+            
+            return false;
         }
     }
 }
