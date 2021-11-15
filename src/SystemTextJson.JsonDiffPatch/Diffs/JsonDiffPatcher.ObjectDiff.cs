@@ -30,7 +30,7 @@ namespace System.Text.Json
                 else
                 {
                     // Modified: https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#modified
-                    var valueDiff = Diff(leftValue, rightValue, options);
+                    var valueDiff = DiffInternal(leftValue, rightValue, options);
                     delta.ObjectChange(prop, valueDiff);
                 }
             }

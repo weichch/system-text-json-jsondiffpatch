@@ -126,7 +126,7 @@ namespace System.Text.Json
                         }
 
                         // We have two objects equal by position or other criteria
-                        var itemDiff = Diff(left[entry.LeftIndex], right[entry.RightIndex], options);
+                        var itemDiff = DiffInternal(left[entry.LeftIndex], right[entry.RightIndex], options);
                         delta.ArrayChange(i, false, itemDiff);
                     }
                     else
@@ -147,7 +147,7 @@ namespace System.Text.Json
                                         options.IncludeValueOnMove);
 
                                     // Diff removed item in left and new item in right
-                                    var itemDiff = Diff(left[removedLeftIndex], right[i], options);
+                                    var itemDiff = DiffInternal(left[removedLeftIndex], right[i], options);
                                     delta.ArrayChange(i, false, itemDiff);
 
                                     removedIndices.RemoveAt(j);
@@ -185,7 +185,7 @@ namespace System.Text.Json
                     return;
                 }
 
-                var itemDiff = Diff(left[leftIndex], right[rightIndex], options);
+                var itemDiff = DiffInternal(left[leftIndex], right[rightIndex], options);
                 delta.ArrayChange(rightIndex, false, itemDiff);
             }
         }
