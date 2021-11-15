@@ -165,6 +165,18 @@ namespace System.Text.Json.Diffs
                     }
                     else
                     {
+                        if (valueAbove == valueLeft)
+                        {
+                            var weightAbove = matchMatrix[(i - 1) * n + j];
+                            var weightLeft = matchMatrix[(i - 1) * n + j];
+                            if (weightAbove > weightLeft)
+                            {
+                                // Move to above, e.g. above was deeply equal
+                                i--;
+                                continue;
+                            }
+                        }
+
                         // Move to left
                         j--;
                     }

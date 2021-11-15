@@ -22,4 +22,13 @@
     <ProjectReference Include="..\..\src\SystemTextJson.JsonDiffPatch\SystemTextJson.JsonDiffPatch.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Examples\left.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Examples\right.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

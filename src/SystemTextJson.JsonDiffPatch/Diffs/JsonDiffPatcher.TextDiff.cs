@@ -64,8 +64,20 @@ namespace System.Text.Json
 
                 if (valueLeft is JsonElement elementLeft && valueRight is JsonElement elementRight)
                 {
-                    if (elementLeft.ValueKind != JsonValueKind.String || elementRight.ValueKind != JsonValueKind.String)
+                    if (elementLeft.ValueKind != JsonValueKind.String
+                        || elementRight.ValueKind != JsonValueKind.String)
                     {
+                        break;
+                    }
+
+                    if (elementLeft.TryGetDateTimeOffset(out _)
+                        || elementLeft.TryGetDateTime(out _)
+                        || elementLeft.TryGetGuid(out _)
+                        || elementRight.TryGetDateTimeOffset(out _)
+                        || elementRight.TryGetDateTime(out _)
+                        || elementRight.TryGetGuid(out _))
+                    {
+                        // Not text values
                         break;
                     }
 

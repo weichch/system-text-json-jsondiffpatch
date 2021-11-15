@@ -23,7 +23,8 @@ namespace System.Text.Json
                 return;
             }
 
-            var match = options.ArrayItemMatcher ?? MatchArrayItem;
+            var match = options.ArrayItemMatcher 
+                        ?? new DefaultArrayItemComparer(options).MatchArrayItem;
 
             // Find command head
             int commonHead;
@@ -187,40 +188,6 @@ namespace System.Text.Json
                 var itemDiff = Diff(left[leftIndex], right[rightIndex], options);
                 delta.ArrayChange(rightIndex, false, itemDiff);
             }
-        }
-
-        /// <summary>
-        /// Returns if one JSON node matches another. Nodes are considered match if:
-        /// <list type="bullet">
-        ///     <item>they are deeply equal, OR</item>
-        ///     <item>they are of JavaScript object type (<see cref="JsonObject"/> and <see cref="JsonArray"/>)
-        ///           and their positions in corresponding arrays are equal
-        ///     </item>
-        /// </list>
-        /// </summary>
-        /// <remarks>
-        /// See: https://github.com/benjamine/jsondiffpatch/blob/a8cde4c666a8a25d09d8f216c7f19397f2e1b569/src/filters/arrays.js#L43
-        /// </remarks>
-        private static bool MatchArrayItem(JsonNode? x, int indexX, JsonNode? y,
-            int indexY, out bool deepEqual)
-        {
-            deepEqual = false;
-
-            if (x is JsonObject or JsonArray && y is JsonObject or JsonArray)
-            {
-                if (indexX == indexY)
-                {
-                    return true;
-                }
-            }
-
-            if (x.DeepEquals(y))
-            {
-                deepEqual = true;
-                return true;
-            }
-
-            return false;
         }
     }
 }
