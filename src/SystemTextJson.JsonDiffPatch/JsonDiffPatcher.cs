@@ -102,8 +102,8 @@ namespace System.Text.Json
         {
             var delta = new JsonDiffDelta();
 
-            left ??= string.Empty;
-            right ??= string.Empty;
+            Materialize(ref left, options);
+            Materialize(ref right, options);
 
             // Compare two objects
             if (left is JsonObject leftObj && right is JsonObject rightObj)
@@ -137,6 +137,18 @@ namespace System.Text.Json
 
             Debug.Assert(delta.Result is null);
             return null;
+
+            static void Materialize(ref JsonNode? obj, in JsonDiffOptionsView options)
+            {
+                if (obj is null)
+                {
+                    obj = "";
+                }
+                else if (options.MaterializeBeforeDiff)
+                {
+                    obj = obj.Clone(true);
+                }
+            }
         }
     }
 }

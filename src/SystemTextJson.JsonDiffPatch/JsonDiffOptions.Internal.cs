@@ -10,6 +10,7 @@ namespace System.Text.Json
     {
         public JsonDiffOptionsView(JsonDiffOptions options)
         {
+            MaterializeBeforeDiff = options.MaterializeBeforeDiff;
             SuppressDetectArrayMove = options.SuppressDetectArrayMove;
             IncludeValueOnMove = options.IncludeValueOnMove;
             ArrayItemMatcher = options.ArrayItemMatcher;
@@ -20,6 +21,7 @@ namespace System.Text.Json
             TextMatcher = options.TextMatcher;
         }
 
+        public bool MaterializeBeforeDiff { get; }
         public bool SuppressDetectArrayMove { get; }
         public bool IncludeValueOnMove { get; }
         public ArrayItemMatch? ArrayItemMatcher { get; }

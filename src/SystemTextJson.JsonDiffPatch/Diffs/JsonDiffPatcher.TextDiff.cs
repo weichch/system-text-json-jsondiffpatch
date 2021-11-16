@@ -59,8 +59,8 @@ namespace System.Text.Json
                     break;
                 }
 
-                var valueLeft = left.GetValue<object>();
-                var valueRight = right.GetValue<object>();
+                var valueLeft = left.AsValue().GetObjectValue();
+                var valueRight = right.AsValue().GetObjectValue();
 
                 if (valueLeft is JsonElement elementLeft && valueRight is JsonElement elementRight)
                 {

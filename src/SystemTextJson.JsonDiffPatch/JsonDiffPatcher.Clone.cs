@@ -9,16 +9,28 @@ namespace System.Text.Json
         /// <summary>
         /// Creates a clone of the <see cref="JsonNode"/>.
         /// </summary>
+        /// <param name="node">The <see cref="JsonNode"/>.</param>
         public static T? Clone<T>(this T? node)
+            where T : JsonNode
+        {
+            return node.Clone(false);
+        }
+
+        /// <summary>
+        /// Creates a clone of the <see cref="JsonNode"/>.
+        /// </summary>
+        /// <param name="node">The <see cref="JsonNode"/>.</param>
+        /// <param name="materialize">Whether to materialize the <see cref="JsonNode"/> if it is backed by a <see cref="JsonElement"/>.</param>
+        internal static T? Clone<T>(this T? node, bool materialize)
             where T : JsonNode
         {
             return (T?) (node switch
             {
                 null => (JsonNode?) null,
                 JsonObject obj => new JsonObject(obj.Select(kvp =>
-                    new KeyValuePair<string, JsonNode?>(kvp.Key, kvp.Value.Clone())), obj.Options),
-                JsonArray array => CloneArray(array),
-                JsonValue value => CloneJsonValue(value),
+                    new KeyValuePair<string, JsonNode?>(kvp.Key, kvp.Value.Clone(materialize))), obj.Options),
+                JsonArray array => CloneArray(array, materialize),
+                JsonValue value => CloneJsonValue(value, materialize),
                 _ => throw new NotSupportedException(
                     $"JsonNode of type '{node.GetType().Name}' is not supported.")
             });
@@ -27,18 +39,20 @@ namespace System.Text.Json
         /// <summary>
         /// Creates a clone of the JSON value using the most appropriate method.
         /// </summary>
-        private static JsonValue? CloneJsonValue(JsonValue? value)
+        private static JsonValue? CloneJsonValue(JsonValue? value, bool materialize)
         {
             if (value is null)
             {
                 return null;
             }
 
-            var objValue = value.GetValue<object>();
+            var objValue = value.GetObjectValue();
             var cloned = objValue switch
             {
                 null => null,
-                JsonElement actualValue => JsonValue.Create(actualValue, value.Options),
+                JsonElement actualValue => materialize
+                    ? MaterializeJsonElement(actualValue)
+                    : JsonValue.Create(actualValue, value.Options),
                 bool actualValue => JsonValue.Create(actualValue, value.Options),
                 byte actualValue => JsonValue.Create(actualValue, value.Options),
                 char actualValue => JsonValue.Create(actualValue, value.Options),
@@ -62,15 +76,68 @@ namespace System.Text.Json
             return cloned;
         }
 
-        private static JsonArray CloneArray(JsonArray arr)
+        private static JsonArray CloneArray(JsonArray arr, bool materialize)
         {
             var newArr = new JsonArray(arr.Options);
-            foreach (var cloned in arr.Select(Clone))
+            foreach (var cloned in arr.Select(item => item.Clone(materialize)))
             {
                 newArr.Add(cloned);
             }
 
             return newArr;
+        }
+
+        private static JsonValue? MaterializeJsonElement(JsonElement element)
+        {
+            // We need to box the result so that access to the property could be faster
+            // via GetObjectResult method
+            object? result = null;
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.False:
+                case JsonValueKind.True:
+                    result = false;
+                    break;
+                case JsonValueKind.String:
+                    if (element.TryGetDateTimeOffset(out var dt))
+                    {
+                        result = dt;
+                    }
+                    else if (element.TryGetDateTime(out var d))
+                    {
+                        result = d;
+                    }
+                    else if (element.TryGetGuid(out var g))
+                    {
+                        result = g;
+                    }
+                    else
+                    {
+                        result = element.GetString();
+                    }
+
+                    break;
+                case JsonValueKind.Number:
+                    if (element.TryGetDecimal(out var m))
+                    {
+                        result = m;
+                    }
+                    else if (element.TryGetDouble(out var d))
+                    {
+                        result = d;
+                    }
+
+                    break;
+                case JsonValueKind.Null:
+                case JsonValueKind.Undefined:
+                case JsonValueKind.Object:
+                case JsonValueKind.Array:
+                default:
+                    result = null;
+                    break;
+            }
+
+            return JsonValue.Create(result);
         }
     }
 }

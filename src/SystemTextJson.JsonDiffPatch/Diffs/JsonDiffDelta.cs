@@ -130,7 +130,8 @@ namespace System.Text.Json.Diffs
                     // Check delta object is for array
                     string? deltaType = null;
                     deltaObject.TryGetPropertyValue("_t", out var typeNode);
-                    typeNode?.AsValue().TryGetValue<string>(out deltaType);
+                    // Perf: this is fine we shouldn't have a node backed by JsonElement here
+                    typeNode?.AsValue().TryGetValue(out deltaType);
 
                     if (string.Equals(deltaType, "a") == isArrayChange)
                     {

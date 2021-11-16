@@ -52,5 +52,19 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
 
             Assert.True(result.DeepEquals(diff));
         }
+
+        [Fact]
+        public void Diff_LargeObjects()
+        {
+            var diff = JsonDiffPatcher.DiffFile(
+                    @"Examples\large_left.json",
+                    @"Examples\large_right.json")?
+                .ToJsonString(new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+
+            Assert.NotNull(diff);
+        }
     }
 }

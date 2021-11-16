@@ -1,4 +1,4 @@
-﻿using System.Linq;
+﻿using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using BenchmarkDotNet.Attributes;
@@ -6,39 +6,142 @@ using Newtonsoft.Json.Linq;
 
 namespace SystemTextJson.JsonDiffPatch.Benchmark
 {
-    [MinColumn, MaxColumn, MemoryDiagnoser]
     public class SimpleDiffBenchmark
     {
-        private readonly JToken _jsonObj11;
-        private readonly JToken _jsonObj12;
-        private readonly JsonNode _jsonObj21;
-        private readonly JsonNode _jsonObj22;
-
         private readonly JsonDiffPatchDotNet.JsonDiffPatch _instance1;
+        private readonly string _jsonBefore;
+        private readonly string _jsonAfter;
+        private readonly string _jsonLargeBefore;
+        private readonly string _jsonLargeAfter;
 
         public SimpleDiffBenchmark()
         {
-            var jsonBefore = $@"{{ ""a"": [ {string.Join(",", Enumerable.Range(1, 1000))} ], ""b"": null }}";
-            var jsonAfter = @"{ ""a"": [ 1,3,2,4 ], ""c"": 123 }";
+            _jsonBefore = File.ReadAllText(@"Examples\demo_left.json");
+            _jsonAfter = File.ReadAllText(@"Examples\demo_right.json");
 
-            _jsonObj11 = JToken.Parse(jsonBefore);
-            _jsonObj12 = JToken.Parse(jsonAfter);
-            _jsonObj21 = JsonNode.Parse(jsonBefore)!;
-            _jsonObj22 = JsonNode.Parse(jsonAfter)!;
+            _jsonLargeBefore = File.ReadAllText(@"Examples\large_left.json");
+            _jsonLargeAfter = File.ReadAllText(@"Examples\large_right.json");
 
             _instance1 = new JsonDiffPatchDotNet.JsonDiffPatch();
         }
 
         [Benchmark]
-        public JsonNode? SystemTextJsonJsonDiffPatcher()
-            => _jsonObj21.Diff(_jsonObj22, new JsonDiffOptions
-            {
-                // JsonDiffPatchDotNet does not support array move
-                SuppressDetectArrayMove = true
-            });
+        public JToken? DemoObject_JsonNet()
+        {
+            var token1 = JToken.Parse(_jsonBefore);
+            var token2 = JToken.Parse(_jsonAfter);
+            return _instance1.Diff(token1, token2);
+        }
 
         [Benchmark]
-        public JToken? JsonDiffPatchDotNet()
-            => _instance1.Diff(_jsonObj11, _jsonObj12);
+        public JsonNode? DemoObject_DefaultOptions()
+        {
+            return JsonDiffPatcher.Diff(_jsonBefore, _jsonAfter,
+                new JsonDiffOptions
+                {
+                    ArrayItemMatcher = JsonNetArrayItemMatch
+                });
+        }
+
+        [Benchmark]
+        public JsonNode? DemoObject_NoArrayMove()
+        {
+            return JsonDiffPatcher.Diff(_jsonBefore, _jsonAfter,
+                new JsonDiffOptions
+                {
+                    SuppressDetectArrayMove = true,
+                    ArrayItemMatcher = JsonNetArrayItemMatch
+                });
+        }
+
+        [Benchmark]
+        public JsonNode? DemoObject_Materialized()
+        {
+            return JsonDiffPatcher.Diff(_jsonBefore, _jsonAfter,
+                new JsonDiffOptions
+                {
+                    MaterializeBeforeDiff = true,
+                    ArrayItemMatcher = JsonNetArrayItemMatch
+                });
+        }
+
+        [Benchmark]
+        public JsonNode? DemoObject_NoArrayMoveAndMaterialized()
+        {
+            return JsonDiffPatcher.Diff(_jsonBefore, _jsonAfter,
+                new JsonDiffOptions
+                {
+                    SuppressDetectArrayMove = true,
+                    MaterializeBeforeDiff = true,
+                    ArrayItemMatcher = JsonNetArrayItemMatch
+                });
+        }
+
+        [Benchmark]
+        public JToken? LargeObject_JsonNet()
+        {
+            var token1 = JToken.Parse(_jsonLargeBefore);
+            var token2 = JToken.Parse(_jsonLargeAfter);
+            return _instance1.Diff(token1, token2);
+        }
+
+        [Benchmark]
+        public JsonNode? LargeObject_DefaultOptions()
+        {
+            return JsonDiffPatcher.Diff(_jsonLargeBefore, _jsonLargeAfter,
+                new JsonDiffOptions
+                {
+                    ArrayItemMatcher = JsonNetArrayItemMatch
+                });
+        }
+
+        [Benchmark]
+        public JsonNode? LargeObject_NoArrayMove()
+        {
+            return JsonDiffPatcher.Diff(_jsonLargeBefore, _jsonLargeAfter,
+                new JsonDiffOptions
+                {
+                    SuppressDetectArrayMove = true,
+                    ArrayItemMatcher = JsonNetArrayItemMatch
+                });
+        }
+
+        [Benchmark]
+        public JsonNode? LargeObject_Materialized()
+        {
+            return JsonDiffPatcher.Diff(_jsonLargeBefore, _jsonLargeAfter,
+                new JsonDiffOptions
+                {
+                    MaterializeBeforeDiff = true,
+                    ArrayItemMatcher = JsonNetArrayItemMatch
+                });
+        }
+
+        [Benchmark]
+        public JsonNode? LargeObject_NoArrayMoveAndMaterialized()
+        {
+            return JsonDiffPatcher.Diff(_jsonLargeBefore, _jsonLargeAfter,
+                new JsonDiffOptions
+                {
+                    SuppressDetectArrayMove = true,
+                    MaterializeBeforeDiff = true,
+                    ArrayItemMatcher = JsonNetArrayItemMatch
+                });
+        }
+
+        // Simulate array item match algorithm in JsonNet version
+        private static bool JsonNetArrayItemMatch(JsonNode? x, int i, JsonNode? y, int j, out bool deepEq)
+        {
+            deepEq = false;
+
+            if (x.DeepEquals(y) 
+                || (x is JsonObject && y is JsonObject) 
+                || (x is JsonArray || y is JsonArray))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }
