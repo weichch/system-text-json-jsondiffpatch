@@ -96,7 +96,7 @@ namespace System.Text.Json
             var ret1 = val1.TryGetValue<JsonElement>(out var e1);
             var ret2 = val2.TryGetValue<JsonElement>(out var e2);
 
-            // Case 1: both backed by JsonElement
+            // Happy scenario: both backed by JsonElement
             if (ret1 && ret2)
             {
                 if (e1.ValueKind != e2.ValueKind)
@@ -113,73 +113,113 @@ namespace System.Text.Json
                 }
 
                 // Perf: If the values are backed by JsonElement, we need to materialize the values
-                // and compare raw text values. This may consume a lot memory for large JSON objects
+                // and compare raw text because there is no way to compare the bytes.
+                // This may consume a lot memory for large JSON objects.
                 return Equals(e1.GetRawText(), e2.GetRawText());
             }
 
             if (ret1 || ret2)
             {
-                var materialized = (ret1 ? val1 : val2).Clone(true);
-                if (materialized is null)
-                {
-                    return false;
-                }
-
-                var value = ret1 ? val2 : val1;
-
-                return ValueEquals(materialized, value);
+                // Perf: This is slower than direct property access
+                var capturedValue = ret1 ? val2.GetValue<object>() : val1.GetValue<object>();
+                var element = ret1 ? e1 : e2;
+                return CompareJsonElementWithObject(element, capturedValue);
             }
 
-            var innerValue1 = val1.GetObjectValue();
-            var innerValue2 = val2.GetObjectValue();
+            // Perf: This is slower than direct property access
+            var innerValue1 = val1.GetValue<object>();
+            var innerValue2 = val2.GetValue<object>();
 
-            if (innerValue1 is bool b1 && innerValue2 is bool b2)
-            {
-                return b1.Equals(b2);
-            }
-
-            if (innerValue1 is char c1 && innerValue2 is char c2)
-            {
-                return c1.Equals(c2);
-            }
-
-            if (innerValue1 is ulong or decimal || innerValue2 is ulong or decimal)
-            {
-                return Convert.ToDecimal(innerValue1).Equals(Convert.ToDecimal(innerValue2));
-            }
-
-            if (innerValue1 is float or double || innerValue2 is float or double)
-            {
-                var d1 = Convert.ToDouble(innerValue1);
-                var d2 = Convert.ToDouble(innerValue2);
-
-                // This is the same epsilon value:
-                // https://github.com/JamesNK/Newtonsoft.Json/blob/f7e7bd05d9280f17993500085202ff4ea150564a/Src/Newtonsoft.Json/Utilities/MathUtils.cs#L174
-                // Also: https://docs.microsoft.com/en-us/dotnet/api/system.double.equals?view=net-5.0
-                if (Math.Abs(d1 - d2) < 2.2204460492503131E-16)
-                {
-                    return true;
-                }
-            }
-
-            if (innerValue1 is DateTime or DateTimeOffset && innerValue2 is DateTime or DateTimeOffset)
-            {
-                return innerValue1 switch
-                {
-                    DateTime dt1 when innerValue2 is DateTime dt2 => dt1.Equals(dt2),
-                    DateTime dt1 when innerValue2 is DateTimeOffset dt2 => dt1.Equals(dt2.DateTime),
-                    DateTimeOffset dt1 when innerValue2 is DateTime dt2 => dt1.Equals((DateTimeOffset) dt2),
-                    DateTimeOffset dt1 when innerValue2 is DateTimeOffset dt2 => dt1.Equals(dt2),
-                    _ => false
-                };
-            }
-
-            if (innerValue1 is Guid g1 && innerValue2 is Guid g2)
-            {
-                return g1.Equals(g2);
-            }
-
+            // For perf reasons, we don't support unboxing and overloaded operators
             return Equals(innerValue1, innerValue2);
+        }
+
+        private static bool CompareJsonElementWithObject(JsonElement element, object objectValue)
+        {
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.False:
+                case JsonValueKind.True:
+                    return objectValue is bool booleanValue
+                           && booleanValue == (element.ValueKind == JsonValueKind.True);
+
+                case JsonValueKind.String:
+
+                    switch (objectValue)
+                    {
+                        case DateTime or DateTimeOffset:
+                        {
+                            if (element.TryGetDateTimeOffset(out var dateTimeOffSetValue))
+                            {
+                                return objectValue switch
+                                {
+                                    DateTime dateTime => dateTimeOffSetValue.Equals((DateTimeOffset) dateTime),
+                                    DateTimeOffset dateTimeOffset => dateTimeOffSetValue.Equals(dateTimeOffset),
+                                    _ => false
+                                };
+                            }
+
+                            if (element.TryGetDateTime(out var dateTimeValue))
+                            {
+                                return objectValue switch
+                                {
+                                    DateTime dateTime => dateTimeValue.Equals(dateTime),
+                                    DateTimeOffset dateTimeOffset => dateTimeValue.Equals(dateTimeOffset.DateTime),
+                                    _ => false
+                                };
+                            }
+
+                            return false;
+                        }
+                        case Guid guid:
+                            return element.TryGetGuid(out var guidValue) && guidValue.Equals(guid);
+                        case byte[] bytes:
+                            return element.TryGetBytesFromBase64(out var bytesValue)
+                                   && bytes.AsSpan() == bytesValue.AsSpan();
+                    }
+
+                    var strValue = element.GetString();
+                    if (strValue is null)
+                    {
+                        return false;
+                    }
+
+                    return objectValue switch
+                    {
+                        char charValue => strValue.Length == 1 && charValue == strValue[0],
+                        string str => string.Equals(str, strValue, StringComparison.Ordinal),
+                        _ => false
+                    };
+
+                case JsonValueKind.Number:
+
+                    // For perf reasons, we don't support converting value, e.g. int -> long, or float -> double
+                    return objectValue switch
+                    {
+                        byte actualValue => element.TryGetByte(out var value) && actualValue.Equals(value),
+                        decimal actualValue => element.TryGetDecimal(out var value) && actualValue.Equals(value),
+                        double actualValue => element.TryGetDouble(out var value) && actualValue.Equals(value),
+                        short actualValue => element.TryGetInt16(out var value) && actualValue.Equals(value),
+                        int actualValue => element.TryGetInt32(out var value) && actualValue.Equals(value),
+                        long actualValue => element.TryGetInt64(out var value) && actualValue.Equals(value),
+                        sbyte actualValue => element.TryGetSByte(out var value) && actualValue.Equals(value),
+                        float actualValue => element.TryGetSingle(out var value) && actualValue.Equals(value),
+                        ushort actualValue => element.TryGetUInt16(out var value) && actualValue.Equals(value),
+                        uint actualValue => element.TryGetUInt32(out var value) && actualValue.Equals(value),
+                        ulong actualValue => element.TryGetUInt64(out var value) && actualValue.Equals(value),
+                        _ => false
+                    };
+
+                // We won't have JsonValue created from null, array or object
+                case JsonValueKind.Null:
+                case JsonValueKind.Undefined:
+                case JsonValueKind.Array:
+                case JsonValueKind.Object:
+                    Debug.Assert(false);
+                    return false;
+                default:
+                    return false;
+            }
         }
     }
 }

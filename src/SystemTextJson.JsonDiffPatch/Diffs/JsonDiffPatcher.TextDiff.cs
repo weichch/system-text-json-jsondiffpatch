@@ -59,8 +59,9 @@ namespace System.Text.Json
                     break;
                 }
 
-                var valueLeft = left.AsValue().GetObjectValue();
-                var valueRight = right.AsValue().GetObjectValue();
+                // Perf: This is slower than direct property access
+                var valueLeft = left.AsValue().GetValue<object>();
+                var valueRight = right.AsValue().GetValue<object>();
 
                 if (valueLeft is JsonElement elementLeft && valueRight is JsonElement elementRight)
                 {
@@ -73,9 +74,11 @@ namespace System.Text.Json
                     if (elementLeft.TryGetDateTimeOffset(out _)
                         || elementLeft.TryGetDateTime(out _)
                         || elementLeft.TryGetGuid(out _)
+                        || elementLeft.TryGetBytesFromBase64(out _)
                         || elementRight.TryGetDateTimeOffset(out _)
                         || elementRight.TryGetDateTime(out _)
-                        || elementRight.TryGetGuid(out _))
+                        || elementRight.TryGetGuid(out _)
+                        || elementRight.TryGetBytesFromBase64(out _))
                     {
                         // Not text values
                         break;

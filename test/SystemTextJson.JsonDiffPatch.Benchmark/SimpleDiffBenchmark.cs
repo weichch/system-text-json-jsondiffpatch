@@ -55,29 +55,6 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         }
 
         [Benchmark]
-        public JsonNode? DemoObject_Materialized()
-        {
-            return JsonDiffPatcher.Diff(_jsonBefore, _jsonAfter,
-                new JsonDiffOptions
-                {
-                    MaterializeBeforeDiff = true,
-                    ArrayItemMatcher = JsonNetArrayItemMatch
-                });
-        }
-
-        [Benchmark]
-        public JsonNode? DemoObject_NoArrayMoveAndMaterialized()
-        {
-            return JsonDiffPatcher.Diff(_jsonBefore, _jsonAfter,
-                new JsonDiffOptions
-                {
-                    SuppressDetectArrayMove = true,
-                    MaterializeBeforeDiff = true,
-                    ArrayItemMatcher = JsonNetArrayItemMatch
-                });
-        }
-
-        [Benchmark]
         public JToken? LargeObject_JsonNet()
         {
             var token1 = JToken.Parse(_jsonLargeBefore);
@@ -106,29 +83,6 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
                 });
         }
 
-        [Benchmark]
-        public JsonNode? LargeObject_Materialized()
-        {
-            return JsonDiffPatcher.Diff(_jsonLargeBefore, _jsonLargeAfter,
-                new JsonDiffOptions
-                {
-                    MaterializeBeforeDiff = true,
-                    ArrayItemMatcher = JsonNetArrayItemMatch
-                });
-        }
-
-        [Benchmark]
-        public JsonNode? LargeObject_NoArrayMoveAndMaterialized()
-        {
-            return JsonDiffPatcher.Diff(_jsonLargeBefore, _jsonLargeAfter,
-                new JsonDiffOptions
-                {
-                    SuppressDetectArrayMove = true,
-                    MaterializeBeforeDiff = true,
-                    ArrayItemMatcher = JsonNetArrayItemMatch
-                });
-        }
-
         // Simulate array item match algorithm in JsonNet version
         private static bool JsonNetArrayItemMatch(JsonNode? x, int i, JsonNode? y, int j, out bool deepEq)
         {
@@ -136,7 +90,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
 
             if (x.DeepEquals(y) 
                 || (x is JsonObject && y is JsonObject) 
-                || (x is JsonArray || y is JsonArray))
+                || (x is JsonArray && y is JsonArray))
             {
                 return true;
             }

@@ -102,8 +102,8 @@ namespace System.Text.Json
         {
             var delta = new JsonDiffDelta();
 
-            Materialize(ref left, options);
-            Materialize(ref right, options);
+            left ??= "";
+            right ??= "";
 
             // Compare two objects
             if (left is JsonObject leftObj && right is JsonObject rightObj)
@@ -112,18 +112,18 @@ namespace System.Text.Json
                 return delta.Result;
             }
 
-            // Compare two arrays
-            if (left is JsonArray leftArr && right is JsonArray rightArr)
-            {
-                DiffArray(ref delta, leftArr, rightArr, options);
-                return delta.Result;
-            }
-
             // For long texts
             // Compare two long texts
             if (IsLongText(left, right, options, out var leftText, out var rightText))
             {
                 DiffLongText(ref delta, leftText!, rightText!, options);
+                return delta.Result;
+            }
+
+            // Compare two arrays
+            if (left is JsonArray leftArr && right is JsonArray rightArr)
+            {
+                DiffArray(ref delta, leftArr, rightArr, options);
                 return delta.Result;
             }
 
@@ -137,18 +137,6 @@ namespace System.Text.Json
 
             Debug.Assert(delta.Result is null);
             return null;
-
-            static void Materialize(ref JsonNode? obj, in JsonDiffOptionsView options)
-            {
-                if (obj is null)
-                {
-                    obj = "";
-                }
-                else if (options.MaterializeBeforeDiff)
-                {
-                    obj = obj.Clone(true);
-                }
-            }
         }
     }
 }

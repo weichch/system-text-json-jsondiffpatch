@@ -12,14 +12,6 @@ namespace System.Text.Json
         // If add any settings here, also copy to JsonDiffOptionsView
 
         /// <summary>
-        /// Gets or sets whether to materialize any <see cref="JsonElement"/> backed <see cref="JsonValue"/>
-        /// before generating the diff. This option will use more memory but will generate more accurate
-        /// results backed by CLR types, for example, comparing two date strings using <see cref="DateTime"/>
-        /// or <see cref="DateTimeOffset"/>.
-        /// </summary>
-        public bool MaterializeBeforeDiff { get; set; }
-
-        /// <summary>
         /// Specifies whether to suppress detect array move. Default value is <c>false</c>.
         /// </summary>
         public bool SuppressDetectArrayMove { get; set; }
