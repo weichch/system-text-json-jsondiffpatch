@@ -115,7 +115,11 @@ namespace System.Text.Json
                 // Perf: If the values are backed by JsonElement, we need to materialize the values
                 // and compare raw text because there is no way to compare the bytes.
                 // This may consume a lot memory for large JSON objects.
-                return Equals(e1.GetRawText(), e2.GetRawText());
+                return e1.ValueKind switch
+                {
+                    JsonValueKind.String => e1.ValueEquals(e2.GetString()),
+                    _ => Equals(e1.GetRawText(), e2.GetRawText())
+                };
             }
 
             if (ret1 || ret2)

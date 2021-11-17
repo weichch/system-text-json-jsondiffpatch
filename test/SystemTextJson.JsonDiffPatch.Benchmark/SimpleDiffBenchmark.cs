@@ -34,7 +34,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         }
 
         [Benchmark]
-        public JsonNode? DemoObject_DefaultOptions()
+        public JsonDocument? DemoObject_DefaultOptions()
         {
             return JsonDiffPatcher.Diff(_jsonBefore, _jsonAfter,
                 new JsonDiffOptions
@@ -44,12 +44,25 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         }
 
         [Benchmark]
-        public JsonNode? DemoObject_NoArrayMove()
+        public JsonDocument? DemoObject_NoArrayMove()
         {
             return JsonDiffPatcher.Diff(_jsonBefore, _jsonAfter,
                 new JsonDiffOptions
                 {
                     SuppressDetectArrayMove = true,
+                    ArrayItemMatcher = JsonNetArrayItemMatch
+                });
+        }
+
+        [Benchmark]
+        public JsonNode? DemoObject_Mutable()
+        {
+            var left = JsonNode.Parse(_jsonBefore);
+            var right = JsonNode.Parse(_jsonAfter);
+
+            return left.Diff(right,
+                new JsonDiffOptions
+                {
                     ArrayItemMatcher = JsonNetArrayItemMatch
                 });
         }
@@ -63,7 +76,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         }
 
         [Benchmark]
-        public JsonNode? LargeObject_DefaultOptions()
+        public JsonDocument? LargeObject_DefaultOptions()
         {
             return JsonDiffPatcher.Diff(_jsonLargeBefore, _jsonLargeAfter,
                 new JsonDiffOptions
@@ -73,12 +86,25 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         }
 
         [Benchmark]
-        public JsonNode? LargeObject_NoArrayMove()
+        public JsonDocument? LargeObject_NoArrayMove()
         {
             return JsonDiffPatcher.Diff(_jsonLargeBefore, _jsonLargeAfter,
                 new JsonDiffOptions
                 {
                     SuppressDetectArrayMove = true,
+                    ArrayItemMatcher = JsonNetArrayItemMatch
+                });
+        }
+
+        [Benchmark]
+        public JsonNode? LargeObject_Mutable()
+        {
+            var left = JsonNode.Parse(_jsonLargeBefore);
+            var right = JsonNode.Parse(_jsonLargeAfter);
+
+            return left.Diff(right,
+                new JsonDiffOptions
+                {
                     ArrayItemMatcher = JsonNetArrayItemMatch
                 });
         }

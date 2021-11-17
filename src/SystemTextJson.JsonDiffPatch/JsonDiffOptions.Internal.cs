@@ -3,12 +3,9 @@ using System.Text.Json.Nodes;
 
 namespace System.Text.Json
 {
-    /// <summary>
-    /// Internal copy of <see cref="JsonDiffOptions"/> that can be passed via reference.
-    /// </summary>
     internal readonly struct JsonDiffOptionsView
     {
-        public JsonDiffOptionsView(JsonDiffOptions options)
+        public JsonDiffOptionsView(JsonDiffOptions options, bool copyJsonElement)
         {
             SuppressDetectArrayMove = options.SuppressDetectArrayMove;
             IncludeValueOnMove = options.IncludeValueOnMove;
@@ -18,6 +15,7 @@ namespace System.Text.Json
             PreferFuzzyArrayItemMatch = options.PreferFuzzyArrayItemMatch;
             TextDiffMinLength = options.TextDiffMinLength;
             TextMatcher = options.TextMatcher;
+            CopyJsonElement = copyJsonElement;
         }
 
         public bool SuppressDetectArrayMove { get; }
@@ -28,5 +26,6 @@ namespace System.Text.Json
         public bool PreferFuzzyArrayItemMatch { get; }
         public int TextDiffMinLength { get; }
         public TextMatch? TextMatcher { get; }
+        public bool CopyJsonElement { get; }
     }
 }

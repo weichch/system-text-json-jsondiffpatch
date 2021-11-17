@@ -17,10 +17,11 @@ namespace System.Text.Json
         public bool SuppressDetectArrayMove { get; set; }
 
         /// <summary>
-        /// Specifies whether to include moved item value. See
-        /// <see link="https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#array-moves"/>.
-        /// Default value is <c>false</c>.
+        /// Specifies whether to include moved item value. Default value is <c>false</c>.
         /// </summary>
+        /// <remarks>
+        /// See <see link="https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#array-moves"/>.
+        /// </remarks>
         public bool IncludeValueOnMove { get; set; }
 
         /// <summary>

@@ -2,6 +2,7 @@
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Validators;
@@ -24,6 +25,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             config.AddDiagnoser(new MemoryDiagnoser(new MemoryDiagnoserConfig(false)));
             config.AddValidator(JitOptimizationsValidator.FailOnError);
             config.AddLogger(new ConsoleLogger(true));
+            config.AddExporter(MarkdownExporter.GitHub);
 
             BenchmarkRunner.Run<SimpleDiffBenchmark>(config);
             Console.ReadLine();

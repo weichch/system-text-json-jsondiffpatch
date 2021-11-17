@@ -6,10 +6,8 @@ namespace System.Text.Json
 {
     static partial class JsonDiffPatcher
     {
-        /// <summary>
-        /// Implements JSON object diff:
-        /// <see link="https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#object-with-inner-changes"/>
-        /// </summary>
+        // Object diff:
+        // https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#object-with-inner-changes
         private static void DiffObject(
             ref JsonDiffDelta delta, 
             JsonObject left, 
@@ -31,7 +29,10 @@ namespace System.Text.Json
                 {
                     // Modified: https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#modified
                     var valueDiff = DiffInternal(leftValue, rightValue, options);
-                    delta.ObjectChange(prop, valueDiff);
+                    if (valueDiff is not null)
+                    {
+                        delta.ObjectChange(prop, new JsonDiffDelta(valueDiff, options));
+                    }
                 }
             }
 

@@ -11,22 +11,16 @@ namespace System.Text.Json.Diffs
             _options = options;
         }
 
-        /// <summary>
-        /// Returns if one JSON node matches another. Nodes are considered match if:
-        /// <list type="bullet">
-        ///     <item>they are deeply equal, OR</item>
-        ///     <item>they are of JavaScript object type (<see cref="JsonObject"/> and <see cref="JsonArray"/>)
-        ///           and their positions in corresponding arrays are equal
-        ///     </item>
-        /// </list>
-        /// </summary>
-        /// <remarks>
-        /// See: https://github.com/benjamine/jsondiffpatch/blob/a8cde4c666a8a25d09d8f216c7f19397f2e1b569/src/filters/arrays.js#L43
-        /// </remarks>
         public bool MatchArrayItem(
             JsonNode? x, int indexX, JsonNode? y, int indexY,
             out bool deepEqual)
         {
+            // Returns if one JSON node matches another. Nodes are considered match if:
+            // - they are deeply equal, OR
+            // - they are of JavaScript object type JsonObject and JsonArray and their
+            //   positions in corresponding arrays are equal
+            // See: https://github.com/benjamine/jsondiffpatch/blob/a8cde4c666a8a25d09d8f216c7f19397f2e1b569/src/filters/arrays.js#L43
+
             deepEqual = false;
 
             if (_options.PreferFuzzyArrayItemMatch

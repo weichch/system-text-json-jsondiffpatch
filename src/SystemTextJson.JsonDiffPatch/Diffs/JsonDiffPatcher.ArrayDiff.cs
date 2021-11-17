@@ -7,10 +7,8 @@ namespace System.Text.Json
 {
     static partial class JsonDiffPatcher
     {
-        /// <summary>
-        /// Implements JSON array diff:
-        /// <see link="https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#array-with-inner-changes"/>
-        /// </summary>
+        // Array diff:
+        // https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#array-with-inner-changes
         private static void DiffArray(
             ref JsonDiffDelta delta,
             JsonArray left, 
@@ -127,7 +125,10 @@ namespace System.Text.Json
 
                         // We have two objects equal by position or other criteria
                         var itemDiff = DiffInternal(left[entry.LeftIndex], right[entry.RightIndex], options);
-                        delta.ArrayChange(i, false, itemDiff);
+                        if (itemDiff is not null)
+                        {
+                            delta.ArrayChange(i, false, new JsonDiffDelta(itemDiff, options));
+                        }
                     }
                     else
                     {
@@ -148,7 +149,10 @@ namespace System.Text.Json
 
                                     // Diff removed item in left and new item in right
                                     var itemDiff = DiffInternal(left[removedLeftIndex], right[i], options);
-                                    delta.ArrayChange(i, false, itemDiff);
+                                    if (itemDiff is not null)
+                                    {
+                                        delta.ArrayChange(i, false, new JsonDiffDelta(itemDiff, options));
+                                    }
 
                                     removedIndices.RemoveAt(j);
                                     isMoved = true;
@@ -186,7 +190,10 @@ namespace System.Text.Json
                 }
 
                 var itemDiff = DiffInternal(left[leftIndex], right[rightIndex], options);
-                delta.ArrayChange(rightIndex, false, itemDiff);
+                if (itemDiff is not null)
+                {
+                    delta.ArrayChange(rightIndex, false, new JsonDiffDelta(itemDiff, options));
+                }
             }
         }
     }

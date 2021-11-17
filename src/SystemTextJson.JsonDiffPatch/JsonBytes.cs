@@ -1,10 +1,9 @@
 ﻿using System.Buffers;
-using System.Text.Encodings.Web;
 using System.Text.Json.Nodes;
 
-namespace System.Text.Json.Diffs
+namespace System.Text.Json
 {
-    internal class JsonBytes : IBufferWriter<byte>, IEquatable<JsonBytes>, IDisposable
+    internal class JsonBytes : IBufferWriter<byte>, IDisposable
     {
         private const int DefaultBufferSize = 256;
         private byte[]? _buffer;
@@ -12,19 +11,16 @@ namespace System.Text.Json.Diffs
         private bool _isDisposed;
         private readonly bool _writable;
 
-        private static readonly JsonWriterOptions WriterOptions = new()
-        {
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            Indented = false,
-            SkipValidation = true
-        };
-
         private static readonly JsonBytes Empty = new(false);
 
         private JsonBytes(bool writable)
         {
             _writable = writable;
         }
+
+        public Utf8JsonReader GetReader() => _buffer is null
+            ? default
+            : new Utf8JsonReader(_buffer.AsSpan(0, _bufferHead));
 
         void IBufferWriter<byte>.Advance(int count)
         {
@@ -71,29 +67,9 @@ namespace System.Text.Json.Diffs
             // to reduce future rent
             _buffer = ArrayPool<byte>.Shared.Rent(_buffer.Length + Math.Max(addition, DefaultBufferSize));
             // Copy the old buffer
-            oldBuffer.AsSpan().CopyTo(_buffer.AsSpan(0, _bufferHead));
+            oldBuffer.AsSpan(0, _bufferHead).CopyTo(_buffer.AsSpan());
+            oldBuffer.AsSpan(0, _bufferHead).Clear();
             ArrayPool<byte>.Shared.Return(oldBuffer);
-        }
-
-        public bool Equals(JsonBytes other)
-        {
-            if (_writable != other._writable)
-            {
-                return false;
-            }
-
-            if (_buffer == other._buffer)
-            {
-                return true;
-            }
-
-            if (_buffer is null || other._buffer is null)
-            {
-                return false;
-            }
-
-            return _buffer.AsSpan(0, _bufferHead) ==
-                   other._buffer.AsSpan(0, other._bufferHead);
         }
 
         public void Dispose()
@@ -110,12 +86,13 @@ namespace System.Text.Json.Diffs
                 return;
             }
 
+            _buffer.AsSpan(0, _bufferHead).Clear();
             ArrayPool<byte>.Shared.Return(_buffer);
             _buffer = null;
             _bufferHead = 0;
         }
 
-        public static JsonBytes FromNode(JsonNode? node)
+        public static JsonBytes FromNode(JsonNode? node, JsonSerializerOptions? serializerOptions)
         {
             if (node is null)
             {
@@ -123,8 +100,8 @@ namespace System.Text.Json.Diffs
             }
 
             var jsonBytes = new JsonBytes(true);
-            using var writer = new Utf8JsonWriter(jsonBytes, WriterOptions);
-            node.WriteTo(writer);
+            using var writer = new Utf8JsonWriter(jsonBytes);
+            node.WriteTo(writer, serializerOptions);
             writer.Flush();
             return jsonBytes;
         }

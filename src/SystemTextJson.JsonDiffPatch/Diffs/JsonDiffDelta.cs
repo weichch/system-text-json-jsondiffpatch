@@ -3,19 +3,23 @@ using System.Text.Json.Nodes;
 
 namespace System.Text.Json.Diffs
 {
-    /// <summary>
-    /// Represents a JSON delta result defined at
-    /// <see link="https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md"/>.
-    /// </summary>
+    // https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md
     internal struct JsonDiffDelta
     {
+        private readonly JsonDiffOptionsView _options;
         private const int OpTypeDeleted = 0;
         private const int OpTypeTextDiff = 2;
         private const int OpTypeArrayMoved = 3;
 
-        public JsonDiffDelta(JsonNode delta)
+        public JsonDiffDelta(in JsonDiffOptionsView options)
+            : this(null!, options)
+        {
+        }
+
+        public JsonDiffDelta(JsonNode delta, in JsonDiffOptionsView options)
         {
             Result = delta;
+            _options = options;
         }
 
         public JsonNode? Result { get; private set; }
@@ -201,23 +205,14 @@ namespace System.Text.Json.Diffs
                 return;
             }
 
-            if (!obj.TryGetPropertyValue($"_{index:D}", out var itemDelta))
+            if (!obj.TryGetPropertyValue($"_{index:D}", out var itemDelta)
+                || itemDelta is null)
             {
                 return;
             }
 
-            JsonDiffDelta newItemDelta = itemDelta;
+            var newItemDelta = new JsonDiffDelta(itemDelta, delta._options);
             newItemDelta.ArrayMoveFromDeleted(newPosition, includeOriginalValue);
-        }
-
-        public static implicit operator JsonDiffDelta(JsonNode? delta)
-        {
-            if (delta is null)
-            {
-                return default;
-            }
-
-            return new(delta);
         }
     }
 }

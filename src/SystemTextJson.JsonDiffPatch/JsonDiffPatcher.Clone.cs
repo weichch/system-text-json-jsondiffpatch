@@ -13,22 +13,37 @@ namespace System.Text.Json
         public static T? Clone<T>(this T? node)
             where T : JsonNode
         {
-            return (T?)(node switch
+            return node.Clone(true);
+        }
+
+        /// <summary>
+        /// Creates a clone of the <see cref="JsonNode"/>.
+        /// </summary>
+        /// <param name="node">The <see cref="JsonNode"/>.</param>
+        /// <param name="copyJsonElement">Whether to copy JSON element.</param>
+        internal static T? Clone<T>(this T? node, bool copyJsonElement)
+            where T : JsonNode
+        {
+            return (T?) (node switch
             {
-                null => (JsonNode?)null,
-                JsonObject obj => new JsonObject(obj.Select(kvp =>
-                    new KeyValuePair<string, JsonNode?>(kvp.Key, kvp.Value.Clone())), obj.Options),
+                null => (JsonNode?) null,
+                JsonObject obj => new JsonObject(Enumerate(obj, copyJsonElement), obj.Options),
                 JsonArray array => CloneArray(array),
-                JsonValue value => CloneJsonValue(value),
+                JsonValue value => CloneJsonValue(value, copyJsonElement),
                 _ => throw new NotSupportedException(
                     $"JsonNode of type '{node.GetType().Name}' is not supported.")
             });
+
+            static IEnumerable<KeyValuePair<string, JsonNode?>> Enumerate(JsonObject obj, bool copyJsonElement)
+            {
+                foreach (var kvp in obj)
+                {
+                    yield return new KeyValuePair<string, JsonNode?>(kvp.Key, kvp.Value.Clone(copyJsonElement));
+                }
+            }
         }
-        
-        /// <summary>
-        /// Creates a clone of the JSON value using the most appropriate method.
-        /// </summary>
-        private static JsonValue? CloneJsonValue(JsonValue? value)
+
+        private static JsonValue? CloneJsonValue(JsonValue? value, bool copyJsonElement)
         {
             if (value is null)
             {
@@ -40,7 +55,9 @@ namespace System.Text.Json
             var cloned = objValue switch
             {
                 null => null,
-                JsonElement actualValue => JsonValue.Create(actualValue, value.Options),
+                JsonElement actualValue => JsonValue.Create(
+                    copyJsonElement ? actualValue.Clone() : actualValue,
+                    value.Options),
                 bool actualValue => JsonValue.Create(actualValue, value.Options),
                 byte actualValue => JsonValue.Create(actualValue, value.Options),
                 char actualValue => JsonValue.Create(actualValue, value.Options),

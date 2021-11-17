@@ -7,14 +7,12 @@ namespace System.Text.Json
 {
     static partial class JsonDiffPatcher
     {
-        private static readonly Lazy<diff_match_patch> TextDiffAlgorithm = new(
+        private static readonly Lazy<diff_match_patch> DefaultTextDiffAlgorithm = new(
             () => new diff_match_patch(),
             LazyThreadSafetyMode.ExecutionAndPublication);
 
-        /// <summary>
-        /// Implements long text diff using custom algorithm or by default Google's diff-match-patch:
-        /// <see link="https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#text-diffs"/>
-        /// </summary>
+        // Long text diff using custom algorithm or by default Google's diff-match-patch:
+        // https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#text-diffs
         private static void DiffLongText(
             ref JsonDiffDelta delta,
             string left,
@@ -27,7 +25,7 @@ namespace System.Text.Json
 
             static string DefaultTextDiff(string str1, string str2)
             {
-                var alg = TextDiffAlgorithm.Value;
+                var alg = DefaultTextDiffAlgorithm.Value;
                 var patches = alg.patch_make(str1, str2);
                 var diff = alg.patch_toText(patches);
                 return diff;
