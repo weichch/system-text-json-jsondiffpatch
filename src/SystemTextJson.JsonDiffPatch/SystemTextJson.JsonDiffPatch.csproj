@@ -9,8 +9,8 @@
 
   <PropertyGroup>
     <PackageId>SystemTextJson.JsonDiffPatch</PackageId>
-    <PackageTags>diff;json;patch;text-json;system-text-json;jsondiffpath</PackageTags>
-    <Description>Extends System.Text.Json to support JSON diffing and patching.</Description>
+    <PackageTags>diff;json;patch;system-text-json;jsondiffpath</PackageTags>
+    <Description>High-performance, low-allocating JSON objects diff and patch extension for System.Text.Json. Provides bonus Clone and DeepEquals methods.</Description>
     <Authors>Wei Chen</Authors>
     <PackageProjectUrl>https://github.com/weichch/system-text-json-jsondiffpath</PackageProjectUrl>
     <Copyright>Copyright © Wei Chen 2021</Copyright>
@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.0.0-dev.1</Version>
+    <Version>1.0.0-preview.1</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
