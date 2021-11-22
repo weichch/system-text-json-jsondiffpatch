@@ -34,7 +34,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         }
 
         [Benchmark]
-        public JsonDocument? DemoObject_DefaultOptions()
+        public JsonNode? DemoObject_DefaultOptions()
         {
             return JsonDiffPatcher.Diff(_jsonBefore, _jsonAfter,
                 new JsonDiffOptions
@@ -44,7 +44,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         }
 
         [Benchmark]
-        public JsonDocument? DemoObject_NoArrayMove()
+        public JsonNode? DemoObject_NoArrayMove()
         {
             return JsonDiffPatcher.Diff(_jsonBefore, _jsonAfter,
                 new JsonDiffOptions
@@ -76,7 +76,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         }
 
         [Benchmark]
-        public JsonDocument? LargeObject_DefaultOptions()
+        public JsonNode? LargeObject_DefaultOptions()
         {
             return JsonDiffPatcher.Diff(_jsonLargeBefore, _jsonLargeAfter,
                 new JsonDiffOptions
@@ -86,7 +86,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         }
 
         [Benchmark]
-        public JsonDocument? LargeObject_NoArrayMove()
+        public JsonNode? LargeObject_NoArrayMove()
         {
             return JsonDiffPatcher.Diff(_jsonLargeBefore, _jsonLargeAfter,
                 new JsonDiffOptions

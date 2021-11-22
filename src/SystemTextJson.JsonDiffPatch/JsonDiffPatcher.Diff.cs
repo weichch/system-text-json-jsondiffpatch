@@ -16,13 +16,11 @@ namespace System.Text.Json
         /// <param name="leftJson">The left object.</param>
         /// <param name="rightJson">The right object.</param>
         /// <param name="options">The diffing options.</param>
-        /// <param name="serializerOptions">The serializer options.</param>
-        public static JsonDocument? Diff(ReadOnlySpan<byte> leftJson, ReadOnlySpan<byte> rightJson,
-            JsonDiffOptions options = default, JsonSerializerOptions? serializerOptions = null)
+        public static JsonNode? Diff(ReadOnlySpan<byte> leftJson, ReadOnlySpan<byte> rightJson,
+            JsonDiffOptions options = default)
         {
-            var root = DiffInternal(JsonNode.Parse(leftJson), JsonNode.Parse(rightJson),
+            return DiffInternal(JsonNode.Parse(leftJson), JsonNode.Parse(rightJson),
                 new JsonDiffOptionsView(options, false));
-            return WriteDocument(root, serializerOptions);
         }
 
         /// <summary>
@@ -31,16 +29,14 @@ namespace System.Text.Json
         /// <param name="leftJson">The left object.</param>
         /// <param name="rightJson">The right object.</param>
         /// <param name="options">The diffing options.</param>
-        /// <param name="serializerOptions">The serializer options.</param>
-        public static JsonDocument? Diff(Stream leftJson, Stream rightJson,
-            JsonDiffOptions options = default, JsonSerializerOptions? serializerOptions = null)
+        public static JsonNode? Diff(Stream leftJson, Stream rightJson,
+            JsonDiffOptions options = default)
         {
             _ = leftJson ?? throw new ArgumentNullException(nameof(leftJson));
             _ = rightJson ?? throw new ArgumentNullException(nameof(rightJson));
 
-            var root = DiffInternal(JsonNode.Parse(leftJson), JsonNode.Parse(rightJson),
+            return DiffInternal(JsonNode.Parse(leftJson), JsonNode.Parse(rightJson),
                 new JsonDiffOptionsView(options, false));
-            return WriteDocument(root, serializerOptions);
         }
 
         /// <summary>
@@ -49,13 +45,11 @@ namespace System.Text.Json
         /// <param name="leftJson">The left object.</param>
         /// <param name="rightJson">The right object.</param>
         /// <param name="options">The diffing options.</param>
-        /// <param name="serializerOptions">The serializer options.</param>
-        public static JsonDocument? Diff(ref Utf8JsonReader leftJson, ref Utf8JsonReader rightJson,
-            JsonDiffOptions options = default, JsonSerializerOptions? serializerOptions = null)
+        public static JsonNode? Diff(ref Utf8JsonReader leftJson, ref Utf8JsonReader rightJson,
+            JsonDiffOptions options = default)
         {
-            var root = DiffInternal(JsonNode.Parse(ref leftJson), JsonNode.Parse(ref rightJson),
+            return DiffInternal(JsonNode.Parse(ref leftJson), JsonNode.Parse(ref rightJson),
                 new JsonDiffOptionsView(options, false));
-            return WriteDocument(root, serializerOptions);
         }
 
         /// <summary>
@@ -64,25 +58,23 @@ namespace System.Text.Json
         /// <param name="leftJson">The left object.</param>
         /// <param name="rightJson">The right object.</param>
         /// <param name="options">The diffing options.</param>
-        /// <param name="serializerOptions">The serializer options.</param>
-        public static JsonDocument? Diff(string? leftJson, string? rightJson,
-            JsonDiffOptions options = default, JsonSerializerOptions? serializerOptions = null)
+        public static JsonNode? Diff(string? leftJson, string? rightJson,
+            JsonDiffOptions options = default)
         {
-            var root = DiffInternal(leftJson is null ? null : JsonNode.Parse(leftJson),
+            return DiffInternal(leftJson is null ? null : JsonNode.Parse(leftJson),
                 rightJson is null ? null : JsonNode.Parse(rightJson),
                 new JsonDiffOptionsView(options, false));
-            return WriteDocument(root, serializerOptions);
         }
 
         /// <summary>
         /// Compares two JSON objects and generates a mutable diff document.
         /// </summary>
-        /// <param name="node">The left object.</param>
-        /// <param name="another">The right object.</param>
+        /// <param name="left">The left object.</param>
+        /// <param name="right">The right object.</param>
         /// <param name="options">The diffing options.</param>
-        public static JsonNode? Diff(this JsonNode? node, JsonNode? another, JsonDiffOptions options = default)
+        public static JsonNode? Diff(this JsonNode? left, JsonNode? right, JsonDiffOptions options = default)
         {
-            return DiffInternal(node, another, new JsonDiffOptionsView(options, true));
+            return DiffInternal(left, right, new JsonDiffOptionsView(options, true));
         }
 
         /// <summary>
@@ -91,9 +83,8 @@ namespace System.Text.Json
         /// <param name="leftFilePath">The path to the file containing left object.</param>
         /// <param name="rightFilePath">The path to the file containing left object.</param>
         /// <param name="options">The diffing options.</param>
-        /// <param name="serializerOptions">The serializer options.</param>
-        public static JsonDocument? DiffFile(string leftFilePath, string rightFilePath,
-            JsonDiffOptions options = default, JsonSerializerOptions? serializerOptions = null)
+        public static JsonNode? DiffFile(string leftFilePath, string rightFilePath,
+            JsonDiffOptions options = default)
         {
             _ = leftFilePath ?? throw new ArgumentNullException(nameof(leftFilePath));
             _ = rightFilePath ?? throw new ArgumentNullException(nameof(rightFilePath));
@@ -101,12 +92,12 @@ namespace System.Text.Json
             using var fsLeft = File.OpenRead(leftFilePath);
             using var fsRight = File.OpenRead(rightFilePath);
 
-            return Diff(fsLeft, fsRight, options, serializerOptions);
+            return Diff(fsLeft, fsRight, options);
         }
 
         private static JsonNode? DiffInternal(JsonNode? left, JsonNode? right, in JsonDiffOptionsView options)
         {
-            var delta = new JsonDiffDelta(options);
+            var delta = new JsonDiffDelta();
 
             left ??= "";
             right ??= "";
@@ -143,18 +134,6 @@ namespace System.Text.Json
 
             Debug.Assert(delta.Result is null);
             return null;
-        }
-
-        private static JsonDocument? WriteDocument(JsonNode? node, JsonSerializerOptions? serializerOptions)
-        {
-            if (node is null)
-            {
-                return null;
-            }
-
-            using var buffer = JsonBytes.FromNode(node, serializerOptions);
-            var reader = buffer.GetReader();
-            return JsonDocument.ParseValue(ref reader);
         }
     }
 }

@@ -9,36 +9,36 @@ namespace System.Text.Json
         /// <summary>
         /// Creates a clone of the <see cref="JsonNode"/>.
         /// </summary>
-        /// <param name="node">The <see cref="JsonNode"/>.</param>
-        public static T? Clone<T>(this T? node)
+        /// <param name="obj">The <see cref="JsonNode"/>.</param>
+        public static T? DeepClone<T>(this T? obj)
             where T : JsonNode
         {
-            return node.Clone(true);
+            return Clone(obj, true);
         }
 
         /// <summary>
         /// Creates a clone of the <see cref="JsonNode"/>.
         /// </summary>
-        /// <param name="node">The <see cref="JsonNode"/>.</param>
+        /// <param name="obj">The <see cref="JsonNode"/>.</param>
         /// <param name="copyJsonElement">Whether to copy JSON element.</param>
-        internal static T? Clone<T>(this T? node, bool copyJsonElement)
+        internal static T? Clone<T>(T? obj, bool copyJsonElement)
             where T : JsonNode
         {
-            return (T?) (node switch
+            return (T?) (obj switch
             {
                 null => (JsonNode?) null,
-                JsonObject obj => new JsonObject(Enumerate(obj, copyJsonElement), obj.Options),
+                JsonObject jsonObj => new JsonObject(Enumerate(jsonObj, copyJsonElement), obj.Options),
                 JsonArray array => CloneArray(array),
                 JsonValue value => CloneJsonValue(value, copyJsonElement),
                 _ => throw new NotSupportedException(
-                    $"JsonNode of type '{node.GetType().Name}' is not supported.")
+                    $"JsonNode of type '{obj.GetType().Name}' is not supported.")
             });
 
             static IEnumerable<KeyValuePair<string, JsonNode?>> Enumerate(JsonObject obj, bool copyJsonElement)
             {
                 foreach (var kvp in obj)
                 {
-                    yield return new KeyValuePair<string, JsonNode?>(kvp.Key, kvp.Value.Clone(copyJsonElement));
+                    yield return new KeyValuePair<string, JsonNode?>(kvp.Key, Clone(kvp.Value, copyJsonElement));
                 }
             }
         }
@@ -84,7 +84,7 @@ namespace System.Text.Json
         private static JsonArray CloneArray(JsonArray arr)
         {
             var newArr = new JsonArray(arr.Options);
-            foreach (var cloned in arr.Select(Clone))
+            foreach (var cloned in arr.Select(DeepClone))
             {
                 newArr.Add(cloned);
             }

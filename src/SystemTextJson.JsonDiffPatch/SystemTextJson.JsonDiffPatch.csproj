@@ -9,10 +9,10 @@
 
   <PropertyGroup>
     <PackageId>SystemTextJson.JsonDiffPatch</PackageId>
-    <PackageTags>diff;json;patch;system-text-json;jsondiffpath</PackageTags>
-    <Description>High-performance, low-allocating JSON objects diff and patch extension for System.Text.Json. Provides bonus Clone and DeepEquals methods.</Description>
+    <PackageTags>diff;json;patch;system-text-json;jsondiffpatch</PackageTags>
+    <Description>High-performance, low-allocating JSON objects diff and patch extension for System.Text.Json. Provides bonus DeepClone and DeepEquals methods.</Description>
     <Authors>Wei Chen</Authors>
-    <PackageProjectUrl>https://github.com/weichch/system-text-json-jsondiffpath</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/weichch/system-text-json-jsondiffpatch</PackageProjectUrl>
     <Copyright>Copyright © Wei Chen 2021</Copyright>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>

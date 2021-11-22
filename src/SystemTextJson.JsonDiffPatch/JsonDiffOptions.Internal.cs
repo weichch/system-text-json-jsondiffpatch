@@ -8,7 +8,6 @@ namespace System.Text.Json
         public JsonDiffOptionsView(JsonDiffOptions options, bool copyJsonElement)
         {
             SuppressDetectArrayMove = options.SuppressDetectArrayMove;
-            IncludeValueOnMove = options.IncludeValueOnMove;
             ArrayItemMatcher = options.ArrayItemMatcher;
             ArrayObjectItemKeyFinder = options.ArrayObjectItemKeyFinder;
             ArrayObjectItemMatchByPosition = options.ArrayObjectItemMatchByPosition;
@@ -19,7 +18,6 @@ namespace System.Text.Json
         }
 
         public bool SuppressDetectArrayMove { get; }
-        public bool IncludeValueOnMove { get; }
         public ArrayItemMatch? ArrayItemMatcher { get; }
         public Func<JsonNode?, int, object?>? ArrayObjectItemKeyFinder { get; }
         public bool ArrayObjectItemMatchByPosition { get; }

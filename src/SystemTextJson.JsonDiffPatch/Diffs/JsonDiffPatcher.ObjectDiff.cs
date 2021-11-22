@@ -31,7 +31,7 @@ namespace System.Text.Json
                     var valueDiff = DiffInternal(leftValue, rightValue, options);
                     if (valueDiff is not null)
                     {
-                        delta.ObjectChange(prop, new JsonDiffDelta(valueDiff, options));
+                        delta.ObjectChange(prop, new JsonDiffDelta(valueDiff));
                     }
                 }
             }
@@ -43,6 +43,51 @@ namespace System.Text.Json
                 {
                     // Added: https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#added
                     delta.ObjectChange(prop, JsonDiffDelta.CreateAdded(rightValue));
+                }
+            }
+        }
+
+        private static void PatchObject(JsonObject target, JsonObject patch)
+        {
+            foreach (var prop in patch)
+            {
+                var innerPatch = prop.Value;
+                if (innerPatch is null)
+                {
+                    continue;
+                }
+
+                var propertyName = prop.Key;
+                var propPatch = new JsonDiffDelta(innerPatch);
+                var kind = propPatch.Kind;
+
+                if (kind == DeltaKind.Added)
+                {
+                    if (target.ContainsKey(propertyName))
+                    {
+                        target.Remove(propertyName);
+                    }
+
+                    target.Add(propertyName, propPatch.GetAdded());
+                }
+                else if (kind == DeltaKind.Deleted)
+                {
+                    if (target.ContainsKey(propertyName))
+                    {
+                        target.Remove(propertyName);
+                    }
+                }
+                else
+                {
+                    if (target.TryGetPropertyValue(propertyName, out var value))
+                    {
+                        var oldValue = value;
+                        Patch(ref value, innerPatch);
+                        if (!ReferenceEquals(oldValue, value))
+                        {
+                            target[propertyName] = value;
+                        }
+                    }
                 }
             }
         }
