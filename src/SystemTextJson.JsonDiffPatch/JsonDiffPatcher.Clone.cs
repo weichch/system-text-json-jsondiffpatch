@@ -7,7 +7,7 @@ namespace System.Text.Json.JsonDiffPatch
     static partial class JsonDiffPatcher
     {
         /// <summary>
-        /// Creates a clone of the <see cref="JsonNode"/>.
+        /// Creates a deep copy of the <see cref="JsonNode"/>.
         /// </summary>
         /// <param name="obj">The <see cref="JsonNode"/>.</param>
         public static T? DeepClone<T>(this T? obj)
