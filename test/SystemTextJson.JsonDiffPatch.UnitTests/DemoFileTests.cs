@@ -14,8 +14,6 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         public DemoFileTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
-            // Initialize the patcher type
-            JsonDiffPatcher.Diff((JsonNode) null, null);
         }
 
         [Fact]
@@ -63,6 +61,21 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         }
 
         [Fact]
+        public void Roundtrip_DemoFile()
+        {
+            var left = JsonNode.Parse(File.ReadAllText(@"Examples\demo_left.json"));
+            var originalLeft = JsonNode.Parse(File.ReadAllText(@"Examples\demo_left.json"));
+            var right = JsonNode.Parse(File.ReadAllText(@"Examples\demo_left.json"));
+            var diff = left.Diff(right);
+
+            JsonDiffPatcher.Patch(ref left, diff);
+            Assert.True(left.DeepEquals(right));
+
+            JsonDiffPatcher.ReversePatch(ref left, diff);
+            Assert.True(left.DeepEquals(originalLeft));
+        }
+
+        [Fact]
         public void Diff_LargeObjects()
         {
             var diff = JsonDiffPatcher.DiffFile(
@@ -77,6 +90,21 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
             });
 
             Assert.NotNull(diffJson);
+        }
+
+        [Fact]
+        public void Roundtrip_LargeObjects()
+        {
+            var left = JsonNode.Parse(File.ReadAllText(@"Examples\large_left.json"));
+            var originalLeft = JsonNode.Parse(File.ReadAllText(@"Examples\large_left.json"));
+            var right = JsonNode.Parse(File.ReadAllText(@"Examples\large_left.json"));
+            var diff = left.Diff(right);
+
+            JsonDiffPatcher.Patch(ref left, diff);
+            Assert.True(left.DeepEquals(right));
+
+            JsonDiffPatcher.ReversePatch(ref left, diff);
+            Assert.True(left.DeepEquals(originalLeft));
         }
     }
 }

@@ -198,7 +198,9 @@ namespace System.Text.Json
 
         private static void PatchArray(JsonArray target, JsonObject patch)
         {
-            foreach (var (index, delta) in IterateArrayPatch(target, patch))
+            // When make changes in this method, also copy the changes to ReversePatch* method
+
+            foreach (var (index, delta) in IterateArrayPatch(target, patch, false))
             {
                 var kind = delta.Kind;
                 if (kind == DeltaKind.Deleted)
@@ -223,18 +225,51 @@ namespace System.Text.Json
                     }
                 }
             }
+        }
 
-            static void CheckForIndex(int index, int upperLimit)
+        private static void ReversePatchArray(JsonArray target, JsonObject patch)
+        {
+            // When make changes in this method, also copy the changes to Patch* method
+
+            foreach (var (index, delta) in IterateArrayPatch(target, patch, true))
             {
-                if (index > upperLimit)
+                var kind = delta.Kind;
+                if (kind == DeltaKind.Deleted)
                 {
-                    throw new FormatException(InvalidPatchDocument);
+                    CheckForIndex(index, target.Count);
+                    target.Insert(index, delta.GetDeleted());
+                }
+                else if (kind == DeltaKind.Added)
+                {
+                    CheckForIndex(index, target.Count - 1);
+                    target.RemoveAt(index);
+                }
+                else
+                {
+                    CheckForIndex(index, target.Count - 1);
+                    var value = target[index];
+                    var oldValue = value;
+                    ReversePatch(ref value, delta.Result);
+                    if (!ReferenceEquals(oldValue, value))
+                    {
+                        target[index] = value;
+                    }
                 }
             }
         }
 
-        private static IEnumerable<(int Index, JsonDiffDelta Delta)> IterateArrayPatch(JsonArray target,
-            JsonObject arrayPatch)
+        private static void CheckForIndex(int index, int upperLimit)
+        {
+            if (index > upperLimit)
+            {
+                throw new FormatException(InvalidPatchDocument);
+            }
+        }
+
+        private static IEnumerable<(int Index, JsonDiffDelta Delta)> IterateArrayPatch(
+            JsonArray target,
+            JsonObject arrayPatch,
+            bool isReversing)
         {
             var deleteItems = new List<(int, JsonDiffDelta)>(target.Count / 3);
             var addItems = new List<(int, JsonDiffDelta)>(target.Count / 3);
@@ -273,24 +308,53 @@ namespace System.Text.Json
 
                 if (kind == DeltaKind.Deleted)
                 {
-                    deleteItems.Add((index, delta));
+                    if (isReversing)
+                    {
+                        addItems.Add((index, delta));
+                    }
+                    else
+                    {
+                        deleteItems.Add((index, delta));
+                    }
                 }
                 else if (kind == DeltaKind.ArrayMove)
                 {
-                    if (index < 0 || index >= target.Count)
+                    if (isReversing)
                     {
-                        throw new FormatException(InvalidPatchDocument);
+                        var newIndex = delta.GetNewIndex();
+                        if (newIndex < 0 || newIndex >= target.Count)
+                        {
+                            throw new FormatException(InvalidPatchDocument);
+                        }
+
+                        // Delete the item at new index
+                        deleteItems.Add((newIndex, JsonDiffDelta.CreateAdded(null)));
+                        // Add it back later at old index
+                        addItems.Add((index, JsonDiffDelta.CreateDeleted(target[newIndex])));
                     }
+                    else
+                    {
+                        if (index < 0 || index >= target.Count)
+                        {
+                            throw new FormatException(InvalidPatchDocument);
+                        }
 
-                    // Delete the item at index
-                    deleteItems.Add((index, JsonDiffDelta.CreateDeleted(null)));
-
-                    // Add it back later at new index
-                    addItems.Add((delta.GetNewIndex(), JsonDiffDelta.CreateAdded(target[index])));
+                        // Delete the item at old index
+                        deleteItems.Add((index, JsonDiffDelta.CreateDeleted(null)));
+                        // Add it back later at new index
+                        addItems.Add((delta.GetNewIndex(), JsonDiffDelta.CreateAdded(target[index])));
+                    }
                 }
                 else if (kind == DeltaKind.Added)
                 {
-                    addItems.Add((index, delta));
+                    if (isReversing)
+                    {
+                        deleteItems.Add((index, delta));
+                    }
+                    else
+                    {
+                        addItems.Add((index, delta));
+                    }
                 }
                 else
                 {
@@ -303,17 +367,11 @@ namespace System.Text.Json
             // Sort items to add in ascending order
             addItems.Sort(AscendingCompare);
 
-            foreach (var kvp in deleteItems)
-            {
-                yield return kvp;
-            }
+            var enumerable = isReversing
+                ? patchItems.Concat(deleteItems).Concat(addItems)
+                : deleteItems.Concat(addItems).Concat(patchItems);
 
-            foreach (var kvp in addItems)
-            {
-                yield return kvp;
-            }
-
-            foreach (var kvp in patchItems)
+            foreach (var kvp in enumerable)
             {
                 yield return kvp;
             }

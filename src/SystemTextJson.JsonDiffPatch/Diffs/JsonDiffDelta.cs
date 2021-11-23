@@ -63,10 +63,22 @@ namespace System.Text.Json.Diffs
             return GetOrClone(Result!.AsArray()[0]);
         }
 
+        public JsonNode? GetDeleted()
+        {
+            CheckForKind(DeltaKind.Deleted);
+            return GetOrClone(Result!.AsArray()[0]);
+        }
+
         public JsonNode? GetNewValue()
         {
             CheckForKind(DeltaKind.Modified);
             return GetOrClone(Result!.AsArray()[1]);
+        }
+
+        public JsonNode? GetOldValue()
+        {
+            CheckForKind(DeltaKind.Modified);
+            return GetOrClone(Result!.AsArray()[0]);
         }
 
         public int GetNewIndex()
