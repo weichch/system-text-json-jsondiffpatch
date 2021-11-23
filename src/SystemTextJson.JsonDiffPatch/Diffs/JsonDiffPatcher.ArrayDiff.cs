@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Diffs;
+using System.Text.Json.JsonDiffPatch.Diffs;
 using System.Text.Json.Nodes;
 
-namespace System.Text.Json
+namespace System.Text.Json.JsonDiffPatch
 {
     static partial class JsonDiffPatcher
     {
@@ -13,7 +13,7 @@ namespace System.Text.Json
             ref JsonDiffDelta delta,
             JsonArray left, 
             JsonArray right,
-            in JsonDiffOptionsView options)
+            JsonDiffOptions options)
         {
             // Both are empty arrays
             if (left.Count == 0 && right.Count == 0)
@@ -28,16 +28,15 @@ namespace System.Text.Json
             int commonHead;
             for (commonHead = 0; commonHead < left.Count && commonHead < right.Count; commonHead++)
             {
-                if (!match(
-                    left[commonHead], commonHead,
-                    right[commonHead], commonHead,
-                    out var deepEqual))
+                var matchContext = new ArrayItemMatchContext(left[commonHead], commonHead,
+                    right[commonHead], commonHead);
+
+                if (!match(ref matchContext))
                 {
                     break;
                 }
 
-                AddDiffResult(ref delta, left, commonHead,
-                    right, commonHead, deepEqual, options);
+                AddDiffResult(ref delta, ref matchContext, options);
             }
 
             // Find common tail
@@ -48,17 +47,15 @@ namespace System.Text.Json
             {
                 var leftIndex = left.Count - 1 - commonTail;
                 var rightIndex = right.Count - 1 - commonTail;
+                var matchContext = new ArrayItemMatchContext(left[leftIndex], leftIndex,
+                    right[rightIndex], rightIndex);
 
-                if (!match(
-                    left[leftIndex], leftIndex,
-                    right[rightIndex], rightIndex,
-                    out var deepEqual))
+                if (!match(ref matchContext))
                 {
                     break;
                 }
 
-                AddDiffResult(ref delta, left, leftIndex,
-                    right, rightIndex, deepEqual, options);
+                AddDiffResult(ref delta, ref matchContext, options);
             }
 
             if (commonHead + commonTail == left.Count)
@@ -176,27 +173,23 @@ namespace System.Text.Json
 
             static void AddDiffResult(
                 ref JsonDiffDelta delta,
-                JsonArray left,
-                int leftIndex,
-                JsonArray right,
-                int rightIndex,
-                bool deepEqual,
-                in JsonDiffOptionsView options)
+                ref ArrayItemMatchContext context,
+                JsonDiffOptions options)
             {
-                if (deepEqual)
+                if (context.IsDeepEqual)
                 {
                     return;
                 }
 
-                var itemDiff = DiffInternal(left[leftIndex], right[rightIndex], options);
+                var itemDiff = DiffInternal(context.Left, context.Right, options);
                 if (itemDiff is not null)
                 {
-                    delta.ArrayChange(rightIndex, false, new JsonDiffDelta(itemDiff));
+                    delta.ArrayChange(context.RightPosition, false, new JsonDiffDelta(itemDiff));
                 }
             }
         }
 
-        private static void PatchArray(JsonArray target, JsonObject patch)
+        private static void PatchArray(JsonArray target, JsonObject patch, JsonPatchOptions options)
         {
             // When make changes in this method, also copy the changes to ReversePatch* method
 
@@ -218,7 +211,7 @@ namespace System.Text.Json
                     CheckForIndex(index, target.Count - 1);
                     var value = target[index];
                     var oldValue = value;
-                    Patch(ref value, delta.Result);
+                    Patch(ref value, delta.Result, options);
                     if (!ReferenceEquals(oldValue, value))
                     {
                         target[index] = value;
@@ -227,7 +220,7 @@ namespace System.Text.Json
             }
         }
 
-        private static void ReversePatchArray(JsonArray target, JsonObject patch)
+        private static void ReversePatchArray(JsonArray target, JsonObject patch, JsonReversePatchOptions options)
         {
             // When make changes in this method, also copy the changes to Patch* method
 
@@ -249,7 +242,7 @@ namespace System.Text.Json
                     CheckForIndex(index, target.Count - 1);
                     var value = target[index];
                     var oldValue = value;
-                    ReversePatch(ref value, delta.Result);
+                    ReversePatch(ref value, delta.Result, options);
                     if (!ReferenceEquals(oldValue, value))
                     {
                         target[index] = value;

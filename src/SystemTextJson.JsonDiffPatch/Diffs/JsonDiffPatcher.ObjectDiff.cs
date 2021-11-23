@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Text.Json.Diffs;
+using System.Text.Json.JsonDiffPatch.Diffs;
 using System.Text.Json.Nodes;
 
-namespace System.Text.Json
+namespace System.Text.Json.JsonDiffPatch
 {
     static partial class JsonDiffPatcher
     {
@@ -12,7 +12,7 @@ namespace System.Text.Json
             ref JsonDiffDelta delta, 
             JsonObject left, 
             JsonObject right,
-            in JsonDiffOptionsView options)
+            JsonDiffOptions options)
         {
             var leftProperties = (left as IDictionary<string, JsonNode?>).Keys;
             var rightProperties = (right as IDictionary<string, JsonNode?>).Keys;
@@ -47,7 +47,7 @@ namespace System.Text.Json
             }
         }
 
-        private static void PatchObject(JsonObject target, JsonObject patch)
+        private static void PatchObject(JsonObject target, JsonObject patch, JsonPatchOptions options)
         {
             // When make changes in this method, also copy the changes to ReversePatch* method
 
@@ -84,7 +84,7 @@ namespace System.Text.Json
                     if (target.TryGetPropertyValue(propertyName, out var value))
                     {
                         var oldValue = value;
-                        Patch(ref value, innerPatch);
+                        Patch(ref value, innerPatch, options);
                         if (!ReferenceEquals(oldValue, value))
                         {
                             target[propertyName] = value;
@@ -94,7 +94,7 @@ namespace System.Text.Json
             }
         }
 
-        private static void ReversePatchObject(JsonObject target, JsonObject patch)
+        private static void ReversePatchObject(JsonObject target, JsonObject patch, JsonReversePatchOptions options)
         {
             // When make changes in this method, also copy the changes to Patch* method
 
@@ -131,7 +131,7 @@ namespace System.Text.Json
                     if (target.TryGetPropertyValue(propertyName, out var value))
                     {
                         var oldValue = value;
-                        ReversePatch(ref value, innerPatch);
+                        ReversePatch(ref value, innerPatch, options);
                         if (!ReferenceEquals(oldValue, value))
                         {
                             target[propertyName] = value;

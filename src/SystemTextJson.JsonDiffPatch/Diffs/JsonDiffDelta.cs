@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text.Json.Nodes;
 
-namespace System.Text.Json.Diffs
+namespace System.Text.Json.JsonDiffPatch.Diffs
 {
     /// <summary>
     /// The type of delta.
@@ -85,6 +85,12 @@ namespace System.Text.Json.Diffs
         {
             CheckForKind(DeltaKind.ArrayMove);
             return Result!.AsArray()[1]!.GetValue<int>();
+        }
+
+        public string GetTextDiff()
+        {
+            CheckForKind(DeltaKind.Text);
+            return Result!.AsArray()[0]!.GetValue<string>();
         }
 
         public void Added(JsonNode? newValue)

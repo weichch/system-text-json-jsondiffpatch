@@ -1,5 +1,6 @@
 ﻿using System.IO;
-using System.Text.Json;
+using System.Text.Json.JsonDiffPatch;
+using System.Text.Json.JsonDiffPatch.Diffs;
 using System.Text.Json.Nodes;
 using BenchmarkDotNet.Attributes;
 using Newtonsoft.Json.Linq;
@@ -110,13 +111,11 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         }
 
         // Simulate array item match algorithm in JsonNet version
-        private static bool JsonNetArrayItemMatch(JsonNode? x, int i, JsonNode? y, int j, out bool deepEq)
+        private static bool JsonNetArrayItemMatch(ref ArrayItemMatchContext context)
         {
-            deepEq = false;
-
-            if (x.DeepEquals(y) 
-                || (x is JsonObject && y is JsonObject) 
-                || (x is JsonArray && y is JsonArray))
+            if (context.Left.DeepEquals(context.Right) 
+                || (context.Left is JsonObject && context.Right is JsonObject) 
+                || (context.Left is JsonArray && context.Right is JsonArray))
             {
                 return true;
             }

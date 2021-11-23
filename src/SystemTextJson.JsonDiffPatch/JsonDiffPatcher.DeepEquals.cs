@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text.Json.Nodes;
 
-namespace System.Text.Json
+namespace System.Text.Json.JsonDiffPatch
 {
     static partial class JsonDiffPatcher
     {

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.JsonDiffPatch;
 using System.Text.Json.Nodes;
 using Xunit;
 using Xunit.Abstractions;
@@ -63,10 +64,13 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         [Fact]
         public void Roundtrip_DemoFile()
         {
+            var diffOptions = new JsonDiffOptions {TextDiffMinLength = 60};
             var left = JsonNode.Parse(File.ReadAllText(@"Examples\demo_left.json"));
             var originalLeft = JsonNode.Parse(File.ReadAllText(@"Examples\demo_left.json"));
-            var right = JsonNode.Parse(File.ReadAllText(@"Examples\demo_left.json"));
-            var diff = left.Diff(right);
+            var right = JsonNode.Parse(File.ReadAllText(@"Examples\demo_right.json"));
+            var diff = left.Diff(right, diffOptions);
+
+            Assert.Null(left.Diff(originalLeft, diffOptions));
 
             JsonDiffPatcher.Patch(ref left, diff);
             Assert.True(left.DeepEquals(right));
@@ -95,10 +99,13 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         [Fact]
         public void Roundtrip_LargeObjects()
         {
+            var diffOptions = new JsonDiffOptions { TextDiffMinLength = 60 };
             var left = JsonNode.Parse(File.ReadAllText(@"Examples\large_left.json"));
             var originalLeft = JsonNode.Parse(File.ReadAllText(@"Examples\large_left.json"));
-            var right = JsonNode.Parse(File.ReadAllText(@"Examples\large_left.json"));
-            var diff = left.Diff(right);
+            var right = JsonNode.Parse(File.ReadAllText(@"Examples\large_right.json"));
+            var diff = left.Diff(right, diffOptions);
+
+            Assert.Null(left.Diff(originalLeft, diffOptions));
 
             JsonDiffPatcher.Patch(ref left, diff);
             Assert.True(left.DeepEquals(right));

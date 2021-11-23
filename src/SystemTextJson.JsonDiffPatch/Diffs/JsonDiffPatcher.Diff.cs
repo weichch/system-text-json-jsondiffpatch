@@ -1,14 +1,11 @@
 ﻿using System.Diagnostics;
 using System.IO;
-using System.Text.Json.Diffs;
+using System.Text.Json.JsonDiffPatch.Diffs;
 using System.Text.Json.Nodes;
 
-namespace System.Text.Json
+namespace System.Text.Json.JsonDiffPatch
 {
-    /// <summary>
-    /// Provides methods to diff and patch JSON objects.
-    /// </summary>
-    public static partial class JsonDiffPatcher
+    static partial class JsonDiffPatcher
     {
         /// <summary>
         /// Compares two JSON objects and generates a diff document.
@@ -17,10 +14,9 @@ namespace System.Text.Json
         /// <param name="rightJson">The right object.</param>
         /// <param name="options">The diffing options.</param>
         public static JsonNode? Diff(ReadOnlySpan<byte> leftJson, ReadOnlySpan<byte> rightJson,
-            JsonDiffOptions options = default)
+            JsonDiffOptions? options = default)
         {
-            return DiffInternal(JsonNode.Parse(leftJson), JsonNode.Parse(rightJson),
-                new JsonDiffOptionsView(options, false));
+            return DiffInternal(JsonNode.Parse(leftJson), JsonNode.Parse(rightJson), options);
         }
 
         /// <summary>
@@ -30,13 +26,12 @@ namespace System.Text.Json
         /// <param name="rightJson">The right object.</param>
         /// <param name="options">The diffing options.</param>
         public static JsonNode? Diff(Stream leftJson, Stream rightJson,
-            JsonDiffOptions options = default)
+            JsonDiffOptions? options = default)
         {
             _ = leftJson ?? throw new ArgumentNullException(nameof(leftJson));
             _ = rightJson ?? throw new ArgumentNullException(nameof(rightJson));
 
-            return DiffInternal(JsonNode.Parse(leftJson), JsonNode.Parse(rightJson),
-                new JsonDiffOptionsView(options, false));
+            return DiffInternal(JsonNode.Parse(leftJson), JsonNode.Parse(rightJson), options);
         }
 
         /// <summary>
@@ -46,10 +41,9 @@ namespace System.Text.Json
         /// <param name="rightJson">The right object.</param>
         /// <param name="options">The diffing options.</param>
         public static JsonNode? Diff(ref Utf8JsonReader leftJson, ref Utf8JsonReader rightJson,
-            JsonDiffOptions options = default)
+            JsonDiffOptions? options = default)
         {
-            return DiffInternal(JsonNode.Parse(ref leftJson), JsonNode.Parse(ref rightJson),
-                new JsonDiffOptionsView(options, false));
+            return DiffInternal(JsonNode.Parse(ref leftJson), JsonNode.Parse(ref rightJson), options);
         }
 
         /// <summary>
@@ -59,11 +53,10 @@ namespace System.Text.Json
         /// <param name="rightJson">The right object.</param>
         /// <param name="options">The diffing options.</param>
         public static JsonNode? Diff(string? leftJson, string? rightJson,
-            JsonDiffOptions options = default)
+            JsonDiffOptions? options = default)
         {
             return DiffInternal(leftJson is null ? null : JsonNode.Parse(leftJson),
-                rightJson is null ? null : JsonNode.Parse(rightJson),
-                new JsonDiffOptionsView(options, false));
+                rightJson is null ? null : JsonNode.Parse(rightJson), options);
         }
 
         /// <summary>
@@ -72,9 +65,9 @@ namespace System.Text.Json
         /// <param name="left">The left object.</param>
         /// <param name="right">The right object.</param>
         /// <param name="options">The diffing options.</param>
-        public static JsonNode? Diff(this JsonNode? left, JsonNode? right, JsonDiffOptions options = default)
+        public static JsonNode? Diff(this JsonNode? left, JsonNode? right, JsonDiffOptions? options = default)
         {
-            return DiffInternal(left, right, new JsonDiffOptionsView(options, true));
+            return DiffInternal(left, right, options);
         }
 
         /// <summary>
@@ -84,7 +77,7 @@ namespace System.Text.Json
         /// <param name="rightFilePath">The path to the file containing left object.</param>
         /// <param name="options">The diffing options.</param>
         public static JsonNode? DiffFile(string leftFilePath, string rightFilePath,
-            JsonDiffOptions options = default)
+            JsonDiffOptions? options = default)
         {
             _ = leftFilePath ?? throw new ArgumentNullException(nameof(leftFilePath));
             _ = rightFilePath ?? throw new ArgumentNullException(nameof(rightFilePath));
@@ -95,9 +88,13 @@ namespace System.Text.Json
             return Diff(fsLeft, fsRight, options);
         }
 
-        private static JsonNode? DiffInternal(JsonNode? left, JsonNode? right, in JsonDiffOptionsView options)
+        private static JsonNode? DiffInternal(
+            JsonNode? left,
+            JsonNode? right,
+            JsonDiffOptions? options)
         {
             var delta = new JsonDiffDelta();
+            options ??= JsonDiffOptions.Default;
 
             left ??= "";
             right ??= "";
@@ -109,18 +106,18 @@ namespace System.Text.Json
                 return delta.Result;
             }
 
+            // Compare two arrays
+            if (left is JsonArray leftArr && right is JsonArray rightArr)
+            {
+                DiffArray(ref delta, leftArr, rightArr, options);
+                return delta.Result;
+            }
+
             // For long texts
             // Compare two long texts
             if (IsLongText(left, right, options, out var leftText, out var rightText))
             {
                 DiffLongText(ref delta, leftText!, rightText!, options);
-                return delta.Result;
-            }
-
-            // Compare two arrays
-            if (left is JsonArray leftArr && right is JsonArray rightArr)
-            {
-                DiffArray(ref delta, leftArr, rightArr, options);
                 return delta.Result;
             }
 

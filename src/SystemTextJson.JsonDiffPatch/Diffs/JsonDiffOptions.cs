@@ -1,15 +1,14 @@
-﻿using System.Text.Json.Diffs;
+﻿using System.Text.Json.JsonDiffPatch.Diffs;
 using System.Text.Json.Nodes;
 
-namespace System.Text.Json
+namespace System.Text.Json.JsonDiffPatch
 {
     /// <summary>
     /// Represents options for making JSON diff.
     /// </summary>
-    public struct JsonDiffOptions
+    public class JsonDiffOptions
     {
-        // NOTE
-        // If add any settings here, also copy to JsonDiffOptionsView
+        internal static readonly JsonDiffOptions Default = new();
 
         /// <summary>
         /// Specifies whether to suppress detect array move. Default value is <c>false</c>.
@@ -50,7 +49,7 @@ namespace System.Text.Json
         public bool PreferFuzzyArrayItemMatch { get; set; }
 
         /// <summary>
-        /// Gets or sets the minimum length for diffing texts using <see cref="TextMatcher"/>
+        /// Gets or sets the minimum length for diffing texts using <see cref="TextDiffProvider"/>
         /// or default text diffing algorithm, aka Google's diff-match-patch algorithm. When text
         /// diffing algorithm is not used, text diffing is fallback to value replacement. If this
         /// property is set to <c>0</c>, diffing algorithm is disabled. Default value is <c>0</c>.
@@ -58,8 +57,8 @@ namespace System.Text.Json
         public int TextDiffMinLength { get; set; }
 
         /// <summary>
-        /// Gets or sets the function to match long texts.
+        /// Gets or sets the function to diff long texts.
         /// </summary>
-        public TextMatch? TextMatcher { get; set; }
+        public Func<string, string, string?>? TextDiffProvider { get; set; }
     }
 }

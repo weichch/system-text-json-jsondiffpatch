@@ -1,19 +1,17 @@
 ﻿using System.Text.Json.Nodes;
 
-namespace System.Text.Json.Diffs
+namespace System.Text.Json.JsonDiffPatch.Diffs
 {
     internal readonly struct DefaultArrayItemComparer
     {
-        private readonly JsonDiffOptionsView _options;
+        private readonly JsonDiffOptions _options;
 
-        public DefaultArrayItemComparer(in JsonDiffOptionsView options)
+        public DefaultArrayItemComparer(JsonDiffOptions options)
         {
             _options = options;
         }
 
-        public bool MatchArrayItem(
-            JsonNode? x, int indexX, JsonNode? y, int indexY,
-            out bool deepEqual)
+        public bool MatchArrayItem(ref ArrayItemMatchContext context)
         {
             // Returns if one JSON node matches another. Nodes are considered match if:
             // - they are deeply equal, OR
@@ -21,31 +19,27 @@ namespace System.Text.Json.Diffs
             //   positions in corresponding arrays are equal
             // See: https://github.com/benjamine/jsondiffpatch/blob/a8cde4c666a8a25d09d8f216c7f19397f2e1b569/src/filters/arrays.js#L43
 
-            deepEqual = false;
-
             if (_options.PreferFuzzyArrayItemMatch
-                && x is JsonObject or JsonArray
-                && y is JsonObject or JsonArray)
+                && context.Left is JsonObject or JsonArray
+                && context.Right is JsonObject or JsonArray)
             {
-                if (FuzzyMatchItem(x, indexX, y, indexY,
-                    out var fuzzyResult, out deepEqual))
+                if (FuzzyMatchItem(ref context, out var fuzzyResult))
                 {
                     return fuzzyResult;
                 }
             }
 
-            if (x.DeepEquals(y))
+            if (context.Left.DeepEquals(context.Right))
             {
-                deepEqual = true;
+                context.DeepEqual();
                 return true;
             }
 
             if (!_options.PreferFuzzyArrayItemMatch
-                && x is JsonObject or JsonArray
-                && y is JsonObject or JsonArray)
+                && context.Left is JsonObject or JsonArray
+                && context.Right is JsonObject or JsonArray)
             {
-                if (FuzzyMatchItem(x, indexX, y, indexY,
-                    out var fuzzyResult, out deepEqual))
+                if (FuzzyMatchItem(ref context, out var fuzzyResult))
                 {
                     return fuzzyResult;
                 }
@@ -54,18 +48,15 @@ namespace System.Text.Json.Diffs
             return false;
         }
 
-        private bool FuzzyMatchItem(JsonNode? x, int indexX,
-            JsonNode? y, int indexY,
-            out bool result, out bool deepEqual)
+        private bool FuzzyMatchItem(ref ArrayItemMatchContext context, out bool result)
         {
             result = false;
-            deepEqual = false;
 
             var keyFinder = _options.ArrayObjectItemKeyFinder;
             if (keyFinder is not null)
             {
-                var keyX = keyFinder(x, indexX);
-                var keyY = keyFinder(y, indexY);
+                var keyX = keyFinder(context.Left, context.LeftPosition);
+                var keyY = keyFinder(context.Right, context.RightPosition);
 
                 if (keyX is null && keyY is null)
                 {
@@ -79,7 +70,7 @@ namespace System.Text.Json.Diffs
 
             if (_options.ArrayObjectItemMatchByPosition)
             {
-                if (indexX == indexY)
+                if (context.LeftPosition == context.RightPosition)
                 {
                     result = true;
                     return true;
