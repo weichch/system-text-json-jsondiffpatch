@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Diffs;
+using System.Text.Json.JsonDiffPatch.Diffs;
 using System.Text.Json.Nodes;
 
-namespace System.Text.Json
+namespace System.Text.Json.JsonDiffPatch
 {
     static partial class JsonDiffPatcher
     {
@@ -13,7 +13,7 @@ namespace System.Text.Json
             ref JsonDiffDelta delta,
             JsonArray left, 
             JsonArray right,
-            in JsonDiffOptionsView options)
+            JsonDiffOptions options)
         {
             // Both are empty arrays
             if (left.Count == 0 && right.Count == 0)
@@ -28,16 +28,15 @@ namespace System.Text.Json
             int commonHead;
             for (commonHead = 0; commonHead < left.Count && commonHead < right.Count; commonHead++)
             {
-                if (!match(
-                    left[commonHead], commonHead,
-                    right[commonHead], commonHead,
-                    out var deepEqual))
+                var matchContext = new ArrayItemMatchContext(left[commonHead], commonHead,
+                    right[commonHead], commonHead);
+
+                if (!match(ref matchContext))
                 {
                     break;
                 }
 
-                AddDiffResult(ref delta, left, commonHead,
-                    right, commonHead, deepEqual, options);
+                AddDiffResult(ref delta, ref matchContext, options);
             }
 
             // Find common tail
@@ -48,17 +47,15 @@ namespace System.Text.Json
             {
                 var leftIndex = left.Count - 1 - commonTail;
                 var rightIndex = right.Count - 1 - commonTail;
+                var matchContext = new ArrayItemMatchContext(left[leftIndex], leftIndex,
+                    right[rightIndex], rightIndex);
 
-                if (!match(
-                    left[leftIndex], leftIndex,
-                    right[rightIndex], rightIndex,
-                    out var deepEqual))
+                if (!match(ref matchContext))
                 {
                     break;
                 }
 
-                AddDiffResult(ref delta, left, leftIndex,
-                    right, rightIndex, deepEqual, options);
+                AddDiffResult(ref delta, ref matchContext, options);
             }
 
             if (commonHead + commonTail == left.Count)
@@ -127,7 +124,7 @@ namespace System.Text.Json
                         var itemDiff = DiffInternal(left[entry.LeftIndex], right[entry.RightIndex], options);
                         if (itemDiff is not null)
                         {
-                            delta.ArrayChange(i, false, new JsonDiffDelta(itemDiff, options));
+                            delta.ArrayChange(i, false, new JsonDiffDelta(itemDiff));
                         }
                     }
                     else
@@ -144,14 +141,13 @@ namespace System.Text.Json
                                     i - commonHead /* Current in right */,
                                     out _))
                                 {
-                                    JsonDiffDelta.ChangeDeletedToArrayMoved(delta, removedLeftIndex, i,
-                                        options.IncludeValueOnMove);
+                                    JsonDiffDelta.ChangeDeletedToArrayMoved(delta, removedLeftIndex, i);
 
                                     // Diff removed item in left and new item in right
                                     var itemDiff = DiffInternal(left[removedLeftIndex], right[i], options);
                                     if (itemDiff is not null)
                                     {
-                                        delta.ArrayChange(i, false, new JsonDiffDelta(itemDiff, options));
+                                        delta.ArrayChange(i, false, new JsonDiffDelta(itemDiff));
                                     }
 
                                     removedIndices.RemoveAt(j);
@@ -177,23 +173,210 @@ namespace System.Text.Json
 
             static void AddDiffResult(
                 ref JsonDiffDelta delta,
-                JsonArray left,
-                int leftIndex,
-                JsonArray right,
-                int rightIndex,
-                bool deepEqual,
-                in JsonDiffOptionsView options)
+                ref ArrayItemMatchContext context,
+                JsonDiffOptions options)
             {
-                if (deepEqual)
+                if (context.IsDeepEqual)
                 {
                     return;
                 }
 
-                var itemDiff = DiffInternal(left[leftIndex], right[rightIndex], options);
+                var itemDiff = DiffInternal(context.Left, context.Right, options);
                 if (itemDiff is not null)
                 {
-                    delta.ArrayChange(rightIndex, false, new JsonDiffDelta(itemDiff, options));
+                    delta.ArrayChange(context.RightPosition, false, new JsonDiffDelta(itemDiff));
                 }
+            }
+        }
+
+        private static void PatchArray(JsonArray target, JsonObject patch, JsonPatchOptions options)
+        {
+            // When make changes in this method, also copy the changes to ReversePatch* method
+
+            foreach (var (index, delta) in IterateArrayPatch(target, patch, false))
+            {
+                var kind = delta.Kind;
+                if (kind == DeltaKind.Deleted)
+                {
+                    CheckForIndex(index, target.Count - 1);
+                    target.RemoveAt(index);
+                }
+                else if (kind == DeltaKind.Added)
+                {
+                    CheckForIndex(index, target.Count);
+                    target.Insert(index, delta.GetAdded());
+                }
+                else
+                {
+                    CheckForIndex(index, target.Count - 1);
+                    var value = target[index];
+                    var oldValue = value;
+                    Patch(ref value, delta.Result, options);
+                    if (!ReferenceEquals(oldValue, value))
+                    {
+                        target[index] = value;
+                    }
+                }
+            }
+        }
+
+        private static void ReversePatchArray(JsonArray target, JsonObject patch, JsonReversePatchOptions options)
+        {
+            // When make changes in this method, also copy the changes to Patch* method
+
+            foreach (var (index, delta) in IterateArrayPatch(target, patch, true))
+            {
+                var kind = delta.Kind;
+                if (kind == DeltaKind.Deleted)
+                {
+                    CheckForIndex(index, target.Count);
+                    target.Insert(index, delta.GetDeleted());
+                }
+                else if (kind == DeltaKind.Added)
+                {
+                    CheckForIndex(index, target.Count - 1);
+                    target.RemoveAt(index);
+                }
+                else
+                {
+                    CheckForIndex(index, target.Count - 1);
+                    var value = target[index];
+                    var oldValue = value;
+                    ReversePatch(ref value, delta.Result, options);
+                    if (!ReferenceEquals(oldValue, value))
+                    {
+                        target[index] = value;
+                    }
+                }
+            }
+        }
+
+        private static void CheckForIndex(int index, int upperLimit)
+        {
+            if (index > upperLimit)
+            {
+                throw new FormatException(InvalidPatchDocument);
+            }
+        }
+
+        private static IEnumerable<(int Index, JsonDiffDelta Delta)> IterateArrayPatch(
+            JsonArray target,
+            JsonObject arrayPatch,
+            bool isReversing)
+        {
+            var deleteItems = new List<(int, JsonDiffDelta)>(target.Count / 3);
+            var addItems = new List<(int, JsonDiffDelta)>(target.Count / 3);
+            var patchItems = new List<(int, JsonDiffDelta)>(target.Count / 3);
+
+            // Return items in order:
+            // 1. Items to delete
+            // 2. Items to add
+            // 3. Items to patch
+            foreach (var prop in arrayPatch)
+            {
+                var propertyName = prop.Key;
+                if (JsonDiffDelta.IsTypeProperty(propertyName))
+                {
+                    continue;
+                }
+
+                var innerPatch = prop.Value;
+                if (innerPatch is null)
+                {
+                    continue;
+                }
+
+                if (!JsonDiffDelta.TryGetArrayIndex(propertyName, out var index, out var isLeft))
+                {
+                    throw new FormatException(InvalidPatchDocument);
+                }
+
+                var delta = new JsonDiffDelta(innerPatch);
+                var kind = delta.Kind;
+                // The left array can only contain deleted or array move operations
+                if (isLeft && kind is not DeltaKind.Deleted && kind is not DeltaKind.ArrayMove)
+                {
+                    throw new FormatException(InvalidPatchDocument);
+                }
+
+                if (kind == DeltaKind.Deleted)
+                {
+                    if (isReversing)
+                    {
+                        addItems.Add((index, delta));
+                    }
+                    else
+                    {
+                        deleteItems.Add((index, delta));
+                    }
+                }
+                else if (kind == DeltaKind.ArrayMove)
+                {
+                    if (isReversing)
+                    {
+                        var newIndex = delta.GetNewIndex();
+                        if (newIndex < 0 || newIndex >= target.Count)
+                        {
+                            throw new FormatException(InvalidPatchDocument);
+                        }
+
+                        // Delete the item at new index
+                        deleteItems.Add((newIndex, JsonDiffDelta.CreateAdded(null)));
+                        // Add it back later at old index
+                        addItems.Add((index, JsonDiffDelta.CreateDeleted(target[newIndex])));
+                    }
+                    else
+                    {
+                        if (index < 0 || index >= target.Count)
+                        {
+                            throw new FormatException(InvalidPatchDocument);
+                        }
+
+                        // Delete the item at old index
+                        deleteItems.Add((index, JsonDiffDelta.CreateDeleted(null)));
+                        // Add it back later at new index
+                        addItems.Add((delta.GetNewIndex(), JsonDiffDelta.CreateAdded(target[index])));
+                    }
+                }
+                else if (kind == DeltaKind.Added)
+                {
+                    if (isReversing)
+                    {
+                        deleteItems.Add((index, delta));
+                    }
+                    else
+                    {
+                        addItems.Add((index, delta));
+                    }
+                }
+                else
+                {
+                    patchItems.Add((index, delta));
+                }
+            }
+
+            // Sort items to delete in descending order
+            deleteItems.Sort(DescendingCompare);
+            // Sort items to add in ascending order
+            addItems.Sort(AscendingCompare);
+
+            var enumerable = isReversing
+                ? patchItems.Concat(deleteItems).Concat(addItems)
+                : deleteItems.Concat(addItems).Concat(patchItems);
+
+            foreach (var kvp in enumerable)
+            {
+                yield return kvp;
+            }
+
+            static int AscendingCompare((int Index, JsonDiffDelta) x, (int Index, JsonDiffDelta) y)
+            {
+                return x.Index - y.Index;
+            }
+
+            static int DescendingCompare((int Index, JsonDiffDelta) x, (int Index, JsonDiffDelta) y)
+            {
+                return y.Index - x.Index;
             }
         }
     }

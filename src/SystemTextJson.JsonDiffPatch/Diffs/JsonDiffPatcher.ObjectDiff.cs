@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Text.Json.Diffs;
+using System.Text.Json.JsonDiffPatch.Diffs;
 using System.Text.Json.Nodes;
 
-namespace System.Text.Json
+namespace System.Text.Json.JsonDiffPatch
 {
     static partial class JsonDiffPatcher
     {
@@ -12,7 +12,7 @@ namespace System.Text.Json
             ref JsonDiffDelta delta, 
             JsonObject left, 
             JsonObject right,
-            in JsonDiffOptionsView options)
+            JsonDiffOptions options)
         {
             var leftProperties = (left as IDictionary<string, JsonNode?>).Keys;
             var rightProperties = (right as IDictionary<string, JsonNode?>).Keys;
@@ -31,7 +31,7 @@ namespace System.Text.Json
                     var valueDiff = DiffInternal(leftValue, rightValue, options);
                     if (valueDiff is not null)
                     {
-                        delta.ObjectChange(prop, new JsonDiffDelta(valueDiff, options));
+                        delta.ObjectChange(prop, new JsonDiffDelta(valueDiff));
                     }
                 }
             }
@@ -43,6 +43,100 @@ namespace System.Text.Json
                 {
                     // Added: https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#added
                     delta.ObjectChange(prop, JsonDiffDelta.CreateAdded(rightValue));
+                }
+            }
+        }
+
+        private static void PatchObject(JsonObject target, JsonObject patch, JsonPatchOptions options)
+        {
+            // When make changes in this method, also copy the changes to ReversePatch* method
+
+            foreach (var prop in patch)
+            {
+                var innerPatch = prop.Value;
+                if (innerPatch is null)
+                {
+                    continue;
+                }
+
+                var propertyName = prop.Key;
+                var propPatch = new JsonDiffDelta(innerPatch);
+                var kind = propPatch.Kind;
+
+                if (kind == DeltaKind.Added)
+                {
+                    if (target.ContainsKey(propertyName))
+                    {
+                        target.Remove(propertyName);
+                    }
+
+                    target.Add(propertyName, propPatch.GetAdded());
+                }
+                else if (kind == DeltaKind.Deleted)
+                {
+                    if (target.ContainsKey(propertyName))
+                    {
+                        target.Remove(propertyName);
+                    }
+                }
+                else
+                {
+                    if (target.TryGetPropertyValue(propertyName, out var value))
+                    {
+                        var oldValue = value;
+                        Patch(ref value, innerPatch, options);
+                        if (!ReferenceEquals(oldValue, value))
+                        {
+                            target[propertyName] = value;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void ReversePatchObject(JsonObject target, JsonObject patch, JsonReversePatchOptions options)
+        {
+            // When make changes in this method, also copy the changes to Patch* method
+
+            foreach (var prop in patch)
+            {
+                var innerPatch = prop.Value;
+                if (innerPatch is null)
+                {
+                    continue;
+                }
+
+                var propertyName = prop.Key;
+                var propPatch = new JsonDiffDelta(innerPatch);
+                var kind = propPatch.Kind;
+
+                if (kind == DeltaKind.Added)
+                {
+                    if (target.ContainsKey(propertyName))
+                    {
+                        target.Remove(propertyName);
+                    }
+                }
+                else if (kind == DeltaKind.Deleted)
+                {
+                    if (target.ContainsKey(propertyName))
+                    {
+                        target.Remove(propertyName);
+                    }
+
+                    target.Add(propertyName, propPatch.GetDeleted());
+                }
+                else
+                {
+                    if (target.TryGetPropertyValue(propertyName, out var value))
+                    {
+                        var oldValue = value;
+                        ReversePatch(ref value, innerPatch, options);
+                        if (!ReferenceEquals(oldValue, value))
+                        {
+                            target[propertyName] = value;
+                        }
+                    }
                 }
             }
         }

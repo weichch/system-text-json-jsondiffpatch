@@ -1,4 +1,4 @@
-# system-text-json-jsondiffpath
+# system-text-json-jsondiffpatch
 
 High-performance, low-allocating JSON objects diff and patch extension for `System.Text.Json`.
 
@@ -10,9 +10,9 @@ High-performance, low-allocating JSON objects diff and patch extension for `Syst
 - Fast large JSON document diffing with less memory consumption
 - Support smart array diffing (e.g. move detect) using LCS and custom array item matcher
 - Support diffing long text using [google-diff-match-patch](http://code.google.com/p/google-diff-match-patch/), or write your own diff algorithm
-- `JsonNode.Clone` and `JsonNode.DeepEquals` methods
+- `JsonNode.DeepClone` and `JsonNode.DeepEquals` methods
 
-- (_Under development_) Patch, unpatch, formatters etc
+- (_Under development_) formatters etc
 
 # Install
 
@@ -27,15 +27,15 @@ Install-Package SystemTextJson.JsonDiffPatch
 
 ```csharp
 // Diff JSON files
-JsonDocument? diff = JsonDiffPatcher.DiffFile(file1, file2);
+JsonNode? diff = JsonDiffPatcher.DiffFile(file1, file2);
 // Diff Span<byte>
-JsonDocument? diff = JsonDiffPatcher.Diff(span1, span2);
+JsonNode? diff = JsonDiffPatcher.Diff(span1, span2);
 // Diff streams
-JsonDocument? diff = JsonDiffPatcher.Diff(stream1, stream2);
+JsonNode? diff = JsonDiffPatcher.Diff(stream1, stream2);
 // Diff JSON strings
-JsonDocument? diff = JsonDiffPatcher.Diff(json1, json2);
+JsonNode? diff = JsonDiffPatcher.Diff(json1, json2);
 // Diff JSON readers
-JsonDocument? diff = JsonDiffPatcher.Diff(ref reader1, ref reader2);
+JsonNode? diff = JsonDiffPatcher.Diff(ref reader1, ref reader2);
 
 // Diff mutable JsonNode objects
 var node1 = JsonNode.Parse(...);
@@ -43,11 +43,11 @@ var node2 = JsonNode.Parse(...);
 JsonNode? diff = node1.Diff(node2);
 ```
 
-### Clone
+### DeepClone
 
 ```csharp
 var node = JsonNode.Parse(...);
-JsonNode? cloned = node.Clone();
+JsonNode? cloned = node.DeepClone();
 ```
 
 ### DeepEquals
@@ -56,6 +56,18 @@ JsonNode? cloned = node.Clone();
 var node1 = JsonNode.Parse(...);
 var node2 = JsonNode.Parse(...);
 bool equal = node1.DeepEquals(node2);
+```
+
+### Patch & Unpatch
+
+```csharp
+var node1 = JsonNode.Parse(...);
+var node2 = JsonNode.Parse(...);
+JsonNode? diff = node1.Diff(node2);
+// Patch
+JsonDiffPatcher.Patch(ref node1, diff);
+// Unpatch
+JsonDiffPatcher.ReversePatch(ref node1, diff);
 ```
 
 ### Options
@@ -67,14 +79,6 @@ public struct JsonDiffOptions
     /// Specifies whether to suppress detect array move. Default value is <c>false</c>.
     /// </summary>
     public bool SuppressDetectArrayMove { get; set; }
-
-    /// <summary>
-    /// Specifies whether to include moved item value. Default value is <c>false</c>.
-    /// </summary>
-    /// <remarks>
-    /// See <see link="https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#array-moves"/>.
-    /// </remarks>
-    public bool IncludeValueOnMove { get; set; }
 
     /// <summary>
     /// Gets or sets the function to match array items.
@@ -148,5 +152,4 @@ Intel Core i7-10750H CPU 2.60GHz, 1 CPU, 12 logical and 6 physical cores
 |        LargeObject_Mutable |  6,699.4 μs |  6,400.8 μs |  7,017.8 μs |  6,935.1 μs |  6,804.6 μs |  3,538 KB |
 
 
-_\* Generated using example objects [here](https://github.com/weichch/system-text-json-jsondiffpath/tree/main/test/Examples) and benchmark tests [here](https://github.com/weichch/system-text-json-jsondiffpath/tree/main/test/SystemTextJson.JsonDiffPatch.Benchmark/SimpleDiffBenchmark.cs)_
-
+_\* Generated using example objects [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/Examples) and benchmark tests [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/SystemTextJson.JsonDiffPatch.Benchmark/SimpleDiffBenchmark.cs)_

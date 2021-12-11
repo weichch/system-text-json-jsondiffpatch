@@ -4,22 +4,22 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
-    <RootNamespace>System.Text.Json</RootNamespace>
+    <RootNamespace>System.Text.Json.JsonDiffPatch</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
     <PackageId>SystemTextJson.JsonDiffPatch</PackageId>
-    <PackageTags>diff;json;patch;system-text-json;jsondiffpath</PackageTags>
-    <Description>High-performance, low-allocating JSON objects diff and patch extension for System.Text.Json. Provides bonus Clone and DeepEquals methods.</Description>
+    <PackageTags>diff;json;patch;system-text-json;jsondiffpatch</PackageTags>
+    <Description>High-performance, low-allocating JSON objects diff and patch extension for System.Text.Json. Provides bonus DeepClone and DeepEquals methods.</Description>
     <Authors>Wei Chen</Authors>
-    <PackageProjectUrl>https://github.com/weichch/system-text-json-jsondiffpath</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/weichch/system-text-json-jsondiffpatch</PackageProjectUrl>
     <Copyright>Copyright © Wei Chen 2021</Copyright>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.0.0-preview.1</Version>
+    <Version>1.0.0-preview.2</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>

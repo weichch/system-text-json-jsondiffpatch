@@ -1,12 +1,15 @@
-﻿using System.Text.Json.Diffs;
+﻿using System.Linq;
+using System.Text.Json.JsonDiffPatch.Diffs;
 using System.Text.Json.Nodes;
 using System.Threading;
 using DiffMatchPatch;
 
-namespace System.Text.Json
+namespace System.Text.Json.JsonDiffPatch
 {
     static partial class JsonDiffPatcher
     {
+        private const string TextPatchFailed = "Text diff patch failed.";
+
         private static readonly Lazy<diff_match_patch> DefaultTextDiffAlgorithm = new(
             () => new diff_match_patch(),
             LazyThreadSafetyMode.ExecutionAndPublication);
@@ -17,28 +20,33 @@ namespace System.Text.Json
             ref JsonDiffDelta delta,
             string left,
             string right,
-            in JsonDiffOptionsView options)
+            JsonDiffOptions options)
         {
-            var alg = options.TextMatcher ?? DefaultTextDiff;
+            var alg = options.TextDiffProvider ?? DefaultTextDiff;
             var diff = alg(left, right);
-            delta.Text(diff);
+            if (diff is not null)
+            {
+                delta.Text(diff);
+            }
 
-            static string DefaultTextDiff(string str1, string str2)
+            static string? DefaultTextDiff(string str1, string str2)
             {
                 var alg = DefaultTextDiffAlgorithm.Value;
                 var patches = alg.patch_make(str1, str2);
+                if (patches.Count == 0)
+                {
+                    return null;
+                }
+
                 var diff = alg.patch_toText(patches);
                 return diff;
             }
         }
 
-        /// <summary>
-        /// Checks if both left and right JSON values are long texts.
-        /// </summary>
         private static bool IsLongText(
             JsonNode? left,
             JsonNode? right,
-            in JsonDiffOptionsView options,
+            JsonDiffOptions options,
             out string? leftText,
             out string? rightText)
         {
@@ -109,6 +117,63 @@ namespace System.Text.Json
             leftText = null;
             rightText = null;
             return false;
+        }
+
+        private static JsonValue PatchLongText(string text, JsonDiffDelta delta, JsonPatchOptions options)
+        {
+            // When make changes in this method, also copy the changes to ReversePatch* method
+
+            var textPatch = options.TextPatchProvider ?? DefaultLongTextPatch;
+            return JsonValue.Create(textPatch(text, delta.GetTextDiff()))!;
+
+            static string DefaultLongTextPatch(string text, string patchText)
+            {
+                var alg = DefaultTextDiffAlgorithm.Value;
+                var patches = alg.patch_fromText(patchText);
+                var results = alg.patch_apply(patches, text);
+
+                if (((bool[]) results[1]).Any(flag => !flag))
+                {
+                    throw new InvalidOperationException(TextPatchFailed);
+                }
+
+                return (string) results[0];
+            }
+        }
+
+        private static JsonValue ReversePatchLongText(string text, JsonDiffDelta delta, JsonReversePatchOptions options)
+        {
+            // When make changes in this method, also copy the changes to Patch* method
+
+            var textPatch = options.ReverseTextPatchProvider ?? DefaultLongTextReversePatch;
+            return JsonValue.Create(textPatch(text, delta.GetTextDiff()))!;
+
+            static string DefaultLongTextReversePatch(string text, string patchText)
+            {
+                var alg = DefaultTextDiffAlgorithm.Value;
+                var patches = alg.patch_fromText(patchText);
+
+                // Reverse patches
+                var reversedPatches = alg.patch_deepCopy(patches);
+                foreach (var diff in reversedPatches.SelectMany(p => p.diffs))
+                {
+                    diff.operation = diff.operation switch
+                    {
+                        Operation.DELETE => Operation.INSERT,
+                        Operation.INSERT => Operation.DELETE,
+                        _ => diff.operation
+                    };
+                }
+
+                var results = alg.patch_apply(reversedPatches, text);
+
+                if (((bool[])results[1]).Any(flag => !flag))
+                {
+                    throw new InvalidOperationException(TextPatchFailed);
+                }
+
+                return (string)results[0];
+            }
         }
     }
 }

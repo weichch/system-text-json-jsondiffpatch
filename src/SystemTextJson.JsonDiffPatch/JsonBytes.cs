@@ -1,7 +1,7 @@
 ﻿using System.Buffers;
 using System.Text.Json.Nodes;
 
-namespace System.Text.Json
+namespace System.Text.Json.JsonDiffPatch
 {
     internal class JsonBytes : IBufferWriter<byte>, IDisposable
     {

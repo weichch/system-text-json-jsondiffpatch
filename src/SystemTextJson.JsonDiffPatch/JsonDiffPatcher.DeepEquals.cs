@@ -1,33 +1,33 @@
 ﻿using System.Diagnostics;
 using System.Text.Json.Nodes;
 
-namespace System.Text.Json
+namespace System.Text.Json.JsonDiffPatch
 {
     static partial class JsonDiffPatcher
     {
         /// <summary>
         /// Determines whether two <see cref="JsonNode"/> objects are deeply equal.
         /// </summary>
-        public static bool DeepEquals(this JsonNode? node, JsonNode? another)
+        public static bool DeepEquals(this JsonNode? left, JsonNode? right)
         {
-            Debug.Assert(node is null or JsonObject or JsonArray or JsonValue);
-            Debug.Assert(another is null or JsonObject or JsonArray or JsonValue);
+            Debug.Assert(left is null or JsonObject or JsonArray or JsonValue);
+            Debug.Assert(right is null or JsonObject or JsonArray or JsonValue);
 
-            if (ReferenceEquals(node, another))
+            if (ReferenceEquals(left, right))
             {
                 return true;
             }
 
-            if (node is null || another is null)
+            if (left is null || right is null)
             {
                 return false;
             }
 
-            return node switch
+            return left switch
             {
-                JsonObject obj1 when another is JsonObject obj2 => ObjectEquals(obj1, obj2),
-                JsonArray arr1 when another is JsonArray arr2 => ArrayEquals(arr1, arr2),
-                JsonValue val1 when another is JsonValue val2 => ValueEquals(val1, val2),
+                JsonObject obj1 when right is JsonObject obj2 => ObjectEquals(obj1, obj2),
+                JsonArray arr1 when right is JsonArray arr2 => ArrayEquals(arr1, arr2),
+                JsonValue val1 when right is JsonValue val2 => ValueEquals(val1, val2),
                 _ => false
             };
         }

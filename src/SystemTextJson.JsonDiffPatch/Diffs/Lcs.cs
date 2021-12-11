@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
 
-namespace System.Text.Json.Diffs
+namespace System.Text.Json.JsonDiffPatch.Diffs
 {
     internal readonly ref struct Lcs
     {
@@ -115,10 +115,11 @@ namespace System.Text.Json.Diffs
             {
                 for (var j = 1; j < n; j++)
                 {
-                    if (match(x[i - 1], i - 1, y[j - 1], j - 1, out var deepEqual))
+                    var matchContext = new ArrayItemMatchContext(x[i - 1], i - 1, y[j - 1], j - 1);
+                    if (match(ref matchContext))
                     {
                         matrix[i * n + j] = 1 + matrix[(i - 1) * n + (j - 1)];
-                        matchMatrix[i * n + j] = deepEqual ? DeepEqual : Equal;
+                        matchMatrix[i * n + j] = matchContext.IsDeepEqual ? DeepEqual : Equal;
                     }
                     else
                     {
