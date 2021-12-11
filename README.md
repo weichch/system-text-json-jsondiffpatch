@@ -12,33 +12,7 @@ High-performance, low-allocating JSON objects diff and patch extension for `Syst
 - Support diffing long text using [google-diff-match-patch](http://code.google.com/p/google-diff-match-patch/), or write your own diff algorithm
 - `JsonNode.DeepClone` and `JsonNode.DeepEquals` methods
 
-- (_Under development_) Patch, unpatch, formatters etc
-
-## Benchmark
-
-``` ini
-
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19042.631 (20H2/October2020Update)
-Intel Core i7-10750H CPU 2.60GHz, 1 CPU, 12 logical and 6 physical cores
-.NET SDK=5.0.403
-  [Host]     : .NET 5.0.12 (5.0.1221.52207), X64 RyuJIT
-  DefaultJob : .NET 5.0.12 (5.0.1221.52207), X64 RyuJIT
-
-
-```
-|                     Method |        Mean |         Min |         Max |         P95 |         P80 | Allocated |
-|--------------------------- |------------:|------------:|------------:|------------:|------------:|----------:|
-|         DemoObject_JsonNet |    165.4 μs |    158.4 μs |    168.6 μs |    168.0 μs |    167.4 μs |    173 KB |
-|  DemoObject_DefaultOptions |    152.8 μs |    146.9 μs |    160.1 μs |    159.3 μs |    155.3 μs |     84 KB |
-|     DemoObject_NoArrayMove |    152.0 μs |    147.4 μs |    154.0 μs |    153.6 μs |    153.2 μs |     84 KB |
-|         DemoObject_Mutable |    104.1 μs |    101.6 μs |    106.1 μs |    106.0 μs |    105.1 μs |     70 KB |
-|        LargeObject_JsonNet | 89,434.7 μs | 84,515.2 μs | 92,858.6 μs | 92,387.7 μs | 91,774.2 μs | 23,628 KB |
-| LargeObject_DefaultOptions |  7,446.1 μs |  7,156.2 μs |  7,794.0 μs |  7,775.8 μs |  7,518.6 μs |  4,085 KB |
-|    LargeObject_NoArrayMove |  7,364.3 μs |  7,072.5 μs |  7,575.8 μs |  7,530.3 μs |  7,472.6 μs |  4,087 KB |
-|        LargeObject_Mutable |  6,699.4 μs |  6,400.8 μs |  7,017.8 μs |  6,935.1 μs |  6,804.6 μs |  3,538 KB |
-
-
-_\* Generated using example objects [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/Examples) and benchmark tests [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/SystemTextJson.JsonDiffPatch.Benchmark/SimpleDiffBenchmark.cs)_
+- (_Under development_) formatters etc
 
 # Install
 
@@ -82,6 +56,18 @@ JsonNode? cloned = node.DeepClone();
 var node1 = JsonNode.Parse(...);
 var node2 = JsonNode.Parse(...);
 bool equal = node1.DeepEquals(node2);
+```
+
+### Patch & Unpatch
+
+```csharp
+var node1 = JsonNode.Parse(...);
+var node2 = JsonNode.Parse(...);
+JsonNode? diff = node1.Diff(node2);
+// Patch
+JsonDiffPatcher.Patch(ref node1, diff);
+// Unpatch
+JsonDiffPatcher.ReversePatch(ref node1, diff);
 ```
 
 ### Options
@@ -141,3 +127,29 @@ public struct JsonDiffOptions
     public TextMatch? TextMatcher { get; set; }
 }
 ```
+
+## Benchmark
+
+``` ini
+
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19042.631 (20H2/October2020Update)
+Intel Core i7-10750H CPU 2.60GHz, 1 CPU, 12 logical and 6 physical cores
+.NET SDK=5.0.403
+  [Host]     : .NET 5.0.12 (5.0.1221.52207), X64 RyuJIT
+  DefaultJob : .NET 5.0.12 (5.0.1221.52207), X64 RyuJIT
+
+
+```
+|                     Method |        Mean |         Min |         Max |         P95 |         P80 | Allocated |
+|--------------------------- |------------:|------------:|------------:|------------:|------------:|----------:|
+|         DemoObject_JsonNet |    165.4 μs |    158.4 μs |    168.6 μs |    168.0 μs |    167.4 μs |    173 KB |
+|  DemoObject_DefaultOptions |    152.8 μs |    146.9 μs |    160.1 μs |    159.3 μs |    155.3 μs |     84 KB |
+|     DemoObject_NoArrayMove |    152.0 μs |    147.4 μs |    154.0 μs |    153.6 μs |    153.2 μs |     84 KB |
+|         DemoObject_Mutable |    104.1 μs |    101.6 μs |    106.1 μs |    106.0 μs |    105.1 μs |     70 KB |
+|        LargeObject_JsonNet | 89,434.7 μs | 84,515.2 μs | 92,858.6 μs | 92,387.7 μs | 91,774.2 μs | 23,628 KB |
+| LargeObject_DefaultOptions |  7,446.1 μs |  7,156.2 μs |  7,794.0 μs |  7,775.8 μs |  7,518.6 μs |  4,085 KB |
+|    LargeObject_NoArrayMove |  7,364.3 μs |  7,072.5 μs |  7,575.8 μs |  7,530.3 μs |  7,472.6 μs |  4,087 KB |
+|        LargeObject_Mutable |  6,699.4 μs |  6,400.8 μs |  7,017.8 μs |  6,935.1 μs |  6,804.6 μs |  3,538 KB |
+
+
+_\* Generated using example objects [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/Examples) and benchmark tests [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/SystemTextJson.JsonDiffPatch.Benchmark/SimpleDiffBenchmark.cs)_
