@@ -127,7 +127,7 @@ namespace System.Text.Json.JsonDiffPatch
                         // We have two objects equal by position or other criteria
                         var itemDiff = new JsonDiffDelta();
                         DiffInternal(ref itemDiff, left[entry.LeftIndex], right[entry.RightIndex], options);
-                        if (itemDiff.Result is not null)
+                        if (itemDiff.Document is not null)
                         {
                             delta.ArrayChange(i, false, itemDiff);
                         }
@@ -146,12 +146,12 @@ namespace System.Text.Json.JsonDiffPatch
                                     i - commonHead /* Current in right */,
                                     out _))
                                 {
-                                    JsonDiffDelta.ChangeDeletedToArrayMoved(delta, removedLeftIndex, i);
+                                    delta.ArrayMoveFromDeleted(removedLeftIndex, i);
 
                                     // Diff removed item in left and new item in right
                                     var itemDiff = new JsonDiffDelta();
                                     DiffInternal(ref itemDiff, left[removedLeftIndex], right[i], options);
-                                    if (itemDiff.Result is not null)
+                                    if (itemDiff.Document is not null)
                                     {
                                         delta.ArrayChange(i, false, itemDiff);
                                     }
@@ -189,7 +189,7 @@ namespace System.Text.Json.JsonDiffPatch
 
                 var itemDiff = new JsonDiffDelta();
                 DiffInternal(ref itemDiff, context.Left, context.Right, options);
-                if (itemDiff.Result is not null)
+                if (itemDiff.Document is not null)
                 {
                     delta.ArrayChange(context.RightPosition, false, itemDiff);
                 }
@@ -218,7 +218,7 @@ namespace System.Text.Json.JsonDiffPatch
                     CheckForIndex(index, target.Count - 1);
                     var value = target[index];
                     var oldValue = value;
-                    Patch(ref value, delta.Result, options);
+                    Patch(ref value, delta.Document, options);
                     if (!ReferenceEquals(oldValue, value))
                     {
                         target[index] = value;
@@ -249,7 +249,7 @@ namespace System.Text.Json.JsonDiffPatch
                     CheckForIndex(index, target.Count - 1);
                     var value = target[index];
                     var oldValue = value;
-                    ReversePatch(ref value, delta.Result, options);
+                    ReversePatch(ref value, delta.Document, options);
                     if (!ReferenceEquals(oldValue, value))
                     {
                         target[index] = value;

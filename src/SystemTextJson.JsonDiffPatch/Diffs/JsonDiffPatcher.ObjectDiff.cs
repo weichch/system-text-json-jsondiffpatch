@@ -30,7 +30,7 @@ namespace System.Text.Json.JsonDiffPatch
                     // Modified: https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#modified
                     var valueDiff = new JsonDiffDelta();
                     DiffInternal(ref valueDiff, leftValue, rightValue, options);
-                    if (valueDiff.Result is not null)
+                    if (valueDiff.Document is not null)
                     {
                         delta.ObjectChange(prop, valueDiff);
                     }

@@ -30,20 +30,20 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
         private const string TypePropertyName = "_t";
         private const string ArrayType = "a";
 
-        private JsonNode? _result;
+        private JsonNode? _document;
 
-        public JsonDiffDelta(JsonNode delta)
+        public JsonDiffDelta(JsonNode document)
         {
-            _result = delta;
-            Kind = GetDeltaKind(delta);
+            _document = document;
+            Kind = GetDeltaKind(document);
         }
 
-        public JsonNode? Result
+        public JsonNode? Document
         {
-            get => _result;
+            get => _document;
             private set
             {
-                _result = value;
+                _document = value;
                 Kind = GetDeltaKind(value);
             }
         }
@@ -62,50 +62,50 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
         public JsonNode? GetAdded()
         {
             CheckForKind(DeltaKind.Added);
-            return GetOrClone(Result!.AsArray()[0]);
+            return GetOrClone(Document!.AsArray()[0]);
         }
 
         public JsonNode? GetDeleted()
         {
             CheckForKind(DeltaKind.Deleted);
-            return GetOrClone(Result!.AsArray()[0]);
+            return GetOrClone(Document!.AsArray()[0]);
         }
 
         public JsonNode? GetNewValue()
         {
             CheckForKind(DeltaKind.Modified);
-            return GetOrClone(Result!.AsArray()[1]);
+            return GetOrClone(Document!.AsArray()[1]);
         }
 
         public JsonNode? GetOldValue()
         {
             CheckForKind(DeltaKind.Modified);
-            return GetOrClone(Result!.AsArray()[0]);
+            return GetOrClone(Document!.AsArray()[0]);
         }
 
         public int GetNewIndex()
         {
             CheckForKind(DeltaKind.ArrayMove);
-            return Result!.AsArray()[1]!.GetValue<int>();
+            return Document!.AsArray()[1]!.GetValue<int>();
         }
 
         public string GetTextDiff()
         {
             CheckForKind(DeltaKind.Text);
-            return Result!.AsArray()[0]!.GetValue<string>();
+            return Document!.AsArray()[0]!.GetValue<string>();
         }
 
         public void Added(JsonNode? newValue)
         {
             EnsureDeltaType(nameof(Added), count: 1);
-            var arr = Result!.AsArray();
+            var arr = Document!.AsArray();
             arr[0] = newValue.DeepClone();
         }
 
         public void Modified(JsonNode? oldValue, JsonNode? newValue)
         {
             EnsureDeltaType(nameof(Modified), count: 2);
-            var arr = Result!.AsArray();
+            var arr = Document!.AsArray();
             arr[0] = oldValue.DeepClone();
             arr[1] = newValue.DeepClone();
         }
@@ -113,7 +113,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
         public void Deleted(JsonNode? oldValue)
         {
             EnsureDeltaType(nameof(Deleted), count: 3, opType: OpTypeDeleted);
-            var arr = Result!.AsArray();
+            var arr = Document!.AsArray();
             arr[0] = oldValue.DeepClone();
             arr[1] = 0;
         }
@@ -121,20 +121,37 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
         public void ArrayMoveFromDeleted(int newPosition)
         {
             EnsureDeltaType(nameof(ArrayMoveFromDeleted), count: 3, opType: OpTypeDeleted);
-            var arr = Result!.AsArray();
+            var arr = Document!.AsArray();
             arr[0] = "";
             arr[1] = newPosition;
             arr[2] = OpTypeArrayMoved;
         }
-
-        public void ArrayChange(int index, bool isLeft, JsonDiffDelta innerChange)
+        
+        internal void ArrayMoveFromDeleted(int index, int newPosition)
         {
-            if (innerChange.Result is null)
+            if (Document is not JsonObject obj)
             {
                 return;
             }
 
-            var result = innerChange.Result;
+            if (!obj.TryGetPropertyValue($"_{index:D}", out var itemDelta)
+                || itemDelta is null)
+            {
+                return;
+            }
+
+            var newItemDelta = new JsonDiffDelta(itemDelta);
+            newItemDelta.ArrayMoveFromDeleted(newPosition);
+        }
+
+        public void ArrayChange(int index, bool isLeft, JsonDiffDelta innerChange)
+        {
+            if (innerChange.Document is null)
+            {
+                return;
+            }
+
+            var result = innerChange.Document;
             Debug.Assert(result.Parent is null);
 
             if (result.Parent is not null)
@@ -145,18 +162,18 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             }
 
             EnsureDeltaType(nameof(ArrayChange), isArrayChange: true);
-            var obj = Result!.AsObject();
+            var obj = Document!.AsObject();
             obj.Add(isLeft ? $"_{index:D}" : $"{index:D}", result);
         }
 
         public void ObjectChange(string propertyName, JsonDiffDelta innerChange)
         {
-            if (innerChange.Result is null)
+            if (innerChange.Document is null)
             {
                 return;
             }
 
-            var result = innerChange.Result;
+            var result = innerChange.Document;
             Debug.Assert(result.Parent is null);
 
             if (result.Parent is not null)
@@ -167,14 +184,14 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             }
 
             EnsureDeltaType(nameof(ObjectChange));
-            var obj = Result!.AsObject();
+            var obj = Document!.AsObject();
             obj.Add(propertyName, result);
         }
 
         public void Text(string diff)
         {
             EnsureDeltaType(nameof(Text), count: 3, opType: OpTypeTextDiff);
-            var arr = Result!.AsArray();
+            var arr = Document!.AsArray();
             arr[0] = diff;
             arr[1] = 0;
             arr[2] = OpTypeTextDiff;
@@ -187,15 +204,15 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             {
                 // Object delta, i.e. object and array
 
-                if (Result is null)
+                if (Document is null)
                 {
-                    Result = isArrayChange
+                    Document = isArrayChange
                         ? new JsonObject {{TypePropertyName, ArrayType}}
                         : new JsonObject();
                     return;
                 }
 
-                if (Result is JsonObject deltaObject)
+                if (Document is JsonObject deltaObject)
                 {
                     // Check delta object is for array
                     string? deltaType = null;
@@ -212,7 +229,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             else
             {
                 // Value delta
-                if (Result is null)
+                if (Document is null)
                 {
                     var newDeltaArray = new JsonArray();
                     for (var i = 0; i < count; i++)
@@ -227,11 +244,11 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
                         }
                     }
 
-                    Result = newDeltaArray;
+                    Document = newDeltaArray;
                     return;
                 }
 
-                if (Result is JsonArray deltaArray && deltaArray.Count == count)
+                if (Document is JsonArray deltaArray && deltaArray.Count == count)
                 {
                     if (count < 3)
                     {
@@ -299,38 +316,21 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             return value?.Parent is null ? value : value.DeepClone();
         }
 
-        public static JsonDiffDelta CreateAdded(JsonNode? newValue)
+        internal static JsonDiffDelta CreateAdded(JsonNode? newValue)
         {
             var delta = new JsonDiffDelta();
             delta.Added(newValue);
             return delta;
         }
 
-        public static JsonDiffDelta CreateDeleted(JsonNode? oldValue)
+        internal static JsonDiffDelta CreateDeleted(JsonNode? oldValue)
         {
             var delta = new JsonDiffDelta();
             delta.Deleted(oldValue);
             return delta;
         }
-
-        public static void ChangeDeletedToArrayMoved(JsonDiffDelta delta, int index, int newPosition)
-        {
-            if (delta.Result is not JsonObject obj)
-            {
-                return;
-            }
-
-            if (!obj.TryGetPropertyValue($"_{index:D}", out var itemDelta)
-                || itemDelta is null)
-            {
-                return;
-            }
-
-            var newItemDelta = new JsonDiffDelta(itemDelta);
-            newItemDelta.ArrayMoveFromDeleted(newPosition);
-        }
-
-        public static bool TryGetArrayIndex(string propertyName, out int index, out bool isLeft)
+        
+        internal static bool TryGetArrayIndex(string propertyName, out int index, out bool isLeft)
         {
             isLeft = propertyName.StartsWith("_");
             if (int.TryParse(isLeft ? propertyName.Substring(1) : propertyName, out index))
@@ -343,7 +343,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             return false;
         }
 
-        public static bool IsTypeProperty(string propertyName)
+        internal static bool IsTypeProperty(string propertyName)
         {
             return string.Equals(TypePropertyName, propertyName);
         }
