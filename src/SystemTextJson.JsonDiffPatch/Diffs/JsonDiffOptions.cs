@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.JsonDiffPatch.Diffs;
+using System.Text.Json.JsonDiffPatch.Diffs.Formatters;
 using System.Text.Json.Nodes;
 
 namespace System.Text.Json.JsonDiffPatch
@@ -60,5 +61,10 @@ namespace System.Text.Json.JsonDiffPatch
         /// Gets or sets the function to diff long texts.
         /// </summary>
         public Func<string, string, string?>? TextDiffProvider { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the diff delta formatter.
+        /// </summary>
+        public IJsonDiffDeltaFormatter? DiffDeltaFormatter { get; set; }
     }
 }

@@ -21,8 +21,12 @@ namespace System.Text.Json.JsonDiffPatch
                 return;
             }
 
-            var match = options.ArrayItemMatcher 
-                        ?? new DefaultArrayItemComparer(options).MatchArrayItem;
+            var match = options.ArrayItemMatcher;
+            if (match is null)
+            {
+                var defaultComparer = new DefaultArrayItemComparer(options);
+                match = defaultComparer.MatchArrayItem;
+            }
 
             // Find command head
             int commonHead;
@@ -121,10 +125,11 @@ namespace System.Text.Json.JsonDiffPatch
                         }
 
                         // We have two objects equal by position or other criteria
-                        var itemDiff = DiffInternal(left[entry.LeftIndex], right[entry.RightIndex], options);
-                        if (itemDiff is not null)
+                        var itemDiff = new JsonDiffDelta();
+                        DiffInternal(ref itemDiff, left[entry.LeftIndex], right[entry.RightIndex], options);
+                        if (itemDiff.Result is not null)
                         {
-                            delta.ArrayChange(i, false, new JsonDiffDelta(itemDiff));
+                            delta.ArrayChange(i, false, itemDiff);
                         }
                     }
                     else
@@ -144,10 +149,11 @@ namespace System.Text.Json.JsonDiffPatch
                                     JsonDiffDelta.ChangeDeletedToArrayMoved(delta, removedLeftIndex, i);
 
                                     // Diff removed item in left and new item in right
-                                    var itemDiff = DiffInternal(left[removedLeftIndex], right[i], options);
-                                    if (itemDiff is not null)
+                                    var itemDiff = new JsonDiffDelta();
+                                    DiffInternal(ref itemDiff, left[removedLeftIndex], right[i], options);
+                                    if (itemDiff.Result is not null)
                                     {
-                                        delta.ArrayChange(i, false, new JsonDiffDelta(itemDiff));
+                                        delta.ArrayChange(i, false, itemDiff);
                                     }
 
                                     removedIndices.RemoveAt(j);
@@ -181,10 +187,11 @@ namespace System.Text.Json.JsonDiffPatch
                     return;
                 }
 
-                var itemDiff = DiffInternal(context.Left, context.Right, options);
-                if (itemDiff is not null)
+                var itemDiff = new JsonDiffDelta();
+                DiffInternal(ref itemDiff, context.Left, context.Right, options);
+                if (itemDiff.Result is not null)
                 {
-                    delta.ArrayChange(context.RightPosition, false, new JsonDiffDelta(itemDiff));
+                    delta.ArrayChange(context.RightPosition, false, itemDiff);
                 }
             }
         }

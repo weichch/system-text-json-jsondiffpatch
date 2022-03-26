@@ -4,9 +4,9 @@ using System.Text.Json.Nodes;
 namespace System.Text.Json.JsonDiffPatch.Diffs
 {
     /// <summary>
-    /// The type of delta.
+    /// The type of <see cref="JsonDiffDelta"/>.
     /// </summary>
-    internal enum DeltaKind
+    public enum DeltaKind
     {
         None,
         Added,
@@ -17,9 +17,11 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
         Object,
         Text
     }
-
-    // https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md
-    internal struct JsonDiffDelta
+    
+    /// <summary>
+    /// Implements JSON diff delta format described at <see href="https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md"/>.
+    /// </summary>
+    public struct JsonDiffDelta
     {
         private const int OpTypeDeleted = 0;
         private const int OpTypeTextDiff = 2;

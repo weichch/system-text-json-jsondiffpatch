@@ -28,10 +28,11 @@ namespace System.Text.Json.JsonDiffPatch
                 else
                 {
                     // Modified: https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#modified
-                    var valueDiff = DiffInternal(leftValue, rightValue, options);
-                    if (valueDiff is not null)
+                    var valueDiff = new JsonDiffDelta();
+                    DiffInternal(ref valueDiff, leftValue, rightValue, options);
+                    if (valueDiff.Result is not null)
                     {
-                        delta.ObjectChange(prop, new JsonDiffDelta(valueDiff));
+                        delta.ObjectChange(prop, valueDiff);
                     }
                 }
             }

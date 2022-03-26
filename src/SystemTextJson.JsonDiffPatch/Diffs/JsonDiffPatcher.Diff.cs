@@ -16,7 +16,7 @@ namespace System.Text.Json.JsonDiffPatch
         public static JsonNode? Diff(ReadOnlySpan<byte> leftJson, ReadOnlySpan<byte> rightJson,
             JsonDiffOptions? options = default)
         {
-            return DiffInternal(JsonNode.Parse(leftJson), JsonNode.Parse(rightJson), options);
+            return DiffAndFormat(JsonNode.Parse(leftJson), JsonNode.Parse(rightJson), options);
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace System.Text.Json.JsonDiffPatch
             _ = leftJson ?? throw new ArgumentNullException(nameof(leftJson));
             _ = rightJson ?? throw new ArgumentNullException(nameof(rightJson));
 
-            return DiffInternal(JsonNode.Parse(leftJson), JsonNode.Parse(rightJson), options);
+            return DiffAndFormat(JsonNode.Parse(leftJson), JsonNode.Parse(rightJson), options);
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace System.Text.Json.JsonDiffPatch
         public static JsonNode? Diff(ref Utf8JsonReader leftJson, ref Utf8JsonReader rightJson,
             JsonDiffOptions? options = default)
         {
-            return DiffInternal(JsonNode.Parse(ref leftJson), JsonNode.Parse(ref rightJson), options);
+            return DiffAndFormat(JsonNode.Parse(ref leftJson), JsonNode.Parse(ref rightJson), options);
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace System.Text.Json.JsonDiffPatch
         public static JsonNode? Diff(string? leftJson, string? rightJson,
             JsonDiffOptions? options = default)
         {
-            return DiffInternal(leftJson is null ? null : JsonNode.Parse(leftJson),
+            return DiffAndFormat(leftJson is null ? null : JsonNode.Parse(leftJson),
                 rightJson is null ? null : JsonNode.Parse(rightJson), options);
         }
 
@@ -67,7 +67,7 @@ namespace System.Text.Json.JsonDiffPatch
         /// <param name="options">The diffing options.</param>
         public static JsonNode? Diff(this JsonNode? left, JsonNode? right, JsonDiffOptions? options = default)
         {
-            return DiffInternal(left, right, options);
+            return DiffAndFormat(left, right, options);
         }
 
         /// <summary>
@@ -88,12 +88,26 @@ namespace System.Text.Json.JsonDiffPatch
             return Diff(fsLeft, fsRight, options);
         }
 
-        private static JsonNode? DiffInternal(
+        private static JsonNode? DiffAndFormat(
             JsonNode? left,
             JsonNode? right,
             JsonDiffOptions? options)
         {
             var delta = new JsonDiffDelta();
+            DiffInternal(ref delta, left, right, options);
+            return options?.DiffDeltaFormatter is null
+                ? delta.Result
+                : options.DiffDeltaFormatter.Format(ref delta);
+        }
+
+        private static void DiffInternal(
+            ref JsonDiffDelta delta,
+            JsonNode? left,
+            JsonNode? right,
+            JsonDiffOptions? options)
+        {
+            Debug.Assert(delta.Result is null);
+            
             options ??= JsonDiffOptions.Default;
 
             left ??= "";
@@ -103,14 +117,14 @@ namespace System.Text.Json.JsonDiffPatch
             if (left is JsonObject leftObj && right is JsonObject rightObj)
             {
                 DiffObject(ref delta, leftObj, rightObj, options);
-                return delta.Result;
+                return;
             }
 
             // Compare two arrays
             if (left is JsonArray leftArr && right is JsonArray rightArr)
             {
                 DiffArray(ref delta, leftArr, rightArr, options);
-                return delta.Result;
+                return;
             }
 
             // For long texts
@@ -118,7 +132,7 @@ namespace System.Text.Json.JsonDiffPatch
             if (IsLongText(left, right, options, out var leftText, out var rightText))
             {
                 DiffLongText(ref delta, leftText!, rightText!, options);
-                return delta.Result;
+                return;
             }
 
             // None of the above methods returned a result, fallback to check if both values are deeply equal
@@ -126,11 +140,8 @@ namespace System.Text.Json.JsonDiffPatch
             if (!left.DeepEquals(right))
             {
                 delta.Modified(left, right);
-                return delta.Result;
+                return;
             }
-
-            Debug.Assert(delta.Result is null);
-            return null;
         }
     }
 }
