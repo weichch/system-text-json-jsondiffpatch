@@ -1,0 +1,89 @@
+﻿[
+  {
+    "op": "replace",
+    "path": "/summary",
+    "value": "South America (Spanish: Am\u00E9rica del Sur, Sudam\u00E9rica or  \nSuram\u00E9rica; Portuguese: Am\u00E9rica do Sul; Quechua and Aymara:  \nUrin Awya Yala; Guarani: \u00D1embyam\u00E9rika; Dutch: Zuid-Amerika;  \nFrench: Am\u00E9rique du Sud) is a continent situated in the  \nWestern Hemisphere, mostly in the Southern Hemisphere, with  \na relatively small portion in the Northern Hemisphere.  \nThe continent is also considered a subcontinent of the  \nAmericas.[2][3] It is bordered on the west by the Pacific  \nOcean and on the north and east by the Atlantic Ocean;  \nNorth America and the Caribbean Sea lie to the northwest.  \nIt includes twelve countries: Argentina, Bolivia, Brasil,  \nChile, Colombia, Ecuador, Guyana, Paraguay, Peru, Suriname,  \nUruguay, and Venezuela. The South American nations that  \nborder the Caribbean Sea\u2014including Colombia, Venezuela,  \nGuyana, Suriname, as well as French Guiana, which is an  \noverseas region of France\u2014are a.k.a. Caribbean South  \nAmerica. South America has an area of 17,840,000 square  \nkilometers (6,890,000 sq mi). Its population as of 2005  \nhas been estimated at more than 371,090,000. South America  \nranks fourth in area (after Asia, Africa, and North America)  \nand fifth in population (after Asia, Africa, Europe, and  \nNorth America). The word America was coined in 1507 by  \ncartographers Martin Waldseem\u00FCller and Matthias Ringmann,  \nafter Amerigo Vespucci, who was the first European to  \nsuggest that the lands newly discovered by Europeans were  \nnot India, but a New World unknown to Europeans."
+  },
+  {
+    "op": "remove",
+    "path": "/surface"
+  },
+  {
+    "op": "replace",
+    "path": "/demographics/population",
+    "value": 385744896
+  },
+  {
+    "op": "remove",
+    "path": "/languages/2"
+  },
+  {
+    "op": "add",
+    "path": "/languages/2",
+    "value": "ingl\u00E9s"
+  },
+  {
+    "op": "remove",
+    "path": "/countries/11"
+  },
+  {
+    "op": "remove",
+    "path": "/countries/10"
+  },
+  {
+    "op": "remove",
+    "path": "/countries/8"
+  },
+  {
+    "op": "remove",
+    "path": "/countries/4"
+  },
+  {
+    "op": "remove",
+    "path": "/countries/0"
+  },
+  {
+    "op": "add",
+    "path": "/countries/0",
+    "value": {
+      "name": "Argentina",
+      "capital": "Rawson",
+      "independence": "1816-07-08T12:20:56.000Z",
+      "unasur": true
+    }
+  },
+  {
+    "op": "add",
+    "path": "/countries/2",
+    "value": {
+      "name": "Peru",
+      "capital": "Lima",
+      "independence": "1821-07-27T12:20:56.000Z",
+      "unasur": true
+    }
+  },
+  {
+    "op": "add",
+    "path": "/countries/9",
+    "value": {
+      "name": "Ant\u00E1rtida",
+      "unasur": false
+    }
+  },
+  {
+    "op": "add",
+    "path": "/countries/10",
+    "value": {
+      "name": "Colombia",
+      "capital": "Bogot\u00E1",
+      "independence": "1810-07-19T12:20:56.000Z",
+      "unasur": true,
+      "population": 42888594
+    }
+  },
+  {
+    "op": "add",
+    "path": "/spanishName",
+    "value": "Sudam\u00E9rica"
+  }
+]

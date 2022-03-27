@@ -1,4 +1,6 @@
-﻿namespace System.Text.Json.JsonDiffPatch.Diffs.Formatters
+﻿using System.Text.Json.Nodes;
+
+namespace System.Text.Json.JsonDiffPatch.Diffs.Formatters
 {
     /// <summary>
     /// Defines <see cref="JsonDiffDelta"/> formatting.
@@ -9,7 +11,8 @@
         /// Creates a new JSON diff document from the <see cref="JsonDiffDelta"/>.
         /// </summary>
         /// <param name="delta">The JSON diff delta.</param>
-        TResult? Format(ref JsonDiffDelta delta);
+        /// <param name="left">The left JSON object.</param>
+        TResult? Format(ref JsonDiffDelta delta, JsonNode? left);
     }
 }
 

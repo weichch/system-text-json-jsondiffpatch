@@ -11,13 +11,13 @@ namespace System.Text.Json.JsonDiffPatch.Diffs.Formatters
         private const string PropertyNameOperation = "op";
         private const string PropertyNamePath = "path";
         private const string PropertyNameValue = "value";
-        private const string PropertyNameFrom = "from";
+        
         private const string OperationNameAdd = "add";
         private const string OperationNameRemove = "remove";
         private const string OperationNameReplace = "replace";
-        private const string OperationNameMove = "move";
 
         public JsonPatchDeltaFormatter()
+            : base(true)
         {
             PathBuilder = new();
         }
@@ -29,49 +29,33 @@ namespace System.Text.Json.JsonDiffPatch.Diffs.Formatters
             return new JsonArray();
         }
 
-        protected override JsonNode? FormatArrayElement(ref JsonDiffDelta delta, int index, bool isLeft,
-            JsonNode? existingValue)
+        protected override JsonNode? FormatArrayElement(in JsonDiffDelta.ArrayChangeEntry arrayChange,
+            JsonNode? left, JsonNode? existingValue)
         {
-            using var _ = new PropertyPathScope(PathBuilder, index);
-            return base.FormatArrayElement(ref delta, index, isLeft, existingValue);
+            using var _ = new PropertyPathScope(PathBuilder, arrayChange.Index);
+            return base.FormatArrayElement(arrayChange, left, existingValue);
         }
 
-        protected override JsonNode? FormatObjectProperty(ref JsonDiffDelta delta, string propertyName,
-            JsonNode? existingValue)
+        protected override JsonNode? FormatObjectProperty(ref JsonDiffDelta delta, JsonNode? left, 
+            string propertyName, JsonNode? existingValue)
         {
             using var _ = new PropertyPathScope(PathBuilder, propertyName);
-            return base.FormatObjectProperty(ref delta, propertyName, existingValue);
+            return base.FormatObjectProperty(ref delta, left, propertyName, existingValue);
         }
 
         protected override JsonNode? FormatAdded(ref JsonDiffDelta delta, JsonNode? existingValue)
         {
-            var arr = existingValue!.AsArray();
-            var path = PathBuilder.ToString();
-            if (arr.Count > 0)
-            {
-                // If the last operation is remove at the same path, simply merge the two operations with a replace
-                var lastOp = arr[arr.Count - 1]!.AsObject();
-                if (string.Equals(lastOp[PropertyNameOperation]!.GetValue<string>(), OperationNameRemove)
-                    && string.Equals(lastOp[PropertyNamePath]!.GetValue<string>(), path))
-                {
-                    arr.RemoveAt(arr.Count - 1);
-                    var modifiedDelta = new JsonDiffDelta();
-                    modifiedDelta.Modified("", delta.GetAdded());
-                    return FormatModified(ref modifiedDelta, existingValue);
-                }
-            }
-
             var op = new JsonObject
             {
                 {PropertyNameOperation, OperationNameAdd},
                 {PropertyNamePath, PathBuilder.ToString()},
                 {PropertyNameValue, delta.GetAdded()}
             };
-            arr.Add(op);
+            existingValue!.AsArray().Add(op);
             return existingValue;
         }
 
-        protected override JsonNode? FormatModified(ref JsonDiffDelta delta, JsonNode? existingValue)
+        protected override JsonNode? FormatModified(ref JsonDiffDelta delta, JsonNode? left, JsonNode? existingValue)
         {
             var op = new JsonObject
             {
@@ -83,7 +67,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs.Formatters
             return existingValue;
         }
 
-        protected override JsonNode? FormatDeleted(ref JsonDiffDelta delta, JsonNode? existingValue)
+        protected override JsonNode? FormatDeleted(ref JsonDiffDelta delta, JsonNode? left, JsonNode? existingValue)
         {
             var op = new JsonObject
             {
@@ -94,39 +78,15 @@ namespace System.Text.Json.JsonDiffPatch.Diffs.Formatters
             return existingValue;
         }
 
-        protected override JsonNode? FormatArrayMove(ref JsonDiffDelta delta, JsonNode? existingValue)
+        protected override JsonNode? FormatArrayMove(ref JsonDiffDelta delta, JsonNode? left, JsonNode? existingValue)
         {
-            var op = new JsonObject
-            {
-                {PropertyNameOperation, OperationNameMove},
-                {PropertyNameFrom, PathBuilder.ToString()},
-                {PropertyNamePath, GetMoveTargetPath(delta.GetNewIndex())}
-            };
-            existingValue!.AsArray().Add(op);
-            return existingValue;
+            // This should never happen. Array move operations should have been flattened into deletes and adds.
+            throw new InvalidOperationException("Array move cannot be formatted.");
         }
 
-        protected override JsonNode? FormatTextDiff(ref JsonDiffDelta delta, JsonNode? existingValue)
+        protected override JsonNode? FormatTextDiff(ref JsonDiffDelta delta, JsonValue? left, JsonNode? existingValue)
         {
             throw new NotSupportedException("Text diff is not supported by JsonPath.");
-        }
-
-        private string GetMoveTargetPath(int newIndex)
-        {
-            var targetPathBuilder = new StringBuilder(PathBuilder.ToString());
-
-            while (targetPathBuilder.Length > 0 && targetPathBuilder[targetPathBuilder.Length - 1] != '/')
-            {
-                targetPathBuilder.Remove(targetPathBuilder.Length - 1, 1);
-            }
-
-            if (targetPathBuilder.Length == 0)
-            {
-                targetPathBuilder.Append('/');
-            }
-
-            targetPathBuilder.Append(newIndex.ToString("D"));
-            return targetPathBuilder.ToString();
         }
 
         private readonly struct PropertyPathScope : IDisposable

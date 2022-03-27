@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text.Json.Nodes;
 
 namespace System.Text.Json.JsonDiffPatch.Diffs
@@ -23,6 +25,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
     /// </summary>
     public struct JsonDiffDelta
     {
+        internal const string InvalidPatchDocument = "Invalid patch document.";
         private const int OpTypeDeleted = 0;
         private const int OpTypeTextDiff = 2;
         private const int OpTypeArrayMoved = 3;
@@ -93,6 +96,148 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
         {
             CheckForKind(DeltaKind.Text);
             return Document!.AsArray()[0]!.GetValue<string>();
+        }
+        
+        public IEnumerable<ArrayChangeEntry> GetArrayChangeEnumerable()
+        {
+            CheckForKind(DeltaKind.Array);
+            foreach (var kvp in Document!.AsObject())
+            {
+                if (IsTypeProperty(kvp.Key) || !TryGetArrayIndex(kvp.Key, out var index, out _))
+                {
+                    continue;
+                }
+
+                yield return new ArrayChangeEntry(index, kvp.Value!);
+            }
+        }
+
+        public IEnumerable<ArrayChangeEntry> GetPatchableArrayChangeEnumerable(JsonArray left)
+        {
+            return GetPatchableArrayChangeEnumerable(left, false);
+        }
+
+        internal IEnumerable<ArrayChangeEntry> GetPatchableArrayChangeEnumerable(JsonArray left, bool isReversing)
+        {
+            _ = left ?? throw new ArgumentNullException(nameof(left));
+            
+            CheckForKind(DeltaKind.Array);
+
+            var arrayPatch = Document!.AsObject();
+            var deleteItems = new List<ArrayChangeEntry>(left.Count / 3);
+            var addItems = new List<ArrayChangeEntry>(left.Count / 3);
+            var patchItems = new List<ArrayChangeEntry>(left.Count / 3);
+
+            // Return items in order:
+            // 1. Items to delete
+            // 2. Items to add
+            // 3. Items to patch
+            foreach (var prop in arrayPatch)
+            {
+                var propertyName = prop.Key;
+                if (IsTypeProperty(propertyName))
+                {
+                    continue;
+                }
+
+                var innerPatch = prop.Value;
+                if (innerPatch is null)
+                {
+                    continue;
+                }
+
+                if (!TryGetArrayIndex(propertyName, out var index, out var isLeft))
+                {
+                    throw new FormatException(InvalidPatchDocument);
+                }
+
+                var entry = new ArrayChangeEntry(index, innerPatch);
+                var kind = entry.Diff.Kind;
+                // The left array can only contain deleted or array move operations
+                if (isLeft && kind is not DeltaKind.Deleted && kind is not DeltaKind.ArrayMove)
+                {
+                    throw new FormatException(InvalidPatchDocument);
+                }
+
+                if (kind == DeltaKind.Deleted)
+                {
+                    if (isReversing)
+                    {
+                        addItems.Add(entry);
+                    }
+                    else
+                    {
+                        deleteItems.Add(entry);
+                    }
+                }
+                else if (kind == DeltaKind.ArrayMove)
+                {
+                    if (isReversing)
+                    {
+                        var newIndex = entry.Diff.GetNewIndex();
+                        if (newIndex < 0 || newIndex >= left.Count)
+                        {
+                            throw new FormatException(InvalidPatchDocument);
+                        }
+
+                        // Delete the item at new index
+                        deleteItems.Add(new(newIndex, CreateAdded(null)));
+                        // Add it back later at old index
+                        addItems.Add(new(index, CreateDeleted(left[newIndex])));
+                    }
+                    else
+                    {
+                        if (index < 0 || index >= left.Count)
+                        {
+                            throw new FormatException(InvalidPatchDocument);
+                        }
+
+                        // Delete the item at old index
+                        deleteItems.Add(new(index, CreateDeleted(null)));
+                        // Add it back later at new index
+                        addItems.Add(new(entry.Diff.GetNewIndex(), CreateAdded(left[index])));
+                    }
+                }
+                else if (kind == DeltaKind.Added)
+                {
+                    if (isReversing)
+                    {
+                        deleteItems.Add(entry);
+                    }
+                    else
+                    {
+                        addItems.Add(entry);
+                    }
+                }
+                else
+                {
+                    patchItems.Add(entry);
+                }
+            }
+
+            // Sort items to delete in descending order
+            deleteItems.Sort(DescendingCompare);
+            // Sort items to add in ascending order
+            addItems.Sort(AscendingCompare);
+
+            var enumerable = isReversing
+                ? patchItems.Concat(deleteItems).Concat(addItems)
+                : deleteItems.Concat(addItems).Concat(patchItems);
+
+            foreach (var kvp in enumerable)
+            {
+                yield return kvp;
+            }
+
+            static int AscendingCompare(ArrayChangeEntry x, ArrayChangeEntry y)
+            {
+                return x.Index - y.Index;
+            }
+
+            static int DescendingCompare(ArrayChangeEntry x, ArrayChangeEntry y)
+            {
+                return y.Index - x.Index;
+            }
         }
 
         public void Added(JsonNode? newValue)
@@ -346,6 +491,24 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
         internal static bool IsTypeProperty(string propertyName)
         {
             return string.Equals(TypePropertyName, propertyName);
+        }
+        
+        public readonly struct ArrayChangeEntry
+        {
+            internal ArrayChangeEntry(int index, JsonNode diff)
+            {
+                Index = index;
+                Diff = new JsonDiffDelta(diff);
+            }
+            
+            internal ArrayChangeEntry(int index, JsonDiffDelta diff)
+            {
+                Index = index;
+                Diff = diff;
+            }
+            
+            public int Index { get; }
+            public JsonDiffDelta Diff { get; }
         }
     }
 }

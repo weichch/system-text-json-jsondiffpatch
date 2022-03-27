@@ -11,6 +11,17 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.Formatters
         // Example test cases: https://datatracker.ietf.org/doc/html/rfc6902#appendix-A
         
         [Fact]
+        public void IdenticalObjects_EmptyPatch()
+        {
+            var left = JsonNode.Parse("{\"foo\":\"bar\"}");
+            var right = JsonNode.Parse("{\"foo\":\"bar\"}");
+
+            var diff = left.Diff(right, new JsonPatchDeltaFormatter());
+
+            Assert.Equal("[]", diff!.ToJsonString());
+        }
+        
+        [Fact]
         public void Add_ObjectMember()
         {
             var left = JsonNode.Parse("{\"foo\":\"bar\"}");
@@ -75,7 +86,20 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.Formatters
 
             Assert.Equal("[{\"op\":\"remove\",\"path\":\"/foo/1\"}]", diff!.ToJsonString());
         }
-        
+
+        [Fact]
+        public void Remove_OperationsOrder()
+        {
+            var left = JsonNode.Parse("[1,2]");
+            var right = JsonNode.Parse("[]");
+
+            var diff = left.Diff(right, new JsonPatchDeltaFormatter());
+
+            Assert.Equal(
+                "[{\"op\":\"remove\",\"path\":\"/1\"},{\"op\":\"remove\",\"path\":\"/0\"}]",
+                diff!.ToJsonString());
+        }
+
         [Fact]
         public void Replace_String()
         {
@@ -86,7 +110,20 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.Formatters
 
             Assert.Equal("[{\"op\":\"replace\",\"path\":\"/baz\",\"value\":\"boo\"}]", diff!.ToJsonString());
         }
-        
+
+        [Fact]
+        public void Replace_OperationsOrder()
+        {
+            var left = JsonNode.Parse("[1,2]");
+            var right = JsonNode.Parse("[3,4]");
+
+            var diff = left.Diff(right, new JsonPatchDeltaFormatter());
+
+            Assert.Equal(
+                "[{\"op\":\"remove\",\"path\":\"/1\"},{\"op\":\"remove\",\"path\":\"/0\"},{\"op\":\"add\",\"path\":\"/0\",\"value\":3},{\"op\":\"add\",\"path\":\"/1\",\"value\":4}]",
+                diff!.ToJsonString());
+        }
+
         [Fact]
         public void Move_ArrayElement()
         {
@@ -95,18 +132,9 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.Formatters
 
             var diff = left.Diff(right, new JsonPatchDeltaFormatter());
 
-            Assert.Equal("[{\"op\":\"move\",\"from\":\"/foo/1\",\"path\":\"/foo/3\"}]", diff!.ToJsonString());
-        }
-        
-        [Fact]
-        public void PathEscape_SpecialChar()
-        {
-            var left = JsonNode.Parse("{\"data\":{\"/\":{\"~1\":1}}}");
-            var right = JsonNode.Parse("{\"data\":{\"/\":{\"~1\":2}}}");
-
-            var diff = left.Diff(right, new JsonPatchDeltaFormatter());
-
-            Assert.Equal("[{\"op\":\"replace\",\"path\":\"/data/~1/~01\",\"value\":2}]", diff!.ToJsonString());
+            Assert.Equal(
+                "[{\"op\":\"remove\",\"path\":\"/foo/1\"},{\"op\":\"add\",\"path\":\"/foo/3\",\"value\":\"grass\"}]",
+                diff!.ToJsonString());
         }
 
         [Fact]
@@ -121,6 +149,17 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.Formatters
                 {
                     TextDiffMinLength = 1
                 }));
+        }
+        
+        [Fact]
+        public void JsonPointer_EscapeSpecialChar()
+        {
+            var left = JsonNode.Parse("{\"data\":{\"/\":{\"~1\":1}}}");
+            var right = JsonNode.Parse("{\"data\":{\"/\":{\"~1\":2}}}");
+
+            var diff = left.Diff(right, new JsonPatchDeltaFormatter());
+
+            Assert.Equal("[{\"op\":\"replace\",\"path\":\"/data/~1/~01\",\"value\":2}]", diff!.ToJsonString());
         }
     }
 }

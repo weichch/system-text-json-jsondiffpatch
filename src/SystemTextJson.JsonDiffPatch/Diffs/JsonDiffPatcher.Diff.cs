@@ -204,7 +204,7 @@ namespace System.Text.Json.JsonDiffPatch
 
             if (formatter is not null)
             {
-                return formatter.Format(ref delta);
+                return formatter.Format(ref delta, left);
             }
 
             if (delta.Document is TResult result)

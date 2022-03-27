@@ -26,6 +26,10 @@
     <None Include="..\Examples\demo_left.json" Link="Examples\demo_left.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="..\Examples\demo_result_jsonpatch.json">
+      <Link>Examples\demo_result_jsonpatch.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="..\Examples\demo_right.json" Link="Examples\demo_right.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -38,6 +42,21 @@
     <None Include="..\Examples\large_right.json" Link="Examples\large_right.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\Examples\demo_result_actual.json">
+      <Link>Examples\demo_result_actual.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Examples\large_result_actual.json">
+      <Link>Examples\large_result_actual.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Examples\large_result_jsonpatch.json">
+      <Link>Examples\large_result_jsonpatch.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

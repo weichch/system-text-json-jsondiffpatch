@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.JsonDiffPatch;
+using System.Text.Json.JsonDiffPatch.Diffs.Formatters;
 using System.Text.Json.Nodes;
 using Xunit;
 using Xunit.Abstractions;
@@ -80,6 +81,18 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         }
 
         [Fact]
+        public void Diff_DemoJson_JsonPatch()
+        {
+            var expectedDiff = JsonNode.Parse(File.ReadAllText(@"Examples\demo_result_jsonpatch.json"));
+
+            var diff = JsonDiffPatcher.DiffFile(@"Examples\demo_left.json",
+                @"Examples\demo_right.json",
+                new JsonPatchDeltaFormatter());
+
+            Assert.True(expectedDiff.DeepEquals(diff));
+        }
+
+        [Fact]
         public void Diff_LargeObjects()
         {
             var diff = JsonDiffPatcher.DiffFile(
@@ -112,6 +125,18 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
 
             JsonDiffPatcher.ReversePatch(ref left, diff);
             Assert.True(left.DeepEquals(originalLeft));
+        }
+
+        [Fact]
+        public void Diff_LargeObjects_JsonPatch()
+        {
+            var expectedDiff = JsonNode.Parse(File.ReadAllText(@"Examples\large_result_jsonpatch.json"));
+
+            var diff = JsonDiffPatcher.DiffFile(@"Examples\large_left.json",
+                @"Examples\large_right.json",
+                new JsonPatchDeltaFormatter());
+
+            Assert.True(expectedDiff.DeepEquals(diff));
         }
     }
 }
