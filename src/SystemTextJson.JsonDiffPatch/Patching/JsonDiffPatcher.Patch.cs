@@ -5,8 +5,6 @@ namespace System.Text.Json.JsonDiffPatch
 {
     static partial class JsonDiffPatcher
     {
-        private const string InvalidPatchDocument = "Invalid patch document.";
-
         /// <summary>
         /// Applies changes in the patch document to the JSON object.
         /// </summary>
@@ -42,7 +40,7 @@ namespace System.Text.Json.JsonDiffPatch
                     PatchArray(jsonArray, patch.AsObject(), options);
                     return;
                 default:
-                    throw new FormatException(InvalidPatchDocument);
+                    throw new FormatException(JsonDiffDelta.InvalidPatchDocument);
             }
         }
 
@@ -94,7 +92,7 @@ namespace System.Text.Json.JsonDiffPatch
                     ReversePatchArray(jsonArray, patch.AsObject(), options);
                     return;
                 default:
-                    throw new FormatException(InvalidPatchDocument);
+                    throw new FormatException(JsonDiffDelta.InvalidPatchDocument);
             }
         }
 

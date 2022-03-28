@@ -5,14 +5,13 @@ High-performance, low-allocating JSON objects diff and patch extension for `Syst
 ## Features
 
 - Use [jsondiffpatch](https://github.com/benjamine/jsondiffpatch) delta format described [here](https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md)
-- Target `.NET Standard 2.0` and leverage latest .NET features
-- Similar diff experience as [jsondiffpatch.net](https://github.com/wbish/jsondiffpatch.net) (based on Newtonsoft.Json)
+- Target latest `.NET Standard` and `.NET Framework 4.6.1` (for legacy apps) and leverage latest .NET features
+- Alternative to [jsondiffpatch.net](https://github.com/wbish/jsondiffpatch.net) which is based on `Newtonsoft.Json`
+- Support generating patch document in RFC 6902 JSON Patch format
 - Fast large JSON document diffing with less memory consumption
 - Support smart array diffing (e.g. move detect) using LCS and custom array item matcher
-- Support diffing long text using [google-diff-match-patch](http://code.google.com/p/google-diff-match-patch/), or write your own diff algorithm
+- _(Only when not using RFC 6902 format)_ Support diffing long text using [google-diff-match-patch](http://code.google.com/p/google-diff-match-patch/), or write your own diff algorithm
 - `JsonNode.DeepClone` and `JsonNode.DeepEquals` methods
-
-- (_Under development_) formatters etc
 
 # Install
 
@@ -36,11 +35,14 @@ JsonNode? diff = JsonDiffPatcher.Diff(stream1, stream2);
 JsonNode? diff = JsonDiffPatcher.Diff(json1, json2);
 // Diff JSON readers
 JsonNode? diff = JsonDiffPatcher.Diff(ref reader1, ref reader2);
-
-// Diff mutable JsonNode objects
+// Diff JsonNode objects
 var node1 = JsonNode.Parse(...);
 var node2 = JsonNode.Parse(...);
 JsonNode? diff = node1.Diff(node2);
+// Diff with options
+JsonNode? diff = node1.Diff(node2, new JsonDiffOptions { ... });
+// Diff and convert delta into RFC 6902 JSON Patch format
+JsonNode? diff = node1.Diff(node2, new JsonPatchDeltaFormatter());
 ```
 
 ### DeepClone
@@ -70,86 +72,58 @@ JsonDiffPatcher.Patch(ref node1, diff);
 JsonDiffPatcher.ReversePatch(ref node1, diff);
 ```
 
-### Options
-
-```csharp
-public struct JsonDiffOptions
-{
-    /// <summary>
-    /// Specifies whether to suppress detect array move. Default value is <c>false</c>.
-    /// </summary>
-    public bool SuppressDetectArrayMove { get; set; }
-
-    /// <summary>
-    /// Gets or sets the function to match array items.
-    /// </summary>
-    public ArrayItemMatch? ArrayItemMatcher { get; set; }
-
-    /// <summary>
-    /// Gets or sets the function to find key of a <see cref="JsonObject"/>
-    /// or <see cref="JsonArray"/>. This is used when matching array items by
-    /// their keys. If this function returns <c>null</c>, the items being
-    /// compared are treated as "not keyed". When comparing two "not keyed"
-    /// objects, their contents are compared. This function is only used when
-    /// <see cref="ArrayItemMatcher"/> is set to <c>null</c>.
-    /// </summary>
-    public Func<JsonNode?, int, object?>? ArrayObjectItemKeyFinder { get; set; }
-
-    /// <summary>
-    /// Gets or sets whether two instances of JSON object types (object and array)
-    /// are considered equal if their position is the same in their parent
-    /// arrays regardless of their contents. This property is only used when
-    /// <see cref="ArrayItemMatcher"/> is set to <c>null</c>. By settings this
-    /// property to <c>true</c>, a diff could be returned faster but larger in
-    /// size. Default value is <c>false</c>.
-    /// </summary>
-    public bool ArrayObjectItemMatchByPosition { get; set; }
-
-    /// <summary>
-    /// Gets or sets whether to prefer <see cref="ArrayObjectItemKeyFinder"/> and
-    /// <see cref="ArrayObjectItemMatchByPosition"/> than using deep value comparison
-    /// to match array object items. By settings this property to <c>true</c>,
-    /// a diff could be returned faster but larger in size. Default value is <c>false</c>.
-    /// </summary>
-    public bool PreferFuzzyArrayItemMatch { get; set; }
-
-    /// <summary>
-    /// Gets or sets the minimum length for diffing texts using <see cref="TextMatcher"/>
-    /// or default text diffing algorithm, aka Google's diff-match-patch algorithm. When text
-    /// diffing algorithm is not used, text diffing is fallback to value replacement. If this
-    /// property is set to <c>0</c>, diffing algorithm is disabled. Default value is <c>0</c>.
-    /// </summary>
-    public int TextDiffMinLength { get; set; }
-
-    /// <summary>
-    /// Gets or sets the function to match long texts.
-    /// </summary>
-    public TextMatch? TextMatcher { get; set; }
-}
-```
-
 ## Benchmark
+
+Benchmarks were generated using example objects [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/Examples) and benchmark tests [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/SystemTextJson.JsonDiffPatch.Benchmark/).
+
+### Demo JSON object from `jsondiffpatch`
 
 ``` ini
 
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19042.631 (20H2/October2020Update)
-Intel Core i7-10750H CPU 2.60GHz, 1 CPU, 12 logical and 6 physical cores
-.NET SDK=5.0.403
-  [Host]     : .NET 5.0.12 (5.0.1221.52207), X64 RyuJIT
-  DefaultJob : .NET 5.0.12 (5.0.1221.52207), X64 RyuJIT
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1415 (21H1/May2021Update)
+11th Gen Intel Core i7-1185G7 3.00GHz, 1 CPU, 8 logical and 4 physical cores
+.NET SDK=6.0.200
+  [Host]     : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
+  DefaultJob : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
 
 
 ```
-|                     Method |        Mean |         Min |         Max |         P95 |         P80 | Allocated |
-|--------------------------- |------------:|------------:|------------:|------------:|------------:|----------:|
-|         DemoObject_JsonNet |    165.4 μs |    158.4 μs |    168.6 μs |    168.0 μs |    167.4 μs |    173 KB |
-|  DemoObject_DefaultOptions |    152.8 μs |    146.9 μs |    160.1 μs |    159.3 μs |    155.3 μs |     84 KB |
-|     DemoObject_NoArrayMove |    152.0 μs |    147.4 μs |    154.0 μs |    153.6 μs |    153.2 μs |     84 KB |
-|         DemoObject_Mutable |    104.1 μs |    101.6 μs |    106.1 μs |    106.0 μs |    105.1 μs |     70 KB |
-|        LargeObject_JsonNet | 89,434.7 μs | 84,515.2 μs | 92,858.6 μs | 92,387.7 μs | 91,774.2 μs | 23,628 KB |
-| LargeObject_DefaultOptions |  7,446.1 μs |  7,156.2 μs |  7,794.0 μs |  7,775.8 μs |  7,518.6 μs |  4,085 KB |
-|    LargeObject_NoArrayMove |  7,364.3 μs |  7,072.5 μs |  7,575.8 μs |  7,530.3 μs |  7,472.6 μs |  4,087 KB |
-|        LargeObject_Mutable |  6,699.4 μs |  6,400.8 μs |  7,017.8 μs |  6,935.1 μs |  6,804.6 μs |  3,538 KB |
+|                    Method |      Mean |       Min |       Max |       P95 |       P80 | Allocated |
+|-------------------------- |----------:|----------:|----------:|----------:|----------:|----------:|
+|              Diff_JsonNet | 107.55 μs |  95.29 μs | 122.73 μs | 118.01 μs | 113.43 μs |    132 KB |
+|       Diff_SystemTextJson |  91.79 μs |  75.05 μs | 126.17 μs | 112.61 μs | 101.81 μs |     70 KB |
+|          Diff_JsonNet_Rfc | 130.02 μs | 115.41 μs | 156.85 μs | 151.16 μs | 136.42 μs |    150 KB |
+|   Diff_SystemTextJson_Rfc | 106.12 μs |  95.75 μs | 120.03 μs | 115.57 μs | 110.23 μs |     93 KB |
+|             Patch_JsonNet | 116.92 μs | 107.06 μs | 137.86 μs | 133.26 μs | 122.34 μs |    162 KB |
+|      Patch_SystemTextJson |  45.05 μs |  37.98 μs |  56.60 μs |  55.13 μs |  47.42 μs |     37 KB |
+|        DeepEquals_JsonNet |  69.14 μs |  62.38 μs |  76.96 μs |  74.78 μs |  71.95 μs |     91 KB |
+| DeepEquals_SystemTextJson |  53.43 μs |  47.96 μs |  65.03 μs |  60.30 μs |  56.35 μs |     40 KB |
+|         DeepClone_JsonNet |  51.28 μs |  44.65 μs |  62.34 μs |  58.69 μs |  54.52 μs |     70 KB |
+|  DeepClone_SystemTextJson |  47.82 μs |  38.78 μs |  59.26 μs |  56.94 μs |  51.11 μs |     45 KB |
 
 
-_\* Generated using example objects [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/Examples) and benchmark tests [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/SystemTextJson.JsonDiffPatch.Benchmark/SimpleDiffBenchmark.cs)_
+### Large JSON object
+
+``` ini
+
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1415 (21H1/May2021Update)
+11th Gen Intel Core i7-1185G7 3.00GHz, 1 CPU, 8 logical and 4 physical cores
+.NET SDK=6.0.200
+  [Host]     : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
+  DefaultJob : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
+
+
+```
+|                    Method |      Mean |       Min |       Max |       P95 |       P80 | Allocated |
+|-------------------------- |----------:|----------:|----------:|----------:|----------:|----------:|
+|              Diff_JsonNet | 11.155 ms |  9.132 ms | 13.732 ms | 12.802 ms | 11.896 ms |      4 MB |
+|       Diff_SystemTextJson |  8.375 ms |  7.334 ms |  9.132 ms |  8.978 ms |  8.690 ms |      3 MB |
+|          Diff_JsonNet_Rfc | 12.774 ms |  9.807 ms | 17.990 ms | 17.479 ms | 13.374 ms |      6 MB |
+|   Diff_SystemTextJson_Rfc | 11.664 ms | 10.341 ms | 12.918 ms | 12.668 ms | 12.142 ms |      5 MB |
+|             Patch_JsonNet | 12.146 ms | 10.344 ms | 13.576 ms | 13.302 ms | 12.647 ms |      5 MB |
+|      Patch_SystemTextJson |  4.693 ms |  2.422 ms |  5.685 ms |  5.412 ms |  5.061 ms |      2 MB |
+|        DeepEquals_JsonNet |  4.164 ms |  2.584 ms |  5.424 ms |  4.917 ms |  4.652 ms |      2 MB |
+| DeepEquals_SystemTextJson |  3.254 ms |  2.071 ms |  3.837 ms |  3.709 ms |  3.499 ms |      2 MB |
+|         DeepClone_JsonNet |  3.997 ms |  2.529 ms |  5.165 ms |  4.772 ms |  4.531 ms |      2 MB |
+|  DeepClone_SystemTextJson |  3.396 ms |  2.085 ms |  3.981 ms |  3.811 ms |  3.609 ms |      2 MB |
+

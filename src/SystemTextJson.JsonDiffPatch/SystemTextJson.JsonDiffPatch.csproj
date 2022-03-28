@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net461</TargetFrameworks>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <RootNamespace>System.Text.Json.JsonDiffPatch</RootNamespace>
@@ -10,19 +10,23 @@
   <PropertyGroup>
     <PackageId>SystemTextJson.JsonDiffPatch</PackageId>
     <PackageTags>diff;json;patch;system-text-json;jsondiffpatch</PackageTags>
-    <Description>High-performance, low-allocating JSON objects diff and patch extension for System.Text.Json. Provides bonus DeepClone and DeepEquals methods.</Description>
+    <Description>High-performance, low-allocating JSON objects diff and patch extension for System.Text.Json. Support generating patch document in RFC 6902 JSON Patch format. Provides bonus DeepClone and DeepEquals methods.</Description>
     <Authors>Wei Chen</Authors>
     <PackageProjectUrl>https://github.com/weichch/system-text-json-jsondiffpatch</PackageProjectUrl>
-    <Copyright>Copyright © Wei Chen 2021</Copyright>
+    <Copyright>Copyright © Wei Chen 2022</Copyright>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.0.0-preview.2</Version>
+    <Version>1.0.0</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Web" Condition="'$(TargetFramework)' == 'net461'" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="6.0.0" />
@@ -32,5 +36,5 @@
     <None Include="..\..\icon.png" Link="Packaging\icon.png" Pack="true" PackagePath="\" />
     <None Include="..\..\LICENSE" Link="Packaging\LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>
-
+  
 </Project>
