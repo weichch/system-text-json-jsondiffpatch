@@ -118,7 +118,7 @@ namespace System.Text.Json.JsonDiffPatch
                 return e1.ValueKind switch
                 {
                     JsonValueKind.String => e1.ValueEquals(e2.GetString()),
-                    _ => Equals(e1.GetRawText(), e2.GetRawText())
+                    _ => string.Equals(e1.GetRawText(), e2.GetRawText(), StringComparison.Ordinal)
                 };
             }
 

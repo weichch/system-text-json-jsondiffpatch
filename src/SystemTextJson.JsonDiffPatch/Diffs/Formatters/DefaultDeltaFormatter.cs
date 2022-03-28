@@ -45,32 +45,26 @@ namespace System.Text.Json.JsonDiffPatch.Diffs.Formatters
                     existingValue = FormatArrayMove(ref delta, left, existingValue);
                     break;
                 case DeltaKind.Text:
-                    if (left is not JsonValue leftValue)
-                    {
-                        throw new FormatException(JsonDiffDelta.InvalidPatchDocument);
-                    }
-                    
-                    existingValue = FormatTextDiff(ref delta, leftValue, existingValue);
+                    existingValue = FormatTextDiff(ref delta, CheckType<JsonValue>(left), existingValue);
                     break;
                 case DeltaKind.Array:
-                    if (left is not JsonArray leftArray)
-                    {
-                        throw new FormatException(JsonDiffDelta.InvalidPatchDocument);
-                    }
-
-                    existingValue = FormatArray(ref delta, leftArray, existingValue);
+                    existingValue = FormatArray(ref delta, CheckType<JsonArray>(left), existingValue);
                     break;
                 case DeltaKind.Object:
-                    if (left is not JsonObject leftObject)
-                    {
-                        throw new FormatException(JsonDiffDelta.InvalidPatchDocument);
-                    }
-
-                    existingValue = FormatObject(ref delta, leftObject, existingValue);
+                    existingValue = FormatObject(ref delta, CheckType<JsonObject>(left), existingValue);
                     break;
             }
 
             return existingValue;
+
+            static T CheckType<T>(JsonNode? node)
+            {
+                return node switch
+                {
+                    T returnValue => returnValue,
+                    _ => throw new FormatException(JsonDiffDelta.InvalidPatchDocument)
+                };
+            }
         }
 
         protected abstract TResult? FormatAdded(ref JsonDiffDelta delta, TResult? existingValue);

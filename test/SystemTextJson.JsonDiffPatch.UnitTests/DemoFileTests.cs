@@ -22,7 +22,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         public void Diff_DemoJson()
         {
             // Compare the two JSON objects from https://benjamine.github.io/jsondiffpatch/demo/index.html
-            var result = File.ReadAllText(@"Examples\demo_result.json");
+            var result = File.ReadAllText(@"Examples\demo_diff.json");
 
             var sw = Stopwatch.StartNew();
             var diff = JsonDiffPatcher.DiffFile(
@@ -83,7 +83,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         [Fact]
         public void Diff_DemoJson_JsonPatch()
         {
-            var expectedDiff = JsonNode.Parse(File.ReadAllText(@"Examples\demo_result_jsonpatch.json"));
+            var expectedDiff = JsonNode.Parse(File.ReadAllText(@"Examples\demo_diff_jsonpatch.json"));
 
             var diff = JsonDiffPatcher.DiffFile(@"Examples\demo_left.json",
                 @"Examples\demo_right.json",
@@ -130,7 +130,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         [Fact]
         public void Diff_LargeObjects_JsonPatch()
         {
-            var expectedDiff = JsonNode.Parse(File.ReadAllText(@"Examples\large_result_jsonpatch.json"));
+            var expectedDiff = JsonNode.Parse(File.ReadAllText(@"Examples\large_diff_jsonpatch.json"));
 
             var diff = JsonDiffPatcher.DiffFile(@"Examples\large_left.json",
                 @"Examples\large_right.json",
