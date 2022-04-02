@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>System.Text.Json.JsonDiffPatch.MsTest</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>SystemTextJson.JsonDiffPatch.MSTest</PackageId>
+    <PackageTags>mstest;mstest2;assert;json;system-text-json</PackageTags>
+    <Description>Provides a set of extension methods for MSTest v2 to compare and assert JSON documents.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SystemTextJson.JsonDiffPatch\SystemTextJson.JsonDiffPatch.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSTest.TestFramework" Version="2.1.2" />
+  </ItemGroup>
+
+</Project>

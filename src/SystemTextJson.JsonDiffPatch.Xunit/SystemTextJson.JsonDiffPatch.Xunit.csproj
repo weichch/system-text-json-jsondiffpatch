@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>System.Text.Json.JsonDiffPatch.Xunit</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>SystemTextJson.JsonDiffPatch.Xunit</PackageId>
+    <PackageTags>xunit;assert;json;system-text-json</PackageTags>
+    <Description>Provides a set of extension methods for XUnit to compare and assert JSON documents.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SystemTextJson.JsonDiffPatch\SystemTextJson.JsonDiffPatch.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.assert" Version="2.4.1" />
+  </ItemGroup>
+  
+</Project>
