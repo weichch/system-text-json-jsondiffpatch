@@ -16,29 +16,29 @@ namespace System.Text.Json.JsonDiffPatch.Xunit
         };
         
         /// <summary>
-        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
+        /// Tests whether two JSON objects have no difference. Note that when comparing the specified objects,
         /// the ordering of members in the objects is not significant.
         /// </summary>
         /// <param name="expected">The expected value.</param>
         /// <param name="actual">The actual value.</param>
         /// <param name="diffOptions">The diff options.</param>
         /// <param name="messageProvider">The message provider.</param>
-        public static void Equal(string? expected, string? actual,
+        public static void Same(string? expected, string? actual,
             JsonDiffOptions? diffOptions = null,
             Func<JsonNode, string>? messageProvider = null)
-            => Equal(expected is null ? null : JsonNode.Parse(expected),
+            => Same(expected is null ? null : JsonNode.Parse(expected),
                 actual is null ? null : JsonNode.Parse(actual),
                 diffOptions, messageProvider);
 
         /// <summary>
-        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
+        /// Tests whether two JSON objects have no difference. Note that when comparing the specified objects,
         /// the ordering of members in the objects is not significant.
         /// </summary>
         /// <param name="expected">The expected value.</param>
         /// <param name="actual">The actual value.</param>
         /// <param name="diffOptions">The diff options.</param>
         /// <param name="messageProvider">The message provider.</param>
-        public static void Equal(JsonNode? expected, JsonNode? actual,
+        public static void Same(JsonNode? expected, JsonNode? actual,
             JsonDiffOptions? diffOptions = null,
             Func<JsonNode, string>? messageProvider = null)
         {
@@ -49,31 +49,31 @@ namespace System.Text.Json.JsonDiffPatch.Xunit
             }
 
             var ex = messageProvider is null
-                ? new JsonEqualException(expected, actual, diff)
-                : new JsonEqualException(messageProvider(diff));
+                ? new JsonSameException(expected, actual, diff)
+                : new JsonSameException(messageProvider(diff));
             throw ex;
         }
         
         /// <summary>
-        /// Tests whether two JSON objects are not equal. Note that when comparing the specified objects,
+        /// Tests whether two JSON objects have differences. Note that when comparing the specified objects,
         /// the ordering of members in the objects is not significant.
         /// </summary>
         /// <param name="expected">The expected value.</param>
         /// <param name="actual">The actual value.</param>
         /// <param name="diffOptions">The diff options.</param>
-        public static void NotEqual(string? expected, string? actual,
+        public static void NotSame(string? expected, string? actual,
             JsonDiffOptions? diffOptions = null)
-            => NotEqual(expected is null ? null : JsonNode.Parse(expected),
+            => NotSame(expected is null ? null : JsonNode.Parse(expected),
                 actual is null ? null : JsonNode.Parse(actual), diffOptions);
 
         /// <summary>
-        /// Tests whether two JSON objects are not equal. Note that when comparing the specified objects,
+        /// Tests whether two JSON objects have differences. Note that when comparing the specified objects,
         /// the ordering of members in the objects is not significant.
         /// </summary>
         /// <param name="expected">The expected value.</param>
         /// <param name="actual">The actual value.</param>
         /// <param name="diffOptions">The diff options.</param>
-        public static void NotEqual(JsonNode? expected, JsonNode? actual,
+        public static void NotSame(JsonNode? expected, JsonNode? actual,
             JsonDiffOptions? diffOptions = null)
         {
             var diff = expected.Diff(actual, diffOptions ?? DefaultOptions);
@@ -82,11 +82,11 @@ namespace System.Text.Json.JsonDiffPatch.Xunit
                 return;
             }
 
-            throw new JsonNotEqualException();
+            throw new JsonNotSameException();
         }
 
         /// <summary>
-        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
+        /// Tests whether two JSON objects have no difference. Note that when comparing the specified objects,
         /// the ordering of members in the objects is not significant.
         /// </summary>
         /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
@@ -94,24 +94,24 @@ namespace System.Text.Json.JsonDiffPatch.Xunit
         /// <param name="expected">The expected value.</param>
         /// <param name="diffOptions">The diff options.</param>
         /// <param name="messageProvider">The message provider.</param>
-        public static void ShouldEqual<T>(this T? actual, T? expected,
+        public static void ShouldBeSameAs<T>(this T? actual, T? expected,
             JsonDiffOptions? diffOptions = null,
             Func<JsonNode, string>? messageProvider = null)
             where T : JsonNode
-            => Equal(expected, actual, diffOptions, messageProvider);
+            => Same(expected, actual, diffOptions, messageProvider);
 
         /// <summary>
-        /// Tests whether two JSON objects are not equal. Note that when comparing the specified objects,
+        /// Tests whether two JSON objects have differences. Note that when comparing the specified objects,
         /// the ordering of members in the objects is not significant.
         /// </summary>
         /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
         /// <param name="actual">The actual value.</param>
         /// <param name="expected">The expected value.</param>
         /// <param name="diffOptions">The diff options.</param>
-        public static void ShouldNotEqual<T>(this T? actual, T? expected,
+        public static void ShouldNotBeSameAs<T>(this T? actual, T? expected,
             JsonDiffOptions? diffOptions = null)
             where T : JsonNode
-            => NotEqual(expected, actual, diffOptions);
+            => NotSame(expected, actual, diffOptions);
 
         private static bool DefaultArrayItemComparer(ref ArrayItemMatchContext context)
         {

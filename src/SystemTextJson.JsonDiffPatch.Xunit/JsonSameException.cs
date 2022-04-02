@@ -4,16 +4,16 @@ using Xunit.Sdk;
 namespace System.Text.Json.JsonDiffPatch.Xunit
 {
     /// <summary>
-    /// Exception thrown when two JSON objects are unexpectedly not equal.
+    /// Exception thrown when two JSON objects have unexpected differences.
     /// </summary>
-    public class JsonEqualException : XunitException
+    public class JsonSameException : XunitException
     {
-        public JsonEqualException(JsonNode? expected, JsonNode? actual, JsonNode diff)
+        public JsonSameException(JsonNode? expected, JsonNode? actual, JsonNode diff)
             : base(CreateUserMessage(expected, actual, diff))
         {
         }
 
-        public JsonEqualException(string message)
+        public JsonSameException(string message)
             : base(CreateUserMessage(message))
         {
         }
@@ -21,7 +21,7 @@ namespace System.Text.Json.JsonDiffPatch.Xunit
         private static string CreateUserMessage(JsonNode? expected, JsonNode? actual, JsonNode diff)
         {
             var sb = new StringBuilder();
-            sb.Append("JsonAssert.Equal() failure: The specified two JSON objects are not equal.");
+            sb.Append("JsonAssert.Same() failure: The specified two JSON objects have differences.");
             sb.AppendLine();
             sb.Append("Expected:");
             sb.AppendLine();
@@ -35,7 +35,7 @@ namespace System.Text.Json.JsonDiffPatch.Xunit
                 ? "null"
                 : actual.ToJsonString(new JsonSerializerOptions {WriteIndented = true}));
             sb.AppendLine();
-            sb.Append("Delta:");
+            sb.Append("Diff:");
             sb.AppendLine();
             sb.Append(diff.ToJsonString(new JsonSerializerOptions {WriteIndented = true}));
             return sb.ToString();
@@ -44,7 +44,7 @@ namespace System.Text.Json.JsonDiffPatch.Xunit
         private static string CreateUserMessage(string message)
         {
             var sb = new StringBuilder();
-            sb.Append("JsonAssert.Equal() failure: The specified two JSON objects are not equal.");
+            sb.Append("JsonAssert.Same() failure: The specified two JSON objects have differences.");
             sb.AppendLine();
             sb.Append(message);
             return sb.ToString();
