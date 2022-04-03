@@ -7,10 +7,19 @@ namespace SystemTextJson.JsonDiffPatch.Xunit.Tests
     public class JsonAssertTests
     {
         [Fact]
-        public void Equal_SameObjects()
+        public void Equal_String()
         {
             var json1 = "{\"foo\":\"bar\",\"baz\":\"qux\"}";
             var json2 = "{\"baz\":\"qux\",\"foo\":\"bar\"}";
+
+            JsonAssert.Equal(json1, json2);
+        }
+        
+        [Fact]
+        public void Equal_JsonNode()
+        {
+            var json1 = JsonNode.Parse("{\"foo\":\"bar\",\"baz\":\"qux\"}");
+            var json2 = JsonNode.Parse("{\"baz\":\"qux\",\"foo\":\"bar\"}");
 
             JsonAssert.Equal(json1, json2);
         }
@@ -46,14 +55,23 @@ namespace SystemTextJson.JsonDiffPatch.Xunit.Tests
                 error.Message);
             Assert.Contains("Expected:", error.Message);
             Assert.Contains("Actual:", error.Message);
-            Assert.Contains("Diff:", error.Message);
+            Assert.Contains("Delta:", error.Message);
         }
 
         [Fact]
-        public void NotEqual_DifferentObjects()
+        public void NotEqual_String()
         {
             var json1 = "{\"foo\":\"bar\",\"baz\":\"qux\"}";
             var json2 = "{\"foo\":\"baz\"}";
+
+            JsonAssert.NotEqual(json1, json2);
+        }
+        
+        [Fact]
+        public void NotEqual_JsonNode()
+        {
+            var json1 = JsonNode.Parse("{\"foo\":\"bar\",\"baz\":\"qux\"}");
+            var json2 = JsonNode.Parse("{\"foo\":\"baz\"}");
 
             JsonAssert.NotEqual(json1, json2);
         }
