@@ -4,16 +4,16 @@ using Xunit.Sdk;
 namespace System.Text.Json.JsonDiffPatch.Xunit
 {
     /// <summary>
-    /// Exception thrown when two JSON objects have unexpected differences.
+    /// Exception thrown when two JSON objects are unexpectedly not equal.
     /// </summary>
-    public class JsonSameException : XunitException
+    public class JsonEqualException : XunitException
     {
-        public JsonSameException(JsonNode? expected, JsonNode? actual, JsonNode diff)
+        public JsonEqualException(JsonNode? expected, JsonNode? actual, JsonNode diff)
             : base(CreateUserMessage(expected, actual, diff))
         {
         }
 
-        public JsonSameException(string message)
+        public JsonEqualException(string message)
             : base(CreateUserMessage(message))
         {
         }
@@ -21,7 +21,7 @@ namespace System.Text.Json.JsonDiffPatch.Xunit
         private static string CreateUserMessage(JsonNode? expected, JsonNode? actual, JsonNode diff)
         {
             var sb = new StringBuilder();
-            sb.Append("JsonAssert.Same() failure: The specified two JSON objects have differences.");
+            sb.Append("JsonAssert.Equal() failure: The specified two JSON objects are not equal.");
             sb.AppendLine();
             sb.Append("Expected:");
             sb.AppendLine();
@@ -44,7 +44,7 @@ namespace System.Text.Json.JsonDiffPatch.Xunit
         private static string CreateUserMessage(string message)
         {
             var sb = new StringBuilder();
-            sb.Append("JsonAssert.Same() failure: The specified two JSON objects have differences.");
+            sb.Append("JsonAssert.Equal() failure: The specified two JSON objects are not equal.");
             sb.AppendLine();
             sb.Append(message);
             return sb.ToString();

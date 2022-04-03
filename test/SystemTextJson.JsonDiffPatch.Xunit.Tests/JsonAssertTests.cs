@@ -7,51 +7,42 @@ namespace SystemTextJson.JsonDiffPatch.Xunit.Tests
     public class JsonAssertTests
     {
         [Fact]
-        public void Same_SameObjects()
+        public void Equal_SameObjects()
         {
-            var json1 = "{\"a\":\"b\",\"c\":\"d\",\"e\":[1,2,{\"f\":\"g\",\"h\":\"i\"}]}";
-            var json2 = "{\"a\":\"b\",\"c\":\"d\",\"e\":[1,2,{\"f\":\"g\",\"h\":\"i\"}]}";
+            var json1 = "{\"foo\":\"bar\",\"baz\":\"qux\"}";
+            var json2 = "{\"baz\":\"qux\",\"foo\":\"bar\"}";
 
-            JsonAssert.Same(json1, json2);
+            JsonAssert.Equal(json1, json2);
         }
 
         [Fact]
-        public void Same_IgnoreMemberOrdering()
+        public void Equal_ExtensionMethod()
         {
-            var json1 = "{\"a\":\"b\",\"c\":\"d\",\"e\":[1,2,{\"f\":\"g\",\"h\":\"i\"}]}";
-            var json2 = "{\"c\":\"d\",\"e\":[1,2,{\"h\":\"i\",\"f\":\"g\"}],\"a\":\"b\"}";
+            var json1 = JsonNode.Parse("{\"foo\":\"bar\",\"baz\":\"qux\"}");
+            var json2 = JsonNode.Parse("{\"baz\":\"qux\",\"foo\":\"bar\"}");
 
-            JsonAssert.Same(json1, json2);
+            json1.ShouldEqual(json2);
         }
 
         [Fact]
-        public void Same_ExtensionMethod()
-        {
-            var json1 = JsonNode.Parse("{\"a\":\"b\",\"c\":\"d\",\"e\":[1,2,{\"f\":\"g\",\"h\":\"i\"}]}");
-            var json2 = JsonNode.Parse("{\"c\":\"d\",\"e\":[1,2,{\"h\":\"i\",\"f\":\"g\"}],\"a\":\"b\"}");
-
-            json1.ShouldBeSameAs(json2);
-        }
-
-        [Fact]
-        public void Same_Nulls()
+        public void Equal_Nulls()
         {
             JsonNode? json1 = null;
             JsonNode? json2 = null;
 
-            JsonAssert.Same(json1, json2);
+            JsonAssert.Equal(json1, json2);
         }
 
         [Fact]
-        public void Same_FailWithMessage()
+        public void Equal_FailWithMessage()
         {
-            JsonNode? json1 = "[]";
-            JsonNode? json2 = "{}";
+            var json1 = JsonNode.Parse("{\"foo\":\"bar\",\"baz\":\"qux\"}");
+            var json2 = JsonNode.Parse("{\"foo\":\"baz\"}");
 
-            var error = Record.Exception(() => json1.ShouldBeSameAs(json2));
+            var error = Record.Exception(() => json1.ShouldEqual(json2));
 
-            Assert.IsType<JsonSameException>(error);
-            Assert.Contains("JsonAssert.Same() failure: The specified two JSON objects have differences.",
+            Assert.IsType<JsonEqualException>(error);
+            Assert.Contains("JsonAssert.Equal() failure: The specified two JSON objects are not equal.",
                 error.Message);
             Assert.Contains("Expected:", error.Message);
             Assert.Contains("Actual:", error.Message);
@@ -59,44 +50,44 @@ namespace SystemTextJson.JsonDiffPatch.Xunit.Tests
         }
 
         [Fact]
-        public void NotSame_DifferentObjects()
+        public void NotEqual_DifferentObjects()
         {
-            var json1 = "{\"a\":\"b\",\"c\":\"d\",\"e\":[1,2,{\"f\":\"g\",\"h\":\"i\"}]}";
-            var json2 = "{\"a\":\"b\",\"c\":\"d\"}";
+            var json1 = "{\"foo\":\"bar\",\"baz\":\"qux\"}";
+            var json2 = "{\"foo\":\"baz\"}";
 
-            JsonAssert.NotSame(json1, json2);
+            JsonAssert.NotEqual(json1, json2);
         }
 
         [Fact]
-        public void NotSame_ExtensionMethod()
+        public void NotEqual_ExtensionMethod()
         {
-            var json1 = JsonNode.Parse("{\"a\":\"b\",\"c\":\"d\",\"e\":[1,2,{\"f\":\"g\",\"h\":\"i\"}]}");
-            var json2 = JsonNode.Parse("{\"a\":\"b\",\"c\":\"d\"}");
+            var json1 = JsonNode.Parse("{\"foo\":\"bar\",\"baz\":\"qux\"}");
+            var json2 = JsonNode.Parse("{\"foo\":\"baz\"}");
 
-            json1.ShouldNotBeSameAs(json2);
+            json1.ShouldNotEqual(json2);
         }
 
         [Fact]
-        public void NotSame_Nulls()
+        public void NotEqual_Nulls()
         {
             JsonNode? json1 = null;
             JsonNode? json2 = null;
 
-            var error = Record.Exception(() => json1.ShouldNotBeSameAs(json2));
+            var error = Record.Exception(() => json1.ShouldNotEqual(json2));
 
             Assert.NotNull(error);
         }
 
         [Fact]
-        public void NotSame_FailWithMessage()
+        public void NotEqual_FailWithMessage()
         {
-            var json1 = JsonNode.Parse("{\"a\":\"b\",\"c\":\"d\",\"e\":[1,2,{\"f\":\"g\",\"h\":\"i\"}]}");
-            var json2 = JsonNode.Parse("{\"c\":\"d\",\"e\":[1,2,{\"h\":\"i\",\"f\":\"g\"}],\"a\":\"b\"}");
+            var json1 = JsonNode.Parse("{\"foo\":\"bar\",\"baz\":\"qux\"}");
+            var json2 = JsonNode.Parse("{\"baz\":\"qux\",\"foo\":\"bar\"}");
 
-            var error = Record.Exception(() => json1.ShouldNotBeSameAs(json2));
+            var error = Record.Exception(() => json1.ShouldNotEqual(json2));
 
-            Assert.IsType<JsonNotSameException>(error);
-            Assert.Contains("JsonAssert.NotSame() failure: The specified two JSON objects have no difference.",
+            Assert.IsType<JsonNotEqualException>(error);
+            Assert.Contains("JsonAssert.NotEqual() failure: The specified two JSON objects are equal.",
                 error.Message);
         }
     }

@@ -22,6 +22,7 @@
 // 2) nullable reference is turned off at file level for this file
 
 #nullable disable
+#pragma warning disable CS1570
 
 using System;
 using System.Collections.Generic;
