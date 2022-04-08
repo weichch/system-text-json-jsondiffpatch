@@ -79,13 +79,13 @@ var actual = JsonNode.Parse(...);
 
 JsonAssert.Equal(expected, actual); // xUnit
 actual.ShouldEqual(expected); // xUnit
-Assert.That.AreEqual(expected, actual); // MSTest
 JsonAssert.AreEqual(expected, actual); // MSTest and NUnit
+Assert.That.JsonAreEqual(expected, actual); // MSTest
 
 JsonAssert.NotEqual(expected, actual); // xUnit
 actual.ShouldNotEqual(expected); // xUnit
-Assert.That.AreNotEqual(expected, actual); // MSTest
 JsonAssert.AreNotEqual(expected, actual); // MSTest and NUnit
+Assert.That.JsonAreNotEqual(expected, actual); // MSTest
 ```
 
 Example output _(when output is enabled)_:
