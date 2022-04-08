@@ -6,8 +6,8 @@
 
   <PropertyGroup>
     <PackageId>SystemTextJson.JsonDiffPatch.NUnit</PackageId>
-    <PackageTags>nunit;assert;json;system-text-json</PackageTags>
-    <Description>Provides a set of extension methods for NUnit to compare and assert JSON.</Description>
+    <PackageTags>nunit;assert;compare;json;system-text-json</PackageTags>
+    <Description>Provides a set of extension methods for NUnit to compare JSON in unit tests.</Description>
   </PropertyGroup>
 
   <ItemGroup>
