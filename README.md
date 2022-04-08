@@ -116,7 +116,7 @@ Delta:
 
 Benchmarks were generated using example objects [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/Examples) and benchmark tests [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/SystemTextJson.JsonDiffPatch.Benchmark/).
 
-### Demo JSON object from `jsondiffpatch`
+### Demo JSON object from jsondiffpatch
 
 ``` ini
 
