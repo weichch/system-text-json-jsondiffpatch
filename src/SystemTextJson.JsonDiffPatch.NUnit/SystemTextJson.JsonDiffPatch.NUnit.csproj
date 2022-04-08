@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>System.Text.Json.JsonDiffPatch.Nunit</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>SystemTextJson.JsonDiffPatch.NUnit</PackageId>
+    <PackageTags>nunit;assert;json;system-text-json</PackageTags>
+    <Description>Provides a set of extension methods for NUnit to compare and assert JSON.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SystemTextJson.JsonDiffPatch\SystemTextJson.JsonDiffPatch.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="3.12.0" />
+  </ItemGroup>
+
+</Project>
