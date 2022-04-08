@@ -10,7 +10,6 @@ namespace System.Text.Json.JsonDiffPatch.Xunit
         public JsonEqualException()
             : base("JsonAssert.Equal() failure.")
         {
-
         }
 
         public JsonEqualException(string output)

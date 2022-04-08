@@ -5,21 +5,20 @@ High-performance, low-allocating JSON objects diff and patch extension for `Syst
 ## Features
 
 - Use [jsondiffpatch](https://github.com/benjamine/jsondiffpatch) delta format described [here](https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md)
+- Support generating patch document in RFC 6902 JSON Patch format
 - Target latest `.NET Standard` and `.NET Framework 4.6.1` (for legacy apps) and leverage latest .NET features
 - Alternative to [jsondiffpatch.net](https://github.com/wbish/jsondiffpatch.net) which is based on `Newtonsoft.Json`
-- Support generating patch document in RFC 6902 JSON Patch format
 - Fast large JSON document diffing with less memory consumption
 - Support smart array diffing (e.g. move detect) using LCS and custom array item matcher
 - _(Only when not using RFC 6902 format)_ Support diffing long text using [google-diff-match-patch](http://code.google.com/p/google-diff-match-patch/), or write your own diff algorithm
 - `JsonNode.DeepClone` and `JsonNode.DeepEquals` methods
+- JSON asserts for xUnit, MSTest v2 and NUnit with custom delta output
 
-# Install
+## Install
 
-Install from [NuGet.org](https://www.nuget.org/packages/SystemTextJson.JsonDiffPatch/):
-
-```
-Install-Package SystemTextJson.JsonDiffPatch
-```
+| JsonDiffPatch                                                                                        | xUnit Assert                                                                                              | MSTest v2 Assert                                                                                               | NUnit Assert                                                                                              |
+|------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| [![JsonDiffPatch](https://img.shields.io/nuget/vpre/SystemTextJson.JsonDiffPatch?style=for-the-badge)](https://www.nuget.org/packages/SystemTextJson.JsonDiffPatch/) | [![xUnit Assert](https://img.shields.io/nuget/vpre/SystemTextJson.JsonDiffPatch.Xunit?style=for-the-badge)](https://www.nuget.org/packages/SystemTextJson.JsonDiffPatch.Xunit/) | [![MSTest v2 Assert](https://img.shields.io/nuget/vpre/SystemTextJson.JsonDiffPatch.MSTest?style=for-the-badge)](https://www.nuget.org/packages/SystemTextJson.JsonDiffPatch.MSTest/) | [![NUnit Assert](https://img.shields.io/nuget/vpre/SystemTextJson.JsonDiffPatch.NUnit?style=for-the-badge)](https://www.nuget.org/packages/SystemTextJson.JsonDiffPatch.NUnit/) |
 
 ## Usage
 ### Diff
@@ -70,6 +69,47 @@ JsonNode? diff = node1.Diff(node2);
 JsonDiffPatcher.Patch(ref node1, diff);
 // Unpatch
 JsonDiffPatcher.ReversePatch(ref node1, diff);
+```
+
+### Assert (Unit Testing)
+
+```csharp
+var expected = JsonNode.Parse(...);
+var actual = JsonNode.Parse(...);
+
+JsonAssert.Equal(expected, actual); // xUnit
+actual.ShouldEqual(expected); // xUnit
+Assert.That.AreEqual(expected, actual); // MSTest
+JsonAssert.AreEqual(expected, actual); // MSTest and NUnit
+
+JsonAssert.NotEqual(expected, actual); // xUnit
+actual.ShouldNotEqual(expected); // xUnit
+Assert.That.AreNotEqual(expected, actual); // MSTest
+JsonAssert.AreNotEqual(expected, actual); // MSTest and NUnit
+```
+
+Example output _(when output is enabled)_:
+```
+JsonAssert.Equal() failure.
+Expected:
+{
+  "foo": "baz"
+}
+Actual:
+{
+  "foo": "bar",
+  "baz": "qux"
+}
+Delta:
+{
+  "foo": [
+    "baz",
+    "bar"
+  ],
+  "baz": [
+    "qux"
+  ]
+}
 ```
 
 ## Benchmark
