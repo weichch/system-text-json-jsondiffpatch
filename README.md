@@ -1,18 +1,18 @@
 # system-text-json-jsondiffpatch
 
-High-performance, low-allocating JSON objects diff and patch extension for `System.Text.Json`.
+High-performance, low-allocating JSON objects diff and patch extension for System.Text.Json.
 
 ## Features
 
 - Use [jsondiffpatch](https://github.com/benjamine/jsondiffpatch) delta format described [here](https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md)
 - Support generating patch document in RFC 6902 JSON Patch format
-- Target latest `.NET Standard` and `.NET Framework 4.6.1` (for legacy apps) and leverage latest .NET features
-- Alternative to [jsondiffpatch.net](https://github.com/wbish/jsondiffpatch.net) which is based on `Newtonsoft.Json`
+- Target latest .NET Standard and .NET Framework 4.6.1 (for legacy apps) and leverage latest .NET features
+- Alternative to [jsondiffpatch.net](https://github.com/wbish/jsondiffpatch.net) which is based on Newtonsoft.Json
 - Fast large JSON document diffing with less memory consumption
 - Support smart array diffing (e.g. move detect) using LCS and custom array item matcher
 - _(Only when not using RFC 6902 format)_ Support diffing long text using [google-diff-match-patch](http://code.google.com/p/google-diff-match-patch/), or write your own diff algorithm
 - `JsonNode.DeepClone` and `JsonNode.DeepEquals` methods
-- JSON asserts for xUnit, MSTest v2 and NUnit with custom delta output
+- JSON assert for xUnit, MSTest v2 and NUnit with custom delta output
 
 ## Install
 
