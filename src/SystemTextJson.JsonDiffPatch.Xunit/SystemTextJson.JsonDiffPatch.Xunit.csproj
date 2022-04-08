@@ -7,7 +7,7 @@
   <PropertyGroup>
     <PackageId>SystemTextJson.JsonDiffPatch.Xunit</PackageId>
     <PackageTags>xunit;assert;json;system-text-json</PackageTags>
-    <Description>Provides a set of extension methods for XUnit to compare and assert JSON documents.</Description>
+    <Description>Provides a set of extension methods for XUnit to compare and assert JSON.</Description>
   </PropertyGroup>
 
   <ItemGroup>

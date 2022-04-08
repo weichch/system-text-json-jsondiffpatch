@@ -1,6 +1,4 @@
-﻿using System.Text.Json.JsonDiffPatch.Diffs;
-using System.Text.Json.JsonDiffPatch.Diffs.Formatters;
-using System.Text.Json.Nodes;
+﻿using System.Text.Json.Nodes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace System.Text.Json.JsonDiffPatch.MsTest
@@ -10,6 +8,8 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
     /// </summary>
     public static class JsonAssert
     {
+        private static readonly JsonSerializerOptions SerializerOptions = new() {WriteIndented = true};
+        
         /// <summary>
         /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
         /// the ordering of members in the objects is not significant.
@@ -19,7 +19,19 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         public static void AreEqual(string? expected, string? actual)
             => HandleAreEqual(expected is null ? null : JsonNode.Parse(expected),
                 actual is null ? null : JsonNode.Parse(actual),
-                null, null, null);
+                null, null);
+
+        /// <summary>
+        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
+        /// the ordering of members in the objects is not significant.
+        /// </summary>
+        /// <param name="expected">The expected value.</param>
+        /// <param name="actual">The actual value.</param>
+        /// <param name="output">Whether to print diff result.</param>
+        public static void AreEqual(string? expected, string? actual, bool output)
+            => HandleAreEqual(expected is null ? null : JsonNode.Parse(expected),
+                actual is null ? null : JsonNode.Parse(actual),
+                null, output ? CreateDefaultOutput : null);
 
         /// <summary>
         /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
@@ -31,8 +43,7 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         public static void AreEqual(string? expected, string? actual, JsonDiffOptions diffOptions)
             => HandleAreEqual(expected is null ? null : JsonNode.Parse(expected),
                 actual is null ? null : JsonNode.Parse(actual),
-                diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)),
-                null, null);
+                diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)), null);
 
         /// <summary>
         /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
@@ -40,11 +51,26 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         /// </summary>
         /// <param name="expected">The expected value.</param>
         /// <param name="actual">The actual value.</param>
-        /// <param name="deltaFormatter">The delta formatter.</param>
-        public static void AreEqual(string? expected, string? actual, IJsonDiffDeltaFormatter<string> deltaFormatter)
+        /// <param name="diffOptions">The diff options.</param>
+        /// <param name="output">Whether to print diff result.</param>
+        public static void AreEqual(string? expected, string? actual, JsonDiffOptions diffOptions, bool output)
+            => HandleAreEqual(expected is null ? null : JsonNode.Parse(expected),
+                actual is null ? null : JsonNode.Parse(actual),
+                diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)),
+                output ? CreateDefaultOutput : null);
+
+        /// <summary>
+        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
+        /// the ordering of members in the objects is not significant.
+        /// </summary>
+        /// <param name="expected">The expected value.</param>
+        /// <param name="actual">The actual value.</param>
+        /// <param name="outputFormatter">The output formatter.</param>
+        public static void AreEqual(string? expected, string? actual,
+            Func<JsonNode?, JsonNode?, JsonNode, string> outputFormatter)
             => HandleAreEqual(expected is null ? null : JsonNode.Parse(expected),
                 actual is null ? null : JsonNode.Parse(actual), null,
-                deltaFormatter ?? throw new ArgumentNullException(nameof(deltaFormatter)), null);
+                outputFormatter ?? throw new ArgumentNullException(nameof(outputFormatter)));
 
         /// <summary>
         /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
@@ -53,39 +79,13 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         /// <param name="expected">The expected value.</param>
         /// <param name="actual">The actual value.</param>
         /// <param name="diffOptions">The diff options.</param>
-        /// <param name="deltaFormatter">The delta formatter.</param>
+        /// <param name="outputFormatter">The output formatter.</param>
         public static void AreEqual(string? expected, string? actual, JsonDiffOptions diffOptions,
-            IJsonDiffDeltaFormatter<string> deltaFormatter)
+            Func<JsonNode?, JsonNode?, JsonNode, string> outputFormatter)
             => HandleAreEqual(expected is null ? null : JsonNode.Parse(expected),
                 actual is null ? null : JsonNode.Parse(actual),
                 diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)),
-                deltaFormatter ?? throw new ArgumentNullException(nameof(deltaFormatter)), null);
-
-        /// <summary>
-        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="message">The failure message.</param>
-        public static void AreEqual(string? expected, string? actual, string message)
-            => HandleAreEqual(expected is null ? null : JsonNode.Parse(expected),
-                actual is null ? null : JsonNode.Parse(actual),
-                null, null, message ?? throw new ArgumentNullException(nameof(message)));
-
-        /// <summary>
-        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="diffOptions">The diff options.</param>
-        /// <param name="message">The failure message.</param>
-        public static void AreEqual(string? expected, string? actual, JsonDiffOptions diffOptions, string message)
-            => HandleAreEqual(expected is null ? null : JsonNode.Parse(expected),
-                actual is null ? null : JsonNode.Parse(actual),
-                diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)),
-                null, message ?? throw new ArgumentNullException(nameof(message)));
+                outputFormatter ?? throw new ArgumentNullException(nameof(outputFormatter)));
 
         /// <summary>
         /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
@@ -96,7 +96,19 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         /// <param name="actual">The actual value.</param>
         public static void AreEqual<T>(T? expected, T? actual)
             where T : JsonNode
-            => HandleAreEqual(expected, actual, null, null, null);
+            => HandleAreEqual(expected, actual, null, null);
+
+        /// <summary>
+        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
+        /// the ordering of members in the objects is not significant.
+        /// </summary>
+        /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
+        /// <param name="expected">The expected value.</param>
+        /// <param name="actual">The actual value.</param>
+        /// <param name="output">Whether to print diff result.</param>
+        public static void AreEqual<T>(T? expected, T? actual, bool output)
+            where T : JsonNode
+            => HandleAreEqual(expected, actual, null, output ? CreateDefaultOutput : null);
 
         /// <summary>
         /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
@@ -109,8 +121,7 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         public static void AreEqual<T>(T? expected, T? actual, JsonDiffOptions diffOptions)
             where T : JsonNode
             => HandleAreEqual(expected, actual,
-                diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)),
-                null, null);
+                diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)), null);
 
         /// <summary>
         /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
@@ -119,12 +130,27 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
         /// <param name="expected">The expected value.</param>
         /// <param name="actual">The actual value.</param>
-        /// <param name="deltaFormatter">The delta formatter.</param>
+        /// <param name="diffOptions">The diff options.</param>
+        /// <param name="output">Whether to print diff result.</param>
+        public static void AreEqual<T>(T? expected, T? actual, JsonDiffOptions diffOptions, bool output)
+            where T : JsonNode
+            => HandleAreEqual(expected, actual,
+                diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)),
+                output ? CreateDefaultOutput : null);
+
+        /// <summary>
+        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
+        /// the ordering of members in the objects is not significant.
+        /// </summary>
+        /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
+        /// <param name="expected">The expected value.</param>
+        /// <param name="actual">The actual value.</param>
+        /// <param name="outputFormatter">The output formatter.</param>
         public static void AreEqual<T>(T? expected, T? actual,
-            IJsonDiffDeltaFormatter<string> deltaFormatter)
+            Func<JsonNode?, JsonNode?, JsonNode, string> outputFormatter)
             where T : JsonNode
             => HandleAreEqual(expected, actual, null,
-                deltaFormatter ?? throw new ArgumentNullException(nameof(deltaFormatter)), null);
+                outputFormatter ?? throw new ArgumentNullException(nameof(outputFormatter)));
 
         /// <summary>
         /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
@@ -134,42 +160,13 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         /// <param name="expected">The expected value.</param>
         /// <param name="actual">The actual value.</param>
         /// <param name="diffOptions">The diff options.</param>
-        /// <param name="deltaFormatter">The delta formatter.</param>
+        /// <param name="outputFormatter">The output formatter.</param>
         public static void AreEqual<T>(T? expected, T? actual, JsonDiffOptions diffOptions,
-            IJsonDiffDeltaFormatter<string> deltaFormatter)
+            Func<JsonNode?, JsonNode?, JsonNode, string> outputFormatter)
             where T : JsonNode
             => HandleAreEqual(expected, actual,
                 diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)),
-                deltaFormatter ?? throw new ArgumentNullException(nameof(deltaFormatter)), null);
-
-        /// <summary>
-        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="message">The failure message.</param>
-        public static void AreEqual<T>(T? expected, T? actual, string message)
-            where T : JsonNode
-            => HandleAreEqual(expected, actual, null, null,
-                message ?? throw new ArgumentNullException(nameof(message)));
-
-        /// <summary>
-        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="diffOptions">The diff options.</param>
-        /// <param name="message">The failure message.</param>
-        public static void AreEqual<T>(T? expected, T? actual, JsonDiffOptions diffOptions,
-            string message)
-            where T : JsonNode
-            => HandleAreEqual(expected, actual,
-                diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)),
-                null, message ?? throw new ArgumentNullException(nameof(message)));
+                outputFormatter ?? throw new ArgumentNullException(nameof(outputFormatter)));
 
         /// <summary>
         /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
@@ -180,6 +177,17 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         /// <param name="actual">The actual value.</param>
         public static void JsonAreEqual(this Assert assert, string? expected, string? actual)
             => AreEqual(expected, actual);
+
+        /// <summary>
+        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
+        /// the ordering of members in the objects is not significant.
+        /// </summary>
+        /// <param name="assert">The assert object.</param>
+        /// <param name="expected">The expected value.</param>
+        /// <param name="actual">The actual value.</param>
+        /// <param name="output">Whether to print diff result.</param>
+        public static void JsonAreEqual(this Assert assert, string? expected, string? actual, bool output)
+            => AreEqual(expected, actual, output);
         
         /// <summary>
         /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
@@ -200,10 +208,23 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         /// <param name="assert">The assert object.</param>
         /// <param name="expected">The expected value.</param>
         /// <param name="actual">The actual value.</param>
-        /// <param name="deltaFormatter">The delta formatter.</param>
+        /// <param name="diffOptions">The diff options.</param>
+        /// <param name="output">Whether to print diff result.</param>
         public static void JsonAreEqual(this Assert assert, string? expected, string? actual,
-            IJsonDiffDeltaFormatter<string> deltaFormatter)
-            => AreEqual(expected, actual, deltaFormatter);
+            JsonDiffOptions diffOptions, bool output)
+            => AreEqual(expected, actual, diffOptions, output);
+        
+        /// <summary>
+        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
+        /// the ordering of members in the objects is not significant.
+        /// </summary>
+        /// <param name="assert">The assert object.</param>
+        /// <param name="expected">The expected value.</param>
+        /// <param name="actual">The actual value.</param>
+        /// <param name="outputFormatter">The output formatter.</param>
+        public static void JsonAreEqual(this Assert assert, string? expected, string? actual,
+            Func<JsonNode?, JsonNode?, JsonNode, string> outputFormatter)
+            => AreEqual(expected, actual, outputFormatter);
 
         /// <summary>
         /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
@@ -213,35 +234,11 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         /// <param name="expected">The expected value.</param>
         /// <param name="actual">The actual value.</param>
         /// <param name="diffOptions">The diff options.</param>
-        /// <param name="deltaFormatter">The delta formatter.</param>
+        /// <param name="outputFormatter">The output formatter.</param>
         public static void JsonAreEqual(this Assert assert, string? expected, string? actual,
             JsonDiffOptions diffOptions,
-            IJsonDiffDeltaFormatter<string> deltaFormatter)
-            => AreEqual(expected, actual, diffOptions, deltaFormatter);
-
-        /// <summary>
-        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <param name="assert">The assert object.</param>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="message">The failure message.</param>
-        public static void JsonAreEqual(this Assert assert, string? expected, string? actual, string message)
-            => AreEqual(expected, actual, message);
-
-        /// <summary>
-        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <param name="assert">The assert object.</param>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="diffOptions">The diff options.</param>
-        /// <param name="message">The failure message.</param>
-        public static void JsonAreEqual(this Assert assert, string? expected, string? actual,
-            JsonDiffOptions diffOptions, string message)
-            => AreEqual(expected, actual, diffOptions, message);
+            Func<JsonNode?, JsonNode?, JsonNode, string> outputFormatter)
+            => AreEqual(expected, actual, diffOptions, outputFormatter);
         
         /// <summary>
         /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
@@ -263,6 +260,19 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         /// <param name="assert">The assert object.</param>
         /// <param name="expected">The expected value.</param>
         /// <param name="actual">The actual value.</param>
+        /// <param name="output">Whether to print diff result.</param>
+        public static void JsonAreEqual<T>(this Assert assert, T? expected, T? actual, bool output)
+            where T : JsonNode
+            => AreEqual(expected, actual, output);
+        
+        /// <summary>
+        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
+        /// the ordering of members in the objects is not significant.
+        /// </summary>
+        /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
+        /// <param name="assert">The assert object.</param>
+        /// <param name="expected">The expected value.</param>
+        /// <param name="actual">The actual value.</param>
         /// <param name="diffOptions">The diff options.</param>
         public static void JsonAreEqual<T>(this Assert assert, T? expected, T? actual,
             JsonDiffOptions diffOptions)
@@ -277,11 +287,26 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         /// <param name="assert">The assert object.</param>
         /// <param name="expected">The expected value.</param>
         /// <param name="actual">The actual value.</param>
-        /// <param name="deltaFormatter">The delta formatter.</param>
+        /// <param name="diffOptions">The diff options.</param>
+        /// <param name="output">Whether to print diff result.</param>
         public static void JsonAreEqual<T>(this Assert assert, T? expected, T? actual,
-            IJsonDiffDeltaFormatter<string> deltaFormatter)
+            JsonDiffOptions diffOptions, bool output)
             where T : JsonNode
-            => AreEqual(expected, actual, deltaFormatter);
+            => AreEqual(expected, actual, diffOptions, output);
+        
+        /// <summary>
+        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
+        /// the ordering of members in the objects is not significant.
+        /// </summary>
+        /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
+        /// <param name="assert">The assert object.</param>
+        /// <param name="expected">The expected value.</param>
+        /// <param name="actual">The actual value.</param>
+        /// <param name="outputFormatter">The output formatter.</param>
+        public static void JsonAreEqual<T>(this Assert assert, T? expected, T? actual,
+            Func<JsonNode?, JsonNode?, JsonNode, string> outputFormatter)
+            where T : JsonNode
+            => AreEqual(expected, actual, outputFormatter);
 
         /// <summary>
         /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
@@ -292,45 +317,15 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         /// <param name="expected">The expected value.</param>
         /// <param name="actual">The actual value.</param>
         /// <param name="diffOptions">The diff options.</param>
-        /// <param name="deltaFormatter">The delta formatter.</param>
+        /// <param name="outputFormatter">The output formatter.</param>
         public static void JsonAreEqual<T>(this Assert assert, T? expected, T? actual,
             JsonDiffOptions diffOptions,
-            IJsonDiffDeltaFormatter<string> deltaFormatter)
+            Func<JsonNode?, JsonNode?, JsonNode, string> outputFormatter)
             where T : JsonNode
-            => AreEqual(expected, actual, diffOptions, deltaFormatter);
+            => AreEqual(expected, actual, diffOptions, outputFormatter);
 
-        /// <summary>
-        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
-        /// <param name="assert">The assert object.</param>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="message">The failure message.</param>
-        public static void JsonAreEqual<T>(this Assert assert, T? expected, T? actual, string message)
-            where T : JsonNode
-            => AreEqual(expected, actual, message);
-
-        /// <summary>
-        /// Tests whether two JSON objects are equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
-        /// <param name="assert">The assert object.</param>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="diffOptions">The diff options.</param>
-        /// <param name="message">The failure message.</param>
-        public static void JsonAreEqual<T>(this Assert assert, T? expected, T? actual,
-            JsonDiffOptions diffOptions, string message)
-            where T : JsonNode
-            => AreEqual(expected, actual, diffOptions, message);
-        
-        private static void HandleAreEqual(JsonNode? expected, JsonNode? actual,
-            JsonDiffOptions? diffOptions,
-            IJsonDiffDeltaFormatter<string>? deltaFormatter,
-            string? message)
+        private static void HandleAreEqual(JsonNode? expected, JsonNode? actual, JsonDiffOptions? diffOptions,
+            Func<JsonNode?, JsonNode?, JsonNode, string>? outputFormatter)
         {
             var diff = expected.Diff(actual, diffOptions);
             if (diff is null)
@@ -338,44 +333,46 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
                 return;
             }
 
-            message ??= CreateAreEqualFailureMessage(expected, actual, diff, deltaFormatter);
+            var message = CreateAreEqualFailureMessage(expected, actual, diff, outputFormatter);
             throw new AssertFailedException(message);
         }
 
-        private static string CreateAreEqualFailureMessage(JsonNode? expected, JsonNode? actual,
-            JsonNode diff, IJsonDiffDeltaFormatter<string>? deltaFormatter)
+        private static string CreateDefaultOutput(JsonNode? expected, JsonNode? actual, JsonNode diff)
         {
             var sb = new StringBuilder();
-            sb.Append("JsonAssert.AreEqual() failure: The specified two JSON objects are not equal.");
+
+            sb.Append("Expected:");
+            sb.AppendLine();
+            sb.Append(expected is null
+                ? "null"
+                : expected.ToJsonString(SerializerOptions));
             sb.AppendLine();
 
-            if (deltaFormatter is null)
-            {
-                sb.Append("Expected:");
-                sb.AppendLine();
-                sb.Append(expected is null
-                    ? "null"
-                    : expected.ToJsonString(new JsonSerializerOptions {WriteIndented = true}));
-                sb.AppendLine();
-
-                sb.Append("Actual:");
-                sb.AppendLine();
-                sb.Append(actual is null
-                    ? "null"
-                    : actual.ToJsonString(new JsonSerializerOptions {WriteIndented = true}));
-                sb.AppendLine();
-
-                sb.Append("Diff:");
-                sb.AppendLine();
-                sb.Append(diff.ToJsonString(new JsonSerializerOptions {WriteIndented = true}));
-            }
-            else
-            {
-                var delta = new JsonDiffDelta(diff);
-                sb.Append(deltaFormatter.Format(ref delta, expected));
-            }
-
+            sb.Append("Actual:");
             sb.AppendLine();
+            sb.Append(actual is null
+                ? "null"
+                : actual.ToJsonString(SerializerOptions));
+            sb.AppendLine();
+
+            sb.Append("Delta:");
+            sb.AppendLine();
+            sb.Append(diff.ToJsonString(SerializerOptions));
+
+            return sb.ToString();
+        }
+
+        private static string CreateAreEqualFailureMessage(JsonNode? expected, JsonNode? actual,
+            JsonNode diff, Func<JsonNode?, JsonNode?, JsonNode, string>? outputFormatter)
+        {
+            var sb = new StringBuilder();
+            sb.Append("JsonAssert.AreEqual() failure.");
+
+            if (outputFormatter is not null)
+            {
+                sb.AppendLine();
+                sb.Append(outputFormatter(expected, actual, diff));
+            }
 
             return sb.ToString();
         }
@@ -388,7 +385,7 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         /// <param name="actual">The actual value.</param>
         public static void AreNotEqual(string? expected, string? actual)
             => HandleAreNotEqual(expected is null ? null : JsonNode.Parse(expected),
-                actual is null ? null : JsonNode.Parse(actual), null, null);
+                actual is null ? null : JsonNode.Parse(actual), null);
 
         /// <summary>
         /// Tests whether two JSON objects are not equal. Note that when comparing the specified objects,
@@ -400,33 +397,7 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         public static void AreNotEqual(string? expected, string? actual, JsonDiffOptions diffOptions)
             => HandleAreNotEqual(expected is null ? null : JsonNode.Parse(expected),
                 actual is null ? null : JsonNode.Parse(actual),
-                diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)), null);
-
-        /// <summary>
-        /// Tests whether two JSON objects are not equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="message">The failure message.</param>
-        public static void AreNotEqual(string? expected, string? actual, string message)
-            => HandleAreNotEqual(expected is null ? null : JsonNode.Parse(expected),
-                actual is null ? null : JsonNode.Parse(actual), null,
-                message ?? throw new ArgumentNullException(nameof(message)));
-
-        /// <summary>
-        /// Tests whether two JSON objects are not equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="diffOptions">The diff options.</param>
-        /// <param name="message">The failure message.</param>
-        public static void AreNotEqual(string? expected, string? actual, JsonDiffOptions diffOptions, string message)
-            => HandleAreNotEqual(expected is null ? null : JsonNode.Parse(expected),
-                actual is null ? null : JsonNode.Parse(actual),
-                diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)),
-                message ?? throw new ArgumentNullException(nameof(message)));
+                diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)));
 
         /// <summary>
         /// Tests whether two JSON objects are not equal. Note that when comparing the specified objects,
@@ -437,7 +408,7 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         /// <param name="actual">The actual value.</param>
         public static void AreNotEqual<T>(T? expected, T? actual)
             where T : JsonNode
-            => HandleAreNotEqual(expected, actual, null, null);
+            => HandleAreNotEqual(expected, actual, null);
 
         /// <summary>
         /// Tests whether two JSON objects are not equal. Note that when comparing the specified objects,
@@ -450,35 +421,7 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         public static void AreNotEqual<T>(T? expected, T? actual, JsonDiffOptions diffOptions)
             where T : JsonNode
             => HandleAreNotEqual(expected, actual,
-                diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)), null);
-
-        /// <summary>
-        /// Tests whether two JSON objects are not equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="message">The failure message.</param>
-        public static void AreNotEqual<T>(T? expected, T? actual, string message)
-            where T : JsonNode
-            => HandleAreNotEqual(expected, actual, null,
-                message ?? throw new ArgumentNullException(nameof(message)));
-
-        /// <summary>
-        /// Tests whether two JSON objects are not equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="diffOptions">The diff options.</param>
-        /// <param name="message">The failure message.</param>
-        public static void AreNotEqual<T>(T? expected, T? actual, JsonDiffOptions diffOptions, string message)
-            where T : JsonNode
-            => HandleAreNotEqual(expected, actual,
-                diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)),
-                message ?? throw new ArgumentNullException(nameof(message)));
+                diffOptions ?? throw new ArgumentNullException(nameof(diffOptions)));
 
         /// <summary>
         /// Tests whether two JSON objects are not equal. Note that when comparing the specified objects,
@@ -507,30 +450,6 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
         /// the ordering of members in the objects is not significant.
         /// </summary>
         /// <param name="assert">The assert.</param>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="message">The failure message.</param>
-        public static void JsonAreNotEqual(this Assert assert, string? expected, string? actual, string message)
-            => AreNotEqual(expected, actual, message);
-
-        /// <summary>
-        /// Tests whether two JSON objects are not equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <param name="assert">The assert.</param>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="diffOptions">The diff options.</param>
-        /// <param name="message">The failure message.</param>
-        public static void JsonAreNotEqual(this Assert assert, string? expected, string? actual,
-            JsonDiffOptions diffOptions, string message)
-            => AreNotEqual(expected, actual, diffOptions, message);
-
-        /// <summary>
-        /// Tests whether two JSON objects are not equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <param name="assert">The assert.</param>
         /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
         /// <param name="expected">The expected value.</param>
         /// <param name="actual">The actual value.</param>
@@ -551,36 +470,7 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
             where T : JsonNode
             => AreNotEqual(expected, actual, diffOptions);
 
-        /// <summary>
-        /// Tests whether two JSON objects are not equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <param name="assert">The assert.</param>
-        /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="message">The failure message.</param>
-        public static void JsonAreNotEqual<T>(this Assert assert, T? expected, T? actual, string message)
-            where T : JsonNode
-            => AreNotEqual(expected, actual, message);
-
-        /// <summary>
-        /// Tests whether two JSON objects are not equal. Note that when comparing the specified objects,
-        /// the ordering of members in the objects is not significant.
-        /// </summary>
-        /// <param name="assert">The assert.</param>
-        /// <typeparam name="T">The type of JSON object to be compared.</typeparam>
-        /// <param name="expected">The expected value.</param>
-        /// <param name="actual">The actual value.</param>
-        /// <param name="diffOptions">The diff options.</param>
-        /// <param name="message">The failure message.</param>
-        public static void JsonAreNotEqual<T>(this Assert assert, T? expected, T? actual, JsonDiffOptions diffOptions,
-            string message)
-            where T : JsonNode
-            => AreNotEqual(expected, actual, diffOptions, message);
-
-        private static void HandleAreNotEqual(JsonNode? expected, JsonNode? actual,
-            JsonDiffOptions? diffOptions, string? message)
+        private static void HandleAreNotEqual(JsonNode? expected, JsonNode? actual, JsonDiffOptions? diffOptions)
         {
             var diff = expected.Diff(actual, diffOptions);
             if (diff is not null)
@@ -588,8 +478,7 @@ namespace System.Text.Json.JsonDiffPatch.MsTest
                 return;
             }
 
-            throw new AssertFailedException(
-                message ?? "JsonAssert.AreNotEqual() failure: The specified two JSON objects are equal.");
+            throw new AssertFailedException("JsonAssert.AreNotEqual() failure.");
         }
     }
 }

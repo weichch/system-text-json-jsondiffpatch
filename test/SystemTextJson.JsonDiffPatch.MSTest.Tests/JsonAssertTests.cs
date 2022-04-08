@@ -42,7 +42,7 @@ namespace SystemTextJson.JsonDiffPatch.MsTest.Tests
 
             JsonAssert.AreEqual(json1, json2);
         }
-
+        
         [TestMethod]
         public void AreEqual_FailWithMessage()
         {
@@ -52,11 +52,35 @@ namespace SystemTextJson.JsonDiffPatch.MsTest.Tests
             var error = Assert.ThrowsException<AssertFailedException>(
                 () => Assert.That.JsonAreEqual(json1, json2));
 
-            StringAssert.Contains(error.Message,
-                "JsonAssert.AreEqual() failure: The specified two JSON objects are not equal.");
+            StringAssert.Contains(error.Message, "JsonAssert.AreEqual() failure.");
+        }
+
+        [TestMethod]
+        public void AreEqual_FailWithDefaultOutput()
+        {
+            var json1 = JsonNode.Parse("{\"foo\":\"bar\",\"baz\":\"qux\"}");
+            var json2 = JsonNode.Parse("{\"foo\":\"baz\"}");
+
+            var error = Assert.ThrowsException<AssertFailedException>(
+                () => Assert.That.JsonAreEqual(json1, json2, true));
+
+            StringAssert.Contains(error.Message, "JsonAssert.AreEqual() failure.");
             StringAssert.Contains(error.Message, "Expected:");
             StringAssert.Contains(error.Message, "Actual:");
-            StringAssert.Contains(error.Message, "Diff:");
+            StringAssert.Contains(error.Message, "Delta:");
+        }
+        
+        [TestMethod]
+        public void AreEqual_FailWithCustomOutput()
+        {
+            var json1 = JsonNode.Parse("{\"foo\":\"bar\",\"baz\":\"qux\"}");
+            var json2 = JsonNode.Parse("{\"foo\":\"baz\"}");
+
+            var error = Assert.ThrowsException<AssertFailedException>(() => Assert.That.JsonAreEqual(json1,
+                json2, (e, a, d) => "Custom message"));
+
+            StringAssert.Contains(error.Message, "JsonAssert.AreEqual() failure.");
+            StringAssert.Contains(error.Message, "Custom message");
         }
 
         [TestMethod]
@@ -107,8 +131,7 @@ namespace SystemTextJson.JsonDiffPatch.MsTest.Tests
             var error = Assert.ThrowsException<AssertFailedException>(
                 () => Assert.That.JsonAreNotEqual(json1, json2));
 
-            StringAssert.Contains(error.Message,
-                "JsonAssert.AreNotEqual() failure: The specified two JSON objects are equal.");
+            StringAssert.Contains(error.Message, "JsonAssert.AreNotEqual() failure.");
         }
     }
 }

@@ -8,7 +8,7 @@ namespace System.Text.Json.JsonDiffPatch.Xunit
     public class JsonNotEqualException : XunitException
     {
         public JsonNotEqualException()
-            : base("JsonAssert.NotEqual() failure: The specified two JSON objects are equal.")
+            : base("JsonAssert.NotEqual() failure.")
         {
         }
     }
