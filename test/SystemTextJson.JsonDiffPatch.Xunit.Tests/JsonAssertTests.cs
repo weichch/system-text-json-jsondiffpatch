@@ -76,7 +76,7 @@ namespace SystemTextJson.JsonDiffPatch.Xunit.Tests
             var json2 = JsonNode.Parse("{\"foo\":\"baz\"}");
 
             var error = Record.Exception(() => json1.ShouldEqual(json2,
-                (e, a, d) => "Custom message"));
+                _ => "Custom message"));
 
             Assert.IsType<JsonEqualException>(error);
             Assert.Contains("JsonAssert.Equal() failure.", error.Message);

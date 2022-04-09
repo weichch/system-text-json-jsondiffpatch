@@ -8,17 +8,16 @@ namespace System.Text.Json.JsonDiffPatch.Nunit
     /// </summary>
     public abstract class JsonDiffConstraint : Constraint
     {
+        private readonly JsonNode? _expected;
         private JsonDiffOptions? _diffOptions;
-        private Func<JsonNode?, JsonNode?, JsonNode, string>? _outputFormatter;
+        private Func<JsonNode, string>? _outputFormatter;
         
         protected JsonDiffConstraint(JsonNode? expected)
         {
-            Expected = expected;
+            _expected = expected;
         }
 
-        public virtual Func<JsonNode?, JsonNode?, JsonNode, string>? OutputFormatter => _outputFormatter;
-        public JsonNode? Expected { get; }
-        public JsonNode? Actual { get; private set; }
+        public virtual Func<JsonNode, string>? OutputFormatter => _outputFormatter;
         public JsonNode? Delta { get; private set; }
 
         public JsonDiffConstraint WithDiffOptions(JsonDiffOptions diffOptions)
@@ -27,7 +26,7 @@ namespace System.Text.Json.JsonDiffPatch.Nunit
             return this;
         }
         
-        public JsonDiffConstraint WithOutputFormatter(Func<JsonNode?, JsonNode?, JsonNode, string> outputFormatter)
+        public JsonDiffConstraint WithOutputFormatter(Func<JsonNode, string> outputFormatter)
         {
             _outputFormatter = outputFormatter ?? throw new ArgumentNullException(nameof(outputFormatter));
             return this;
@@ -35,8 +34,7 @@ namespace System.Text.Json.JsonDiffPatch.Nunit
 
         public override ConstraintResult ApplyTo<TActual>(TActual actual)
         {
-            Actual = (JsonNode?) (object?) actual;
-            Delta = Expected.Diff(Actual, _diffOptions);
+            Delta = _expected.Diff((JsonNode?) (object?) actual, _diffOptions);
             return new JsonDiffConstraintResult(this, actual, Test());
         }
 

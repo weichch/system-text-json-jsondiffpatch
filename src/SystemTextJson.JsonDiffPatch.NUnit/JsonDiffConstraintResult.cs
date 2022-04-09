@@ -19,7 +19,7 @@ namespace System.Text.Json.JsonDiffPatch.Nunit
                 return;
             }
 
-            writer.Write(_constraint.OutputFormatter(_constraint.Expected, _constraint.Actual, _constraint.Delta));
+            writer.Write(_constraint.OutputFormatter(_constraint.Delta));
         }
     }
 }

@@ -9,7 +9,7 @@ namespace System.Text.Json.JsonDiffPatch.Nunit
         {
         }
 
-        public override Func<JsonNode?, JsonNode?, JsonNode, string>? OutputFormatter => null;
+        public override Func<JsonNode, string>? OutputFormatter => null;
         protected override bool Test() => Delta is not null;
     }
 }

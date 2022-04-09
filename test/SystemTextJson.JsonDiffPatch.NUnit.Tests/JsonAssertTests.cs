@@ -68,7 +68,7 @@ namespace SystemTextJson.JsonDiffPatch.NUnit.Tests
             var json2 = JsonNode.Parse("{\"foo\":\"baz\"}");
 
             var error = Assert.Throws<AssertionException>(() => JsonAssert.AreEqual(json1,
-                json2, (e, a, d) => "Custom message"));
+                json2, _ => "Custom message"));
 
             StringAssert.Contains("JsonAssert.AreEqual() failure.", error!.Message);
             StringAssert.Contains("Custom message", error.Message);

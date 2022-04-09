@@ -11,8 +11,8 @@ High-performance, low-allocating JSON objects diff and patch extension for Syste
 - Fast large JSON document diffing with less memory consumption
 - Support smart array diffing (e.g. move detect) using LCS and custom array item matcher
 - _(Only when not using RFC 6902 format)_ Support diffing long text using [google-diff-match-patch](http://code.google.com/p/google-diff-match-patch/), or write your own diff algorithm
-- `JsonNode.DeepClone` and `JsonNode.DeepEquals` methods
-- JSON assert for xUnit, MSTest v2 and NUnit with custom delta output
+- Bonus `JsonNode.DeepClone` and `JsonNode.DeepEquals` methods
+- JSON assert for xUnit, MSTest v2 and NUnit with customizable delta output
 
 ## Install
 
@@ -77,15 +77,23 @@ JsonDiffPatcher.ReversePatch(ref node1, diff);
 var expected = JsonNode.Parse(...);
 var actual = JsonNode.Parse(...);
 
-JsonAssert.Equal(expected, actual); // xUnit
-actual.ShouldEqual(expected); // xUnit
-JsonAssert.AreEqual(expected, actual); // MSTest and NUnit
-Assert.That.JsonAreEqual(expected, actual); // MSTest
+// xUnit
+JsonAssert.Equal(expected, actual);
+actual.ShouldEqual(expected);
+JsonAssert.NotEqual(expected, actual);
+actual.ShouldNotEqual(expected);
 
-JsonAssert.NotEqual(expected, actual); // xUnit
-actual.ShouldNotEqual(expected); // xUnit
-JsonAssert.AreNotEqual(expected, actual); // MSTest and NUnit
-Assert.That.JsonAreNotEqual(expected, actual); // MSTest
+// MSTest
+JsonAssert.AreEqual(expected, actual);
+Assert.That.JsonAreEqual(expected, actual);
+JsonAssert.AreNotEqual(expected, actual);
+Assert.That.JsonAreNotEqual(expected, actual);
+
+// NUnit
+JsonAssert.AreEqual(expected, actual);
+Assert.That(actual, JsonIs.EqualTo(expected));
+JsonAssert.AreNotEqual(expected, actual);
+Assert.That(actual, JsonIs.NotEqualTo(expected));
 ```
 
 Example output _(when output is enabled)_:
