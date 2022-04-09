@@ -126,4 +126,4 @@ Delta:
 
 ## Benchmark
 
-[Benchmark result](https://github.com/weichch/system-text-json-jsondiffpatch/blob/main/Benchmark.md) were generated using example objects [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/Examples) and benchmark tests [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/SystemTextJson.JsonDiffPatch.Benchmark/).
+[Benchmark results](https://github.com/weichch/system-text-json-jsondiffpatch/blob/main/Benchmark.md) were generated using example objects [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/Examples) and benchmark tests [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/SystemTextJson.JsonDiffPatch.Benchmark/).
