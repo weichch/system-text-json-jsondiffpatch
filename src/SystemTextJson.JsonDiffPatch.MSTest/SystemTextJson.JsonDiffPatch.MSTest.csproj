@@ -7,7 +7,7 @@
   <PropertyGroup>
     <PackageId>SystemTextJson.JsonDiffPatch.MSTest</PackageId>
     <PackageTags>mstest;mstest2;assert;compare;json;system-text-json</PackageTags>
-    <Description>Provides a set of extension methods for MSTest v2 to compare JSON in unit tests.</Description>
+    <Description>Extension methods for MSTest v2 to compare JSON in unit tests.</Description>
   </PropertyGroup>
 
   <ItemGroup>
