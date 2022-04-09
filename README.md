@@ -65,10 +65,14 @@ bool equal = node1.DeepEquals(node2);
 var node1 = JsonNode.Parse(...);
 var node2 = JsonNode.Parse(...);
 JsonNode? diff = node1.Diff(node2);
-// Patch
+// In-place patch
 JsonDiffPatcher.Patch(ref node1, diff);
-// Unpatch
+// Clone & patch
+node1.PatchNew(diff);
+// In-place unpatch
 JsonDiffPatcher.ReversePatch(ref node1, diff);
+// Clone & unpatch
+node1.ReversePatchNew(diff);
 ```
 
 ### Assert (Unit Testing)
