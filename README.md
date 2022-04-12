@@ -1,4 +1,4 @@
-# system-text-json-jsondiffpatch
+# SystemTextJson.JsonDiffPatch
 
 High-performance, low-allocating JSON objects diff and patch extension for System.Text.Json.
 
