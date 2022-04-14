@@ -147,12 +147,5 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         {
             Assert.Equal(expected, json1.DeepEquals(json2));
         }
-        
-        [Theory]
-        [MemberData(nameof(JsonValueTestData.ObjectSemanticEqual), MemberType = typeof(JsonValueTestData))]
-        public void Value_ObjectSemanticEqual(JsonValue json1, JsonValue json2, bool expected)
-        {
-            Assert.Equal(expected, json1.DeepEquals(json2));
-        }
     }
 }
