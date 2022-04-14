@@ -207,7 +207,7 @@ namespace System.Text.Json.JsonDiffPatch
                             return element.TryGetGuid(out var guidValue) && guidValue.Equals(guid);
                         case byte[] bytes:
                             return element.TryGetBytesFromBase64(out var bytesValue)
-                                   && bytes.AsSpan() == bytesValue.AsSpan();
+                                   && bytes.AsSpan().SequenceEqual(bytesValue.AsSpan());
                     }
 
                     var strValue = element.GetString();
