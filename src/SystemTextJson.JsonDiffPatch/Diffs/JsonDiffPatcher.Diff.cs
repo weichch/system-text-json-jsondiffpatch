@@ -252,10 +252,9 @@ namespace System.Text.Json.JsonDiffPatch
 
             // None of the above methods returned a result, fallback to check if both values are deeply equal
             // This should also handle DateTime and other CLR types that are strings in JSON
-            if (!left.DeepEquals(right))
+            if (!left.DeepEquals(right, options.CreateComparerOptions()))
             {
                 delta.Modified(left, right);
-                return;
             }
         }
     }

@@ -17,6 +17,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
     {
         private JsonDiffPatchDotNet.JsonDiffPatch _jsonNetInstance = null!;
         private JsonDiffOptions _optionsWithJsonNetAlg = null!;
+        private JsonDiffOptions _optionsWithJsonNetAlgSemantic = null!;
         private string _jsonBefore = null!;
         private string _jsonAfter = null!;
         private string _jsonDiff = null!;
@@ -46,6 +47,16 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
                 SuppressDetectArrayMove = true,
                 ArrayItemMatcher = JsonNetArrayItemMatch
             };
+
+            _optionsWithJsonNetAlgSemantic = new JsonDiffOptions
+            {
+                // Ignore Google diff patch
+                TextDiffMinLength = 0,
+                // There is no array move support in JsonNet version
+                SuppressDetectArrayMove = true,
+                ArrayItemMatcher = JsonNetArrayItemMatch,
+                JsonElementComparison = JsonElementComparison.Semantic
+            };
         }
 
         [Benchmark]
@@ -64,6 +75,15 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             var right = JsonNode.Parse(_jsonAfter)!;
 
             return left.Diff(right, _optionsWithJsonNetAlg);
+        }
+        
+        [Benchmark]
+        public JsonNode? Diff_SystemTextJson_Semantic()
+        {
+            var left = JsonNode.Parse(_jsonBefore)!;
+            var right = JsonNode.Parse(_jsonAfter)!;
+
+            return left.Diff(right, _optionsWithJsonNetAlgSemantic);
         }
         
         [Benchmark]
@@ -118,6 +138,15 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             var right = JsonNode.Parse(_jsonBefore);
 
             return left.DeepEquals(right);
+        }
+        
+        [Benchmark]
+        public bool DeepEquals_SystemTextJson_Semantic()
+        {
+            var left = JsonNode.Parse(_jsonBefore);
+            var right = JsonNode.Parse(_jsonBefore);
+
+            return left.DeepEquals(right, JsonElementComparison.Semantic);
         }
         
         [Benchmark]

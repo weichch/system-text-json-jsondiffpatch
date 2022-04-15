@@ -138,7 +138,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
             var json1 = JsonNode.Parse($"[{jsonValue1}]")!.AsArray()[0];
             var json2 = JsonNode.Parse($"[{jsonValue2}]")!.AsArray()[0];
 
-            Assert.Equal(expected, json1.DeepEquals(json2, new JsonComparerOptions(JsonElementComparison.Semantic)));
+            Assert.Equal(expected, json1.DeepEquals(json2, JsonElementComparison.Semantic));
         }
 
         [Theory]

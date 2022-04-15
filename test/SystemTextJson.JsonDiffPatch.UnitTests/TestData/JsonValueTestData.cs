@@ -88,7 +88,8 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.TestData
                 
                 yield return new object[] {Json("1"), JsonValue.Create(1.0f), true};
                 yield return new object[] {Json("1.0"), JsonValue.Create(1.0f), true};
-                yield return new object[] {Json("1.12e1"), JsonValue.Create(11.2f), true};
+                // This is due to floating error, JToken does the same
+                yield return new object[] {Json("1.12e1"), JsonValue.Create(11.2f), false};
                 yield return new object[] {Json("1"), JsonValue.Create(2.0f), false};
                 
                 yield return new object[] {Json("1"), JsonValue.Create((ushort) 1), true};
@@ -171,7 +172,8 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.TestData
                 
                 yield return new object[] {JsonValue.Create(1), JsonValue.Create(1.0d), true};
                 yield return new object[] {JsonValue.Create(1.0d), JsonValue.Create(1.0d), true};
-                yield return new object[] {JsonValue.Create(11.2f), JsonValue.Create(11.2d), true};
+                // This is due to floating error, JToken does the same
+                yield return new object[] {JsonValue.Create(11.2f), JsonValue.Create(11.2d), false};
                 yield return new object[] {JsonValue.Create(1), JsonValue.Create(2.0d), false};
                 
                 yield return new object[] {JsonValue.Create(1), JsonValue.Create((short) 1), true};

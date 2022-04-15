@@ -1,4 +1,5 @@
-﻿using System.Text.Json.JsonDiffPatch.Diffs;
+﻿using System.Collections.Generic;
+using System.Text.Json.JsonDiffPatch.Diffs;
 using System.Text.Json.Nodes;
 
 namespace System.Text.Json.JsonDiffPatch
@@ -9,6 +10,7 @@ namespace System.Text.Json.JsonDiffPatch
     public class JsonDiffOptions
     {
         internal static readonly JsonDiffOptions Default = new();
+        private JsonComparerOptions _comparerOptions;
 
         /// <summary>
         /// Specifies whether to suppress detect array move. Default value is <c>false</c>.
@@ -60,5 +62,26 @@ namespace System.Text.Json.JsonDiffPatch
         /// Gets or sets the function to diff long texts.
         /// </summary>
         public Func<string, string, string?>? TextDiffProvider { get; set; }
+
+        /// <summary>
+        /// Gets or sets the mode to compare two <see cref="JsonElement"/> instances.
+        /// </summary>
+        public JsonElementComparison JsonElementComparison { get; set; }
+
+        /// <summary>
+        /// Gets or sets the <see cref="JsonValue"/> comparer.
+        /// </summary>
+        public IEqualityComparer<JsonValue>? ValueComparer { get; set; }
+
+        internal ref JsonComparerOptions CreateComparerOptions()
+        {
+            if (JsonElementComparison != _comparerOptions.JsonElementComparison
+                || !Equals(ValueComparer, _comparerOptions.ValueComparer))
+            {
+                _comparerOptions = new JsonComparerOptions(JsonElementComparison, ValueComparer);
+            }
+
+            return ref _comparerOptions;
+        }
     }
 }
