@@ -27,6 +27,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             config.AddLogger(new ConsoleLogger(true));
             config.AddExporter(MarkdownExporter.GitHub);
 
+            BenchmarkRunner.Run<DeepEqualsBenchmarks>(config);
             BenchmarkRunner.Run<DemoObjectBenchmarks>(config);
             BenchmarkRunner.Run<LargeObjectBenchmarks>(config);
             Console.ReadLine();

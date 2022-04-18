@@ -149,8 +149,8 @@ namespace System.Text.Json.JsonDiffPatch
         private static bool CompareJsonValueWithOptions(JsonValue x, JsonValue y,
             in JsonComparerOptions comparerOptions)
         {
-            var kindX = x.GetValueKind();
-            var kindY = y.GetValueKind();
+            var kindX = x.GetValueKind(false, out var typeX);
+            var kindY = y.GetValueKind(false, out var typeY);
 
             if (kindX != kindY)
             {
@@ -169,36 +169,43 @@ namespace System.Text.Json.JsonDiffPatch
                 return Equals(objX, objY);
             }
 
-            var isJsonElementX = x.TryGetValue<JsonElement>(out var eX);
-            var isJsonElementY = y.TryGetValue<JsonElement>(out var eY);
-            
-            // Happy scenario: both backed by JsonElement
-            if (isJsonElementX && isJsonElementY)
+            var isJsonElementX = typeX == typeof(JsonElement);
+            var isJsonElementY = typeY == typeof(JsonElement);
+
+            if (comparerOptions.JsonElementComparison is JsonElementComparison.RawText)
             {
-                // Perf: If the values are backed by JsonElement, we need to materialize the values
-                // and compare raw text because there is no way to compare the bytes.
-                // This may consume a lot memory for large JSON objects.
-                if (eX.ValueKind == JsonValueKind.String)
+                // Happy scenario: both backed by JsonElement
+                if (isJsonElementX && isJsonElementY)
                 {
-                    return eX.ValueEquals(eY.GetString());
+                    return kindX is JsonValueKind.String
+                        ? x.GetValue<JsonElement>().ValueEquals(y.GetValue<JsonElement>().GetString())
+                        : string.Equals(x.GetValue<JsonElement>().GetRawText(),
+                            y.GetValue<JsonElement>().GetRawText(),
+                            StringComparison.Ordinal);
                 }
 
-                if (comparerOptions.JsonElementComparison == JsonElementComparison.RawText)
+                if (isJsonElementX && y.TryGetValue<string>(out var stringY))
                 {
-                    return string.Equals(eX.GetRawText(), eY.GetRawText(), StringComparison.Ordinal);
+                    return x.GetValue<JsonElement>().ValueEquals(stringY);
                 }
 
-                return JsonValueComparer.Compare(x, y, false) == 0;
+                if (isJsonElementY && x.TryGetValue<string>(out var stringX))
+                {
+                    return y.GetValue<JsonElement>().ValueEquals(stringX);
+                }
             }
 
-            if (isJsonElementX || isJsonElementY)
+            if (isJsonElementX)
             {
-                // Always pass instance backed JSON value as value1
-                return JsonValueComparer.Compare(isJsonElementX ? y : x,
-                    isJsonElementX ? x : y, false) == 0;
+                typeX = x.GetValue<JsonElement>().GetValueType();
             }
 
-            return JsonValueComparer.Compare(x, y, false) == 0;
+            if (isJsonElementY)
+            {
+                typeY = y.GetValue<JsonElement>().GetValueType();
+            }
+
+            return JsonValueComparer.Compare(kindX, x, typeX, y, typeY) == 0;
         }
     }
 }

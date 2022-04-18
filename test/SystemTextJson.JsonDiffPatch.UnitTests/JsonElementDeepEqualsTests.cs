@@ -116,28 +116,16 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         }
 
         [Theory]
-        [InlineData("1", "1", true)]
-        [InlineData("1", "1.0", false)]
-        [InlineData("1.1e1", "11", false)]
-        public void Value_RawText(string jsonValue1, string jsonValue2, bool expected)
+        [MemberData(nameof(JsonValueTestData.ElementRawTextEqual), MemberType = typeof(JsonValueTestData))]
+        public void Value_RawText(JsonValue json1, JsonValue json2, bool expected)
         {
-            var json1 = JsonNode.Parse($"[{jsonValue1}]")!.AsArray()[0];
-            var json2 = JsonNode.Parse($"[{jsonValue2}]")!.AsArray()[0];
-
             Assert.Equal(expected, json1.DeepEquals(json2));
         }
-
+        
         [Theory]
-        [InlineData("1", "1.000", true)]
-        [InlineData("1.0", "1.000", true)]
-        [InlineData("1", "1", true)]
-        [InlineData("1.00", "1", true)]
-        [InlineData("1.1e1", "11", true)]
-        public void Value_Semantic(string jsonValue1, string jsonValue2, bool expected)
+        [MemberData(nameof(JsonValueTestData.ElementSemanticEqual), MemberType = typeof(JsonValueTestData))]
+        public void Value_Semantic(JsonValue json1, JsonValue json2, bool expected)
         {
-            var json1 = JsonNode.Parse($"[{jsonValue1}]")!.AsArray()[0];
-            var json2 = JsonNode.Parse($"[{jsonValue2}]")!.AsArray()[0];
-
             Assert.Equal(expected, json1.DeepEquals(json2, JsonElementComparison.Semantic));
         }
 
