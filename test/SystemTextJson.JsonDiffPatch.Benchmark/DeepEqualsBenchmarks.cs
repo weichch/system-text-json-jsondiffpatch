@@ -7,44 +7,40 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
 {
     public class DeepEqualsBenchmarks
     {
-        private JToken _tokenX = null!;
-        private JToken _tokenY= null!;
-        private JsonNode _nodeX = null!;
-        private JsonNode _nodeY= null!;
-        private JsonNode _elementNodeX = null!;
-        private JsonNode _elementNodeY= null!;
-
-        [GlobalSetup]
-        public void Setup()
-        {
-            _tokenX = new JArray(1, 2, 3, 4);
-            _tokenY = new JArray(1, 2, 3, 5);
-            _nodeX = new JsonArray(
-                JsonValue.Create(1), JsonValue.Create(2),
-                JsonValue.Create(3), JsonValue.Create(4));
-            _nodeY = new JsonArray(
-                JsonValue.Create(1), JsonValue.Create(2),
-                JsonValue.Create(3), JsonValue.Create(5));
-            _elementNodeX = JsonNode.Parse("[1,2,3,4]")!;
-            _elementNodeY = JsonNode.Parse("[1,2,3,5]")!;
-        }
-
         [Benchmark]
         public bool JsonNet_Array()
         {
-            return JToken.DeepEquals(_tokenX, _tokenY);
+            var tokenX = new JArray(1, 2, 3, 4);
+            var tokenY = new JArray(1, 2, 3, 5);
+            
+            return JToken.DeepEquals(tokenX, tokenY);
+        }
+        
+        [Benchmark]
+        public bool JsonNet_ParseArray()
+        {
+            var tokenX = JToken.Parse("[1,2,3,4]");
+            var tokenY = JToken.Parse("[1,2,3,5]");
+            
+            return JToken.DeepEquals(tokenX, tokenY);
         }
 
         [Benchmark]
         public bool SystemTextJson_Array()
         {
-            return _nodeX.DeepEquals(_nodeY);
+            var nodeX = new JsonArray(1, 2, 3, 4);
+            var nodeY = new JsonArray(1, 2, 3, 5);
+            
+            return nodeX.DeepEquals(nodeY);
         }
         
         [Benchmark]
-        public bool SystemTextJson_ElementArray()
+        public bool SystemTextJson_ParseArray()
         {
-            return _elementNodeX.DeepEquals(_elementNodeY);
+            var nodeX = JsonNode.Parse("[1,2,3,4]")!;
+            var nodeY = JsonNode.Parse("[1,2,3,5]")!;
+            
+            return nodeX.DeepEquals(nodeY, JsonElementComparison.Semantic);
         }
     }
 }

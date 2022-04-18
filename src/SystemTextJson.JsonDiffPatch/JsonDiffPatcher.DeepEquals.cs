@@ -157,55 +157,50 @@ namespace System.Text.Json.JsonDiffPatch
                 return false;
             }
 
-            if (kindX is JsonValueKind.Null or JsonValueKind.True or JsonValueKind.False)
+            switch (kindX)
             {
-                return true;
+                case JsonValueKind.Number:
+                case JsonValueKind.String:
+
+                    var isJsonElementX = typeX == typeof(JsonElement);
+                    var isJsonElementY = typeY == typeof(JsonElement);
+
+                    // Happy scenario: both backed by JsonElement
+                    if (isJsonElementX && isJsonElementY &&
+                        comparerOptions.JsonElementComparison is JsonElementComparison.RawText)
+                    {
+                        return kindX is JsonValueKind.String
+                            ? x.GetValue<JsonElement>().ValueEquals(y.GetValue<JsonElement>().GetString())
+                            : string.Equals(x.GetValue<JsonElement>().GetRawText(),
+                                y.GetValue<JsonElement>().GetRawText(),
+                                StringComparison.Ordinal);
+                    }
+
+                    if (isJsonElementX)
+                    {
+                        typeX = x.GetValue<JsonElement>().GetValueType();
+                    }
+
+                    if (isJsonElementY)
+                    {
+                        typeY = y.GetValue<JsonElement>().GetValueType();
+                    }
+
+                    return JsonValueComparer.Compare(kindX, x, typeX, y, typeY) == 0;
+
+                case JsonValueKind.Null:
+                case JsonValueKind.True:
+                case JsonValueKind.False:
+                    return true;
+
+                case JsonValueKind.Undefined:
+                case JsonValueKind.Object:
+                case JsonValueKind.Array:
+                default:
+                    x.TryGetValue<object>(out var objX);
+                    y.TryGetValue<object>(out var objY);
+                    return Equals(objX, objY);
             }
-
-            if (kindX is not JsonValueKind.Number && kindX is not JsonValueKind.String)
-            {
-                x.TryGetValue<object>(out var objX);
-                y.TryGetValue<object>(out var objY);
-                return Equals(objX, objY);
-            }
-
-            var isJsonElementX = typeX == typeof(JsonElement);
-            var isJsonElementY = typeY == typeof(JsonElement);
-
-            if (comparerOptions.JsonElementComparison is JsonElementComparison.RawText)
-            {
-                // Happy scenario: both backed by JsonElement
-                if (isJsonElementX && isJsonElementY)
-                {
-                    return kindX is JsonValueKind.String
-                        ? x.GetValue<JsonElement>().ValueEquals(y.GetValue<JsonElement>().GetString())
-                        : string.Equals(x.GetValue<JsonElement>().GetRawText(),
-                            y.GetValue<JsonElement>().GetRawText(),
-                            StringComparison.Ordinal);
-                }
-
-                if (isJsonElementX && y.TryGetValue<string>(out var stringY))
-                {
-                    return x.GetValue<JsonElement>().ValueEquals(stringY);
-                }
-
-                if (isJsonElementY && x.TryGetValue<string>(out var stringX))
-                {
-                    return y.GetValue<JsonElement>().ValueEquals(stringX);
-                }
-            }
-
-            if (isJsonElementX)
-            {
-                typeX = x.GetValue<JsonElement>().GetValueType();
-            }
-
-            if (isJsonElementY)
-            {
-                typeY = y.GetValue<JsonElement>().GetValueType();
-            }
-
-            return JsonValueComparer.Compare(kindX, x, typeX, y, typeY) == 0;
         }
     }
 }
