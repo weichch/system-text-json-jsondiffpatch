@@ -4,9 +4,6 @@ using System.Text.Json.Nodes;
 
 namespace System.Text.Json.JsonDiffPatch
 {
-    /// <summary>
-    /// Comparer for <see cref="JsonValue"/>.
-    /// </summary>
     static partial class JsonValueComparer
     {
         private static int CompareNumber(int x, JsonValue y, Type typeY)
@@ -39,6 +36,18 @@ namespace System.Text.Json.JsonDiffPatch
 
         private static int CompareNumber(long x, JsonValue y, Type typeY)
         {
+            if (typeY == typeof(JsonElement))
+            {
+                if (y.TryGetValue<long>(out var longY))
+                    return x.CompareTo(longY);
+                if (y.TryGetValue<decimal>(out var decimalY))
+                    return Convert.ToDecimal(x).CompareTo(decimalY);
+                if (y.TryGetValue<double>(out var doubleY))
+                    return CompareDouble(Convert.ToDouble(x), doubleY);
+
+                throw new ArgumentException("Unsupported JSON number.");
+            }
+            
             if (typeY == typeof(int))
                 return x.CompareTo(Convert.ToInt64(y.GetValue<int>()));
             if (typeY == typeof(long))
@@ -235,6 +244,18 @@ namespace System.Text.Json.JsonDiffPatch
         
         private static int CompareNumber(double x, JsonValue y, Type typeY)
         {
+            if (typeY == typeof(JsonElement))
+            {
+                if (y.TryGetValue<long>(out var longY))
+                    return CompareDouble(x, Convert.ToDouble(longY));
+                if (y.TryGetValue<decimal>(out var decimalY))
+                    return Convert.ToDecimal(x).CompareTo(decimalY);
+                if (y.TryGetValue<double>(out var doubleY))
+                    return CompareDouble(x, doubleY);
+
+                throw new ArgumentException("Unsupported JSON number.");
+            }
+            
             if (typeY == typeof(int))
                 return CompareDouble(x, Convert.ToDouble(y.GetValue<int>()));
             if (typeY == typeof(long))
@@ -263,6 +284,18 @@ namespace System.Text.Json.JsonDiffPatch
         
         private static int CompareNumber(decimal x, JsonValue y, Type typeY)
         {
+            if (typeY == typeof(JsonElement))
+            {
+                if (y.TryGetValue<long>(out var longY))
+                    return x.CompareTo(Convert.ToDecimal(longY));
+                if (y.TryGetValue<decimal>(out var decimalY))
+                    return x.CompareTo(decimalY);
+                if (y.TryGetValue<double>(out var doubleY))
+                    return x.CompareTo(Convert.ToDecimal(doubleY));
+
+                throw new ArgumentException("Unsupported JSON number.");
+            }
+            
             if (typeY == typeof(int))
                 return x.CompareTo(Convert.ToDecimal(y.GetValue<int>()));
             if (typeY == typeof(long))

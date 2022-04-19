@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text.Json.Nodes;
+﻿using System.Text.Json.Nodes;
 
 namespace System.Text.Json.JsonDiffPatch
 {
@@ -15,16 +14,13 @@ namespace System.Text.Json.JsonDiffPatch
         /// <param name="y">The right value.</param>
         public static int Compare(JsonValue? x, JsonValue? y)
         {
-            var valueKindX = x.GetValueKind(true, out var typeX);
-            var valueKindY = y.GetValueKind(true, out var typeY);
+            var valueKindX = x.GetValueKind(out var typeX, out _);
+            var valueKindY = y.GetValueKind(out var typeY, out _);
 
             if (valueKindX != valueKindY)
             {
                 return -((int) valueKindX - (int) valueKindY);
             }
-
-            Debug.Assert(typeX != typeof(JsonElement));
-            Debug.Assert(typeY != typeof(JsonElement));
 
             return Compare(valueKindX, x, typeX, y, typeY);
         }
@@ -49,17 +45,28 @@ namespace System.Text.Json.JsonDiffPatch
             switch (valueKind)
             {
                 case JsonValueKind.Number:
+                    if (typeX == typeof(JsonElement))
+                    {
+                        if (x.TryGetValue<long>(out var longX))
+                            return CompareNumber(longX, y, typeY!);
+                        if (x.TryGetValue<decimal>(out var decimalX))
+                            return CompareNumber(decimalX, y, typeY!);
+                        if (x.TryGetValue<double>(out var doubleX))
+                            return CompareNumber(doubleX, y, typeY!);
+
+                        throw new ArgumentException("Unsupported JSON number.");
+                    }
 
                     if (typeX == typeof(int))
                         return CompareNumber(x.GetValue<int>(), y, typeY!);
                     if (typeX == typeof(long))
                         return CompareNumber(x.GetValue<long>(), y, typeY!);
-                    if (typeX == typeof(decimal))
-                        return CompareNumber(x.GetValue<decimal>(), y, typeY!);
                     if (typeX == typeof(double))
                         return CompareNumber(x.GetValue<double>(), y, typeY!);
                     if (typeX == typeof(short))
                         return CompareNumber(x.GetValue<short>(), y, typeY!);
+                    if (typeX == typeof(decimal))
+                        return CompareNumber(x.GetValue<decimal>(), y, typeY!);
                     if (typeX == typeof(byte))
                         return CompareNumber(x.GetValue<byte>(), y, typeY!);
                     if (typeX == typeof(float))
@@ -76,17 +83,16 @@ namespace System.Text.Json.JsonDiffPatch
                     return CompareNumberWithAllocation(x.GetValue<object>(), y);
 
                 case JsonValueKind.String:
+                    if (TryCompareDateTime(x, typeX!, y, typeY!, out var compareResult))
+                        return compareResult;
+                    if (TryCompareGuid(x, typeX!, y, typeY!, out compareResult))
+                        return compareResult;
+                    if (TryCompareChar(x, typeX!, y, typeY!, out compareResult))
+                        return compareResult;
+                    if (TryCompareByteArray(x, typeX!, y, typeY!, out compareResult))
+                        return compareResult;
 
-                    if (TryCompareDateTime(x, y, out var compareResult))
-                        return compareResult;
-                    if (TryCompareGuid(x, y, out compareResult))
-                        return compareResult;
-                    if (TryCompareChar(x, y, out compareResult))
-                        return compareResult;
-                    if (TryCompareByteArray(x, y, out compareResult))
-                        return compareResult;
-
-                    return CompareString(x, y);
+                    return CompareString(x, typeX!, y, typeY!);
 
                 case JsonValueKind.Null:
                 case JsonValueKind.False:

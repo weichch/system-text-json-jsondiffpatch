@@ -149,8 +149,8 @@ namespace System.Text.Json.JsonDiffPatch
         private static bool CompareJsonValueWithOptions(JsonValue x, JsonValue y,
             in JsonComparerOptions comparerOptions)
         {
-            var kindX = x.GetValueKind(false, out var typeX);
-            var kindY = y.GetValueKind(false, out var typeY);
+            var kindX = x.GetValueKind(out var typeX, out var isJsonElementX);
+            var kindY = y.GetValueKind(out var typeY, out var isJsonElementY);
 
             if (kindX != kindY)
             {
@@ -162,9 +162,6 @@ namespace System.Text.Json.JsonDiffPatch
                 case JsonValueKind.Number:
                 case JsonValueKind.String:
 
-                    var isJsonElementX = typeX == typeof(JsonElement);
-                    var isJsonElementY = typeY == typeof(JsonElement);
-
                     // Happy scenario: both backed by JsonElement
                     if (isJsonElementX && isJsonElementY &&
                         comparerOptions.JsonElementComparison is JsonElementComparison.RawText)
@@ -174,16 +171,6 @@ namespace System.Text.Json.JsonDiffPatch
                             : string.Equals(x.GetValue<JsonElement>().GetRawText(),
                                 y.GetValue<JsonElement>().GetRawText(),
                                 StringComparison.Ordinal);
-                    }
-
-                    if (isJsonElementX)
-                    {
-                        typeX = x.GetValue<JsonElement>().GetValueType();
-                    }
-
-                    if (isJsonElementY)
-                    {
-                        typeY = y.GetValue<JsonElement>().GetValueType();
                     }
 
                     return JsonValueComparer.Compare(kindX, x, typeX, y, typeY) == 0;
@@ -197,9 +184,9 @@ namespace System.Text.Json.JsonDiffPatch
                 case JsonValueKind.Object:
                 case JsonValueKind.Array:
                 default:
-                    x.TryGetValue<object>(out var objX);
-                    y.TryGetValue<object>(out var objY);
-                    return Equals(objX, objY);
+                    return x.TryGetValue<object>(out var objX)
+                           && y.TryGetValue<object>(out var objY)
+                           && Equals(objX, objY);
             }
         }
     }

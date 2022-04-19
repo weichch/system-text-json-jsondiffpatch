@@ -5,23 +5,10 @@ namespace System.Text.Json.JsonDiffPatch
 {
     static partial class JsonDiffPatcher
     {
-        /// <summary>
-        /// Gets the most significant <see cref="JsonValueKind"/>.
-        /// </summary>
-        /// <param name="node">The JSON node.</param>
-        public static JsonValueKind GetValueKind(this JsonNode? node)
+        internal static JsonValueKind GetValueKind(this JsonNode? node, out Type? valueType, out bool isJsonElement)
         {
-            return node.GetValueKind(false, out _);
-        }
-
-        /// <summary>
-        /// Gets the most significant <see cref="JsonValueKind"/>.
-        /// </summary>
-        /// <param name="node">The JSON node.</param>
-        /// <param name="getElementType">Get value type of JSON element.</param>
-        /// <param name="valueType">The most significant value type.</param>
-        internal static JsonValueKind GetValueKind(this JsonNode? node, bool getElementType, out Type? valueType)
-        {
+            isJsonElement = false;
+            
             if (node is null)
             {
                 valueType = null;
@@ -32,7 +19,8 @@ namespace System.Text.Json.JsonDiffPatch
             {
                 if (value.TryGetValue<JsonElement>(out var element))
                 {
-                    valueType = getElementType ? element.GetValueType() : typeof(JsonElement);
+                    valueType = typeof(JsonElement);
+                    isJsonElement = true;
                     return element.ValueKind;
                 }
 
@@ -74,28 +62,28 @@ namespace System.Text.Json.JsonDiffPatch
                 valueType = typeof(int);
                 return true;
             }
-
+            
             if (value.TryGetValue<long>(out _))
             {
                 valueType = typeof(long);
                 return true;
             }
-
-            if (value.TryGetValue<decimal>(out _))
-            {
-                valueType = typeof(decimal);
-                return true;
-            }
-
+            
             if (value.TryGetValue<double>(out _))
             {
                 valueType = typeof(double);
                 return true;
             }
-
+            
             if (value.TryGetValue<short>(out _))
             {
                 valueType = typeof(short);
+                return true;
+            }
+            
+            if (value.TryGetValue<decimal>(out _))
+            {
+                valueType = typeof(decimal);
                 return true;
             }
 
@@ -147,15 +135,15 @@ namespace System.Text.Json.JsonDiffPatch
                 return true;
             }
             
-            if (value.TryGetValue<DateTimeOffset>(out _))
-            {
-                valueType = typeof(DateTimeOffset);
-                return true;
-            }
-
             if (value.TryGetValue<DateTime>(out _))
             {
                 valueType = typeof(DateTime);
+                return true;
+            }
+            
+            if (value.TryGetValue<DateTimeOffset>(out _))
+            {
+                valueType = typeof(DateTimeOffset);
                 return true;
             }
 
@@ -179,41 +167,6 @@ namespace System.Text.Json.JsonDiffPatch
 
             valueType = null;
             return false;
-        }
-
-        private static Type? GetValueType(this JsonElement element)
-        {
-            switch (element.ValueKind)
-            {
-                case JsonValueKind.Number:
-
-                    if (element.TryGetInt64(out _)) return typeof(long);
-                    if (element.TryGetDecimal(out _)) return typeof(decimal);
-                    if (element.TryGetDouble(out _)) return typeof(double);
-
-                    Debug.Assert(false);
-                    return typeof(decimal);
-
-                case JsonValueKind.String:
-
-                    if (element.TryGetDateTimeOffset(out _)) return typeof(DateTimeOffset);
-                    if (element.TryGetDateTime(out _)) return typeof(DateTime);
-                    if (element.TryGetGuid(out _)) return typeof(Guid);
-                    if (element.TryGetBytesFromBase64(out _)) return typeof(byte[]);
-
-                    return typeof(string);
-
-                case JsonValueKind.True:
-                case JsonValueKind.False:
-                    return typeof(bool);
-
-                case JsonValueKind.Array:
-                case JsonValueKind.Object:
-                case JsonValueKind.Null:
-                case JsonValueKind.Undefined:
-                default:
-                    return null;
-            }
         }
     }
 }

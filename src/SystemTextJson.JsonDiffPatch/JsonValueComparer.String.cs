@@ -3,16 +3,17 @@ using System.Text.Json.Nodes;
 
 namespace System.Text.Json.JsonDiffPatch
 {
-    /// <summary>
-    /// Comparer for <see cref="JsonValue"/>.
-    /// </summary>
     static partial class JsonValueComparer
     {
-        private static int CompareString(JsonValue x, JsonValue y)
+        private static int CompareString(JsonValue x, Type typeX, JsonValue y, Type typeY)
         {
-            if (x.TryGetValue<string>(out var valueX) && y.TryGetValue<string>(out var valueY))
+            if ((typeX == typeof(string) || typeX == typeof(JsonElement))
+                && (typeY == typeof(string) || typeY == typeof(JsonElement)))
             {
-                return StringComparer.Ordinal.Compare(valueX, valueY);
+                if (x.TryGetValue<string>(out var valueX) && y.TryGetValue<string>(out var valueY))
+                {
+                    return StringComparer.Ordinal.Compare(valueX, valueY);
+                }
             }
 
             return StringComparer.Ordinal.Compare(
@@ -20,92 +21,106 @@ namespace System.Text.Json.JsonDiffPatch
                 Convert.ToString(y.GetValue<object>(), CultureInfo.InvariantCulture));
         }
 
-        private static bool TryCompareDateTime(JsonValue x, JsonValue y, out int result)
+        private static bool TryCompareDateTime(JsonValue x, Type typeX, JsonValue y, Type typeY, out int result)
         {
-            if (x.TryGetValue<DateTimeOffset>(out var dateTimeOffsetX)
-                && y.TryGetValue<DateTimeOffset>(out var dateTimeOffsetY))
+            if ((typeX == typeof(DateTime) || typeX == typeof(DateTimeOffset) || typeX == typeof(JsonElement))
+                && (typeY == typeof(DateTime) || typeY == typeof(DateTimeOffset) || typeY == typeof(JsonElement)))
             {
-                result = dateTimeOffsetX.CompareTo(dateTimeOffsetY);
-                return true;
-            }
-
-            if (x.TryGetValue<DateTime>(out var dateTimeX)
-                && y.TryGetValue<DateTime>(out var dateTimeY))
-            {
-                result = dateTimeX.CompareTo(dateTimeY);
-                return true;
-            }
-            
-            if (x.TryGetValue(out dateTimeOffsetX)
-                && y.TryGetValue(out dateTimeY))
-            {
-                result = dateTimeOffsetX.CompareTo(new DateTimeOffset(dateTimeY));
-                return true;
-            }
-            
-            if (x.TryGetValue(out dateTimeX)
-                && y.TryGetValue(out dateTimeOffsetY))
-            {
-                result = new DateTimeOffset(dateTimeX).CompareTo(dateTimeOffsetY);
-                return true;
-            }
-
-            result = -1;
-            return false;
-        }
-
-        private static bool TryCompareGuid(JsonValue x, JsonValue y, out int result)
-        {
-            if (x.TryGetValue<Guid>(out var valueX)
-                && y.TryGetValue<Guid>(out var valueY))
-            {
-                result = valueX.CompareTo(valueY);
-                return true;
-            }
-
-            result = -1;
-            return false;
-        }
-
-        private static bool TryCompareChar(JsonValue x, JsonValue y, out int result)
-        {
-            if (x.TryGetValue<char>(out var valueX)
-                && y.TryGetValue<char>(out var valueY))
-            {
-                result = valueX.CompareTo(valueY);
-                return true;
-            }
-
-            result = -1;
-            return false;
-        }
-
-        private static bool TryCompareByteArray(JsonValue x, JsonValue y, out int result)
-        {
-            if (!x.TryGetValue<byte[]>(out var valueX))
-            {
-                if (x.TryGetValue<JsonElement>(out var jsonElement))
+                if (x.TryGetValue<DateTimeOffset>(out var dateTimeOffsetX)
+                    && y.TryGetValue<DateTimeOffset>(out var dateTimeOffsetY))
                 {
-                    jsonElement.TryGetBytesFromBase64(out valueX);
+                    result = dateTimeOffsetX.CompareTo(dateTimeOffsetY);
+                    return true;
+                }
+
+                if (x.TryGetValue<DateTime>(out var dateTimeX)
+                    && y.TryGetValue<DateTime>(out var dateTimeY))
+                {
+                    result = dateTimeX.CompareTo(dateTimeY);
+                    return true;
+                }
+
+                if (x.TryGetValue(out dateTimeOffsetX) && y.TryGetValue(out dateTimeY))
+                {
+                    result = dateTimeOffsetX.CompareTo(new DateTimeOffset(dateTimeY));
+                    return true;
+                }
+
+                if (x.TryGetValue(out dateTimeX) && y.TryGetValue(out dateTimeOffsetY))
+                {
+                    result = new DateTimeOffset(dateTimeX).CompareTo(dateTimeOffsetY);
+                    return true;
                 }
             }
 
-            if (!y.TryGetValue<byte[]>(out var valueY))
-            {
-                if (y.TryGetValue<JsonElement>(out var jsonElement))
-                {
-                    jsonElement.TryGetBytesFromBase64(out valueY);
-                }
-            }
+            result = -1;
+            return false;
+        }
 
-            if (valueX is not null && valueY is not null)
+        private static bool TryCompareGuid(JsonValue x, Type typeX, JsonValue y, Type typeY, out int result)
+        {
+            if ((typeX == typeof(Guid) || typeX == typeof(JsonElement))
+                && (typeY == typeof(Guid) || typeY == typeof(JsonElement)))
             {
-                result = CompareByteArray(valueX, valueY);
-                return true;
+                if (x.TryGetValue<Guid>(out var valueX) && y.TryGetValue<Guid>(out var valueY))
+                {
+                    result = valueX.CompareTo(valueY);
+                    return true;
+                }
             }
 
             result = -1;
             return false;
+        }
+
+        private static bool TryCompareChar(JsonValue x, Type typeX, JsonValue y, Type typeY, out int result)
+        {
+            if ((typeX == typeof(char) || typeX == typeof(JsonElement))
+                && (typeY == typeof(char) || typeY == typeof(JsonElement)))
+            {
+                if (x.TryGetValue<char>(out var valueX) && y.TryGetValue<char>(out var valueY))
+                {
+                    result = valueX.CompareTo(valueY);
+                    return true;
+                }
+            }
+
+            result = -1;
+            return false;
+        }
+
+        private static bool TryCompareByteArray(JsonValue x, Type typeX, JsonValue y, Type typeY, out int result)
+        {
+            if ((typeX == typeof(byte[]) || typeX == typeof(JsonElement))
+                && (typeY == typeof(byte[]) || typeY == typeof(JsonElement)))
+            {
+                var valueX = GetByteArray(x);
+                if (valueX is not null)
+                {
+                    var valueY = GetByteArray(y);
+                    if (valueY is not null)
+                    {
+                        result = CompareByteArray(valueX, valueY);
+                        return true;
+                    }
+                }
+            }
+
+            result = -1;
+            return false;
+
+            static byte[]? GetByteArray(JsonValue value)
+            {
+                if (!value.TryGetValue<byte[]>(out var byteArray))
+                {
+                    if (value.TryGetValue<JsonElement>(out var jsonElement))
+                    {
+                        jsonElement.TryGetBytesFromBase64(out byteArray);
+                    }
+                }
+
+                return byteArray;
+            }
         }
 
         private static int CompareByteArray(byte[] x, byte[] y)
