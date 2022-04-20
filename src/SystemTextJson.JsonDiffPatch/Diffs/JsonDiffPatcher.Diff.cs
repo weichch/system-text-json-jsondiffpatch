@@ -222,8 +222,8 @@ namespace System.Text.Json.JsonDiffPatch
             JsonDiffOptions? options)
         {
             Debug.Assert(delta.Document is null);
-            
-            options ??= JsonDiffOptions.Default;
+
+            options ??= DefaultOptions?.Invoke() ?? JsonDiffOptions.Default;
 
             left ??= "";
             right ??= "";

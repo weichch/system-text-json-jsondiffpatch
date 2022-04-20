@@ -5,6 +5,7 @@
 - **[BREAKING CHANGE]** `Diff` method no longer uses `object.Equals` to compare values encapsulated in `JsonValue<T>`. `JsonValueComparer` is used instead
 - Added semantic equality to `DeepEquals` method
 - Added options to `JsonDiffOptions` to enable semantic diff
+- Added `JsonDiffPatcher.DefaultOptions` for customizing default diff options
 
 ## 1.0.0
 - Initial release

@@ -20,6 +20,9 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.TestData
                 yield return new object[] {Json("1"), Json("2"), false};
                 yield return new object[] {Json("1.0"), Json("1"), false};
                 yield return new object[] {Json("1.12e1"), Json("11.2"), false};
+                yield return new object[] {Json("-1"), Json("-1"), true};
+                yield return new object[] {Json("-1"), Json("-1.0"), false};
+                yield return new object[] {Json("-1.1e1"), Json("-11"), false};
                 yield return new object[]
                 {
                     Json("\"9d423bba-b9a8-4d19-a39a-b421bed58e02\""),
@@ -57,6 +60,9 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.TestData
                 yield return new object[] {Json("1"), Json("2"), false};
                 yield return new object[] {Json("1.0"), Json("1"), true};
                 yield return new object[] {Json("1.12e1"), Json("11.2"), true};
+                yield return new object[] {Json("-1"), Json("-1"), true};
+                yield return new object[] {Json("-1"), Json("-1.0"), true};
+                yield return new object[] {Json("-1.1e1"), Json("-11"), true};
                 yield return new object[]
                 {
                     Json("\"9d423bba-b9a8-4d19-a39a-b421bed58e02\""),
@@ -134,6 +140,8 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.TestData
                 yield return new object[] {Json("1.000"), JsonValue.Create(1.00m), true};
                 yield return new object[] {Json("1.1e1"), JsonValue.Create(11m), true};
                 yield return new object[] {Json("1"), JsonValue.Create(2m), false};
+                yield return new object[] {Json("-1"), JsonValue.Create(-1.000m), true};
+                yield return new object[] {Json("-1.0"), JsonValue.Create(-1m), true};
                 yield return new object[] {Json($"{decimal.MaxValue}"), JsonValue.Create(decimal.MaxValue), true};
                 
                 yield return new object[] {Json("1"), JsonValue.Create(1.0d), true};
@@ -150,6 +158,8 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.TestData
                 yield return new object[] {Json("1.0"), JsonValue.Create(1), true};
                 yield return new object[] {Json("1.1e1"), JsonValue.Create(11), true};
                 yield return new object[] {Json("1"), JsonValue.Create(2), false};
+                yield return new object[] {Json("-1"), JsonValue.Create(-1), true};
+                yield return new object[] {Json("-1.0"), JsonValue.Create(-1), true};
                 
                 yield return new object[] {Json("1"), JsonValue.Create(1L), true};
                 yield return new object[] {Json("1.0"), JsonValue.Create(1L), true};
