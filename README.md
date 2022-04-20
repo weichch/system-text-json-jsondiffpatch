@@ -1,4 +1,4 @@
-# system-text-json-jsondiffpatch
+# SystemTextJson.JsonDiffPatch
 
 High-performance, low-allocating JSON objects diff and patch extension for System.Text.Json.
 
@@ -12,6 +12,7 @@ High-performance, low-allocating JSON objects diff and patch extension for Syste
 - Support smart array diffing (e.g. move detect) using LCS and custom array item matcher
 - _(Only when not using RFC 6902 format)_ Support diffing long text using [google-diff-match-patch](http://code.google.com/p/google-diff-match-patch/), or write your own diff algorithm
 - Bonus `JsonNode.DeepClone` and `JsonNode.DeepEquals` methods
+- Bouns `JsonValueComparer` that implements semantic comparison of two `JsonValue` objects (including `JsonValue` backed by `JsonElement`)
 - JSON assert for xUnit, MSTest v2 and NUnit with customizable delta output
 
 ## Install
@@ -57,6 +58,22 @@ JsonNode? cloned = node.DeepClone();
 var node1 = JsonNode.Parse(...);
 var node2 = JsonNode.Parse(...);
 bool equal = node1.DeepEquals(node2);
+bool semanticEqual = node1.DeepEquals(node2, JsonElementComparison.Semantic);
+```
+
+### Semantic Value Comparison
+```csharp
+var node1 = JsonNode.Parse("[\"2019-11-27\"]").First().AsValue();
+var node2 = JsonNode.Parse("[\"2019-11-27T00:00:00.000\"]").First().AsValue();
+
+// dateCompare is 0
+var dateCompare = JsonValueComparer.Compare(node1, node2);
+
+var node3 = JsonNode.Parse("[1]").First().AsValue();
+var node4 = JsonNode.Parse("[1.00]").First().AsValue();
+
+// numCompare is 0
+var numCompare = JsonValueComparer.Compare(node3, node4);
 ```
 
 ### Patch & Unpatch

@@ -5,5 +5,9 @@
     /// </summary>
     public static partial class JsonDiffPatcher
     {
+        /// <summary>
+        /// Gets or sets the default diff options.
+        /// </summary>
+        public static Func<JsonDiffOptions>? DefaultOptions { get; set; }
     }
 }

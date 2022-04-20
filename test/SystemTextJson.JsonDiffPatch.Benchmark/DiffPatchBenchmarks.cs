@@ -5,18 +5,17 @@ using System.Text.Json.JsonDiffPatch.Diffs;
 using System.Text.Json.JsonDiffPatch.Diffs.Formatters;
 using System.Text.Json.Nodes;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Jobs;
 using JsonDiffPatchDotNet;
 using JsonDiffPatchDotNet.Formatters.JsonPatch;
 using Newtonsoft.Json.Linq;
 
 namespace SystemTextJson.JsonDiffPatch.Benchmark
 {
-    [SimpleJob(RuntimeMoniker.Net48), SimpleJob(RuntimeMoniker.Net60)]
     public abstract class DiffPatchBenchmarks
     {
         private JsonDiffPatchDotNet.JsonDiffPatch _jsonNetInstance = null!;
         private JsonDiffOptions _optionsWithJsonNetAlg = null!;
+        private JsonDiffOptions _optionsWithJsonNetAlgSemantic = null!;
         private string _jsonBefore = null!;
         private string _jsonAfter = null!;
         private string _jsonDiff = null!;
@@ -46,6 +45,16 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
                 SuppressDetectArrayMove = true,
                 ArrayItemMatcher = JsonNetArrayItemMatch
             };
+
+            _optionsWithJsonNetAlgSemantic = new JsonDiffOptions
+            {
+                // Ignore Google diff patch
+                TextDiffMinLength = 0,
+                // There is no array move support in JsonNet version
+                SuppressDetectArrayMove = true,
+                ArrayItemMatcher = JsonNetArrayItemMatch,
+                JsonElementComparison = JsonElementComparison.Semantic
+            };
         }
 
         [Benchmark]
@@ -53,17 +62,26 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         {
             var left = JToken.Parse(_jsonBefore);
             var right = JToken.Parse(_jsonAfter);
-
+        
             return _jsonNetInstance.Diff(left, right);
         }
-
+        
         [Benchmark]
         public JsonNode? Diff_SystemTextJson()
         {
             var left = JsonNode.Parse(_jsonBefore)!;
             var right = JsonNode.Parse(_jsonAfter)!;
-
+        
             return left.Diff(right, _optionsWithJsonNetAlg);
+        }
+        
+        [Benchmark]
+        public JsonNode? Diff_SystemTextJson_Semantic()
+        {
+            var left = JsonNode.Parse(_jsonBefore)!;
+            var right = JsonNode.Parse(_jsonAfter)!;
+        
+            return left.Diff(right, _optionsWithJsonNetAlgSemantic);
         }
         
         [Benchmark]
@@ -73,13 +91,13 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             var token2 = JToken.Parse(_jsonAfter);
             return new JsonDeltaFormatter().Format(_jsonNetInstance.Diff(token1, token2));
         }
-
+        
         [Benchmark]
         public JsonNode? Diff_SystemTextJson_Rfc()
         {
             var left = JsonNode.Parse(_jsonBefore);
             var right = JsonNode.Parse(_jsonAfter);
-
+        
             return left.Diff(right, new JsonPatchDeltaFormatter(), _optionsWithJsonNetAlg);
         }
         
@@ -91,13 +109,13 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             
             return _jsonNetInstance.Patch(left, diff);
         }
-
+        
         [Benchmark]
         public JsonNode? Patch_SystemTextJson()
         {
             var left = JsonNode.Parse(_jsonBefore);
             var diff = JsonNode.Parse(_jsonDiff);
-
+        
             JsonDiffPatcher.Patch(ref left, diff);
             return left;
         }
@@ -107,32 +125,41 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         {
             var left = JToken.Parse(_jsonBefore);
             var right = JToken.Parse(_jsonBefore);
-
+        
             return JToken.DeepEquals(left, right);
         }
-
+        
         [Benchmark]
         public bool DeepEquals_SystemTextJson()
         {
             var left = JsonNode.Parse(_jsonBefore);
             var right = JsonNode.Parse(_jsonBefore);
-
+        
             return left.DeepEquals(right);
+        }
+        
+        [Benchmark]
+        public bool DeepEquals_SystemTextJson_Semantic()
+        {
+            var left = JsonNode.Parse(_jsonBefore);
+            var right = JsonNode.Parse(_jsonBefore);
+        
+            return left.DeepEquals(right, JsonElementComparison.Semantic);
         }
         
         [Benchmark]
         public JToken DeepClone_JsonNet()
         {
             var left = JToken.Parse(_jsonBefore);
-
+        
             return left.DeepClone();
         }
-
+        
         [Benchmark]
         public JsonNode? DeepClone_SystemTextJson()
         {
             var left = JsonNode.Parse(_jsonBefore);
-
+        
             return left.DeepClone();
         }
 
