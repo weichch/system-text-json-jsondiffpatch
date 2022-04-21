@@ -16,6 +16,8 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         private JsonDiffPatchDotNet.JsonDiffPatch _jsonNetInstance = null!;
         private JsonDiffOptions _optionsWithJsonNetAlg = null!;
         private JsonDiffOptions _optionsWithJsonNetAlgSemantic = null!;
+        private JsonDiffOptions _optionsByPosition = null!;
+        private JsonDiffOptions _optionsByKey = null!;
         private string _jsonBefore = null!;
         private string _jsonAfter = null!;
         private string _jsonDiff = null!;
@@ -33,27 +35,36 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             
             _jsonNetInstance = new JsonDiffPatchDotNet.JsonDiffPatch(new Options
             {
-                // Ignore Google diff patch
                 TextDiff = TextDiffMode.Simple
             });
 
             _optionsWithJsonNetAlg = new JsonDiffOptions
             {
-                // Ignore Google diff patch
                 TextDiffMinLength = 0,
-                // There is no array move support in JsonNet version
                 SuppressDetectArrayMove = true,
                 ArrayItemMatcher = JsonNetArrayItemMatch
             };
 
             _optionsWithJsonNetAlgSemantic = new JsonDiffOptions
             {
-                // Ignore Google diff patch
                 TextDiffMinLength = 0,
-                // There is no array move support in JsonNet version
                 SuppressDetectArrayMove = true,
                 ArrayItemMatcher = JsonNetArrayItemMatch,
                 JsonElementComparison = JsonElementComparison.Semantic
+            };
+
+            _optionsByPosition = new JsonDiffOptions
+            {
+                TextDiffMinLength = 0,
+                PreferFuzzyArrayItemMatch = true,
+                ArrayObjectItemMatchByPosition = true
+            };
+
+            _optionsByKey = new JsonDiffOptions
+            {
+                TextDiffMinLength = 0,
+                PreferFuzzyArrayItemMatch = true,
+                ArrayObjectItemKeyFinder = KeyFinder
             };
         }
 
@@ -67,7 +78,16 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         }
         
         [Benchmark]
-        public JsonNode? Diff_SystemTextJson()
+        public JsonNode? Diff_SystemTextJson_Default()
+        {
+            var left = JsonNode.Parse(_jsonBefore)!;
+            var right = JsonNode.Parse(_jsonAfter)!;
+        
+            return left.Diff(right);
+        }
+        
+        [Benchmark]
+        public JsonNode? Diff_SystemTextJson_JsonNetMatch()
         {
             var left = JsonNode.Parse(_jsonBefore)!;
             var right = JsonNode.Parse(_jsonAfter)!;
@@ -82,6 +102,24 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             var right = JsonNode.Parse(_jsonAfter)!;
         
             return left.Diff(right, _optionsWithJsonNetAlgSemantic);
+        }
+        
+        [Benchmark]
+        public JsonNode? Diff_SystemTextJson_ByPosition()
+        {
+            var left = JsonNode.Parse(_jsonBefore)!;
+            var right = JsonNode.Parse(_jsonAfter)!;
+        
+            return left.Diff(right, _optionsByPosition);
+        }
+        
+        [Benchmark]
+        public JsonNode? Diff_SystemTextJson_ByKey()
+        {
+            var left = JsonNode.Parse(_jsonBefore)!;
+            var right = JsonNode.Parse(_jsonAfter)!;
+        
+            return left.Diff(right, _optionsByKey);
         }
         
         [Benchmark]
@@ -175,6 +213,24 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             }
 
             return false;
+        }
+
+        private static object? KeyFinder(JsonNode? node, int index)
+        {
+            if (node is JsonObject jsonObj)
+            {
+                if (jsonObj.TryGetPropertyValue("name", out var value)
+                    || jsonObj.TryGetPropertyValue("id", out value)
+                    || jsonObj.TryGetPropertyValue("_id", out value))
+                {
+                    if ((value as JsonValue)?.TryGetValue<string>(out var key) == true)
+                    {
+                        return key;
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

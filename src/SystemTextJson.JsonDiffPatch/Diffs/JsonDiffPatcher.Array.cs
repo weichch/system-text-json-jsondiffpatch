@@ -21,12 +21,8 @@ namespace System.Text.Json.JsonDiffPatch
                 return;
             }
 
-            var match = options.ArrayItemMatcher;
-            if (match is null)
-            {
-                var defaultComparer = new DefaultArrayItemComparer(options);
-                match = defaultComparer.MatchArrayItem;
-            }
+            var match = options.ArrayItemMatcher ?? new ArrayItemMatch((ref ArrayItemMatchContext context) =>
+                new DefaultArrayItemComparer(options).MatchArrayItem(ref context));
 
             // Find command head
             int commonHead;
@@ -144,16 +140,19 @@ namespace System.Text.Json.JsonDiffPatch
                                 if (lcs.AreEqual(
                                     removedLeftIndex - commonHead /* Deleted in left */,
                                     i - commonHead /* Current in right */,
-                                    out _))
+                                    out var isDeepEqual))
                                 {
                                     delta.ArrayMoveFromDeleted(removedLeftIndex, i);
 
-                                    // Diff removed item in left and new item in right
-                                    var itemDiff = new JsonDiffDelta();
-                                    DiffInternal(ref itemDiff, left[removedLeftIndex], right[i], options);
-                                    if (itemDiff.Document is not null)
+                                    if (!isDeepEqual)
                                     {
-                                        delta.ArrayChange(i, false, itemDiff);
+                                        // Diff removed item in left and new item in right
+                                        var itemDiff = new JsonDiffDelta();
+                                        DiffInternal(ref itemDiff, left[removedLeftIndex], right[i], options);
+                                        if (itemDiff.Document is not null)
+                                        {
+                                            delta.ArrayChange(i, false, itemDiff);
+                                        }
                                     }
 
                                     removedIndices.RemoveAt(j);

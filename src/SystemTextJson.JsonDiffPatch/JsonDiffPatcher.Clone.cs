@@ -39,33 +39,45 @@ namespace System.Text.Json.JsonDiffPatch
                 return null;
             }
 
-            // Perf: This is slower than direct property access
-            var objValue = value.GetValue<object>();
-            var cloned = objValue switch
-            {
-                null => null,
-                JsonElement actualValue => JsonValue.Create(actualValue.Clone(), value.Options),
-                bool actualValue => JsonValue.Create(actualValue, value.Options),
-                byte actualValue => JsonValue.Create(actualValue, value.Options),
-                char actualValue => JsonValue.Create(actualValue, value.Options),
-                DateTime actualValue => JsonValue.Create(actualValue, value.Options),
-                DateTimeOffset actualValue => JsonValue.Create(actualValue, value.Options),
-                decimal actualValue => JsonValue.Create(actualValue, value.Options),
-                double actualValue => JsonValue.Create(actualValue, value.Options),
-                Guid actualValue => JsonValue.Create(actualValue, value.Options),
-                short actualValue => JsonValue.Create(actualValue, value.Options),
-                int actualValue => JsonValue.Create(actualValue, value.Options),
-                long actualValue => JsonValue.Create(actualValue, value.Options),
-                sbyte actualValue => JsonValue.Create(actualValue, value.Options),
-                float actualValue => JsonValue.Create(actualValue, value.Options),
-                string actualValue => JsonValue.Create(actualValue, value.Options),
-                ushort actualValue => JsonValue.Create(actualValue, value.Options),
-                uint actualValue => JsonValue.Create(actualValue, value.Options),
-                ulong actualValue => JsonValue.Create(actualValue, value.Options),
-                _ => JsonValue.Create(objValue, value.Options)
-            };
+            if (value.TryGetValue<JsonElement>(out var element))
+                return JsonValue.Create(element.Clone(), value.Options);
+            if (value.TryGetValue<int>(out var intValue))
+                return JsonValue.Create(intValue, value.Options);
+            if (value.TryGetValue<long>(out var longValue))
+                return JsonValue.Create(longValue, value.Options);
+            if (value.TryGetValue<double>(out var doubleValue))
+                return JsonValue.Create(doubleValue, value.Options);
+            if (value.TryGetValue<short>(out var shortValue))
+                return JsonValue.Create(shortValue, value.Options);
+            if (value.TryGetValue<decimal>(out var decimalValue))
+                return JsonValue.Create(decimalValue, value.Options);
+            if (value.TryGetValue<byte>(out var byteValue))
+                return JsonValue.Create(byteValue, value.Options);
+            if (value.TryGetValue<float>(out var floatValue))
+                return JsonValue.Create(floatValue, value.Options);
+            if (value.TryGetValue<uint>(out var uintValue))
+                return JsonValue.Create(uintValue, value.Options);
+            if (value.TryGetValue<ushort>(out var ushortValue))
+                return JsonValue.Create(ushortValue, value.Options);
+            if (value.TryGetValue<ulong>(out var ulongValue))
+                return JsonValue.Create(ulongValue, value.Options);
+            if (value.TryGetValue<sbyte>(out var sbyteValue))
+                return JsonValue.Create(sbyteValue, value.Options);
+            if (value.TryGetValue<string>(out var stringValue))
+                return JsonValue.Create(stringValue, value.Options);
+            if (value.TryGetValue<DateTime>(out var dateTimeValue))
+                return JsonValue.Create(dateTimeValue, value.Options);
+            if (value.TryGetValue<DateTimeOffset>(out var dateTimeOffsetValue))
+                return JsonValue.Create(dateTimeOffsetValue, value.Options);
+            if (value.TryGetValue<Guid>(out var guidValue))
+                return JsonValue.Create(guidValue, value.Options);
+            if (value.TryGetValue<char>(out var charValue))
+                return JsonValue.Create(charValue, value.Options);
+            if (value.TryGetValue<byte[]>(out var byteArrayValue))
+                return JsonValue.Create(byteArrayValue, value.Options);
 
-            return cloned;
+            // Perf: This is slower than direct property access
+            return JsonValue.Create(value.GetValue<object>(), value.Options);
         }
 
         private static JsonArray CloneArray(JsonArray arr)

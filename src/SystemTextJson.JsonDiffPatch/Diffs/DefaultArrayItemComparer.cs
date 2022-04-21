@@ -2,7 +2,7 @@
 
 namespace System.Text.Json.JsonDiffPatch.Diffs
 {
-    internal class DefaultArrayItemComparer
+    internal readonly ref struct DefaultArrayItemComparer
     {
         private readonly JsonDiffOptions _options;
 

@@ -8,7 +8,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
     public class DeepEqualsBenchmarks
     {
         [Benchmark]
-        public bool JsonNet_Array()
+        public bool JsonNet()
         {
             var tokenX = new JArray(1, 2, 3, 4);
             var tokenY = new JArray(1, 2, 3, 5);
@@ -17,7 +17,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         }
         
         [Benchmark]
-        public bool JsonNet_ParseArray()
+        public bool JsonNet_JsonString()
         {
             var tokenX = JToken.Parse("[1,2,3,4]");
             var tokenY = JToken.Parse("[1,2,3,5]");
@@ -26,7 +26,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         }
 
         [Benchmark]
-        public bool SystemTextJson_Array()
+        public bool SystemTextJson()
         {
             var nodeX = new JsonArray(1, 2, 3, 4);
             var nodeY = new JsonArray(1, 2, 3, 5);
@@ -35,7 +35,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         }
         
         [Benchmark]
-        public bool SystemTextJson_ParseArray()
+        public bool SystemTextJson_JsonString()
         {
             var nodeX = JsonNode.Parse("[1,2,3,4]")!;
             var nodeY = JsonNode.Parse("[1,2,3,5]")!;
