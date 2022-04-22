@@ -161,7 +161,6 @@ namespace System.Text.Json.JsonDiffPatch
             {
                 case JsonValueKind.Number:
                 case JsonValueKind.String:
-
                     // Happy scenario: both backed by JsonElement
                     if (isJsonElementX && isJsonElementY &&
                         comparerOptions.JsonElementComparison is JsonElementComparison.RawText)
@@ -169,8 +168,7 @@ namespace System.Text.Json.JsonDiffPatch
                         return kindX is JsonValueKind.String
                             ? x.GetValue<JsonElement>().ValueEquals(y.GetValue<JsonElement>().GetString())
                             : string.Equals(x.GetValue<JsonElement>().GetRawText(),
-                                y.GetValue<JsonElement>().GetRawText(),
-                                StringComparison.Ordinal);
+                                y.GetValue<JsonElement>().GetRawText());
                     }
 
                     return JsonValueComparer.Compare(kindX, x, typeX, y, typeY) == 0;
