@@ -19,8 +19,8 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
                 StatisticColumn.Mean,
                 StatisticColumn.Min,
                 StatisticColumn.Max,
-                StatisticColumn.P95,
-                StatisticColumn.P80);
+                StatisticColumn.P80,
+                StatisticColumn.P95);
             config.AddColumnProvider(DefaultColumnProviders.Metrics);
             config.AddDiagnoser(new MemoryDiagnoser(new MemoryDiagnoserConfig(false)));
             config.AddValidator(JitOptimizationsValidator.FailOnError);

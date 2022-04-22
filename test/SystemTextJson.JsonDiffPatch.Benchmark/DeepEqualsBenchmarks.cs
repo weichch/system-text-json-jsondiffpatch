@@ -33,7 +33,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             
             return nodeX.DeepEquals(nodeY);
         }
-        
+
         [Benchmark]
         public bool SystemTextJson_JsonString()
         {

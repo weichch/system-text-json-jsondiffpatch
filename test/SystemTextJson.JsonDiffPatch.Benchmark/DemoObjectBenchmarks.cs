@@ -12,5 +12,8 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
 
         [Params(@"Examples\demo_diff_notext.json")]
         public override string DiffFile { get; set; } = null!;
+
+        [Params("name")]
+        public override string KeyPropertyName { get; set; } = null!;
     }
 }

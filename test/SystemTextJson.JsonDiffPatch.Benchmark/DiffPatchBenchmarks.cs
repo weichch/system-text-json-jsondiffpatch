@@ -25,6 +25,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         public abstract string BeforeFile { get; set; }
         public abstract string AfterFile { get; set; }
         public abstract string DiffFile { get; set; }
+        public abstract string KeyPropertyName { get; set; }
 
         [GlobalSetup]
         public virtual void Setup()
@@ -214,14 +215,12 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
 
             return false;
         }
-
-        private static object? KeyFinder(JsonNode? node, int index)
+        
+        private object? KeyFinder(JsonNode? node, int index)
         {
             if (node is JsonObject jsonObj)
             {
-                if (jsonObj.TryGetPropertyValue("name", out var value)
-                    || jsonObj.TryGetPropertyValue("id", out value)
-                    || jsonObj.TryGetPropertyValue("_id", out value))
+                if (jsonObj.TryGetPropertyValue(KeyPropertyName, out var value))
                 {
                     if ((value as JsonValue)?.TryGetValue<string>(out var key) == true)
                     {
