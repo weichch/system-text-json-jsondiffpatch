@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System.Buffers;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.Json.Nodes;
 
 namespace System.Text.Json.JsonDiffPatch
@@ -23,13 +25,25 @@ namespace System.Text.Json.JsonDiffPatch
                     return obj;
                 case JsonObject jsonObject:
                 {
-                    foreach (var prop in jsonObject)
+                    var keys = ((IDictionary<string, JsonNode?>) jsonObject).Keys;
+                    string[] propNames = null!;
+                    try
                     {
-                        var materialized = prop.Value.Materialize();
-                        if (!ReferenceEquals(materialized, prop.Value))
+                        propNames = ArrayPool<string>.Shared.Rent(keys.Count);
+                        keys.CopyTo(propNames, 0);
+
+                        for (var i = 0; i < keys.Count; i++)
                         {
-                            jsonObject[prop.Key] = materialized;
+                            var materialized = jsonObject[propNames[i]].Materialize();
+                            if (!ReferenceEquals(materialized, jsonObject[propNames[i]]))
+                            {
+                                jsonObject[propNames[i]] = materialized;
+                            }
                         }
+                    }
+                    finally
+                    {
+                        ArrayPool<string>.Shared.Return(propNames, true);
                     }
 
                     return obj;
