@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.Json.Nodes;
 
 namespace System.Text.Json.JsonDiffPatch
@@ -38,7 +37,7 @@ namespace System.Text.Json.JsonDiffPatch
         {
             if (typeY == typeof(JsonElement))
             {
-                // If change this, also change in Compare, CompareNumber and CreateNode
+                // If change this, also change in MaterializeJsonElement, CompareNumber and CreateNode
                 if (y.TryGetValue<long>(out var longY))
                     return x.CompareTo(longY);
                 if (y.TryGetValue<decimal>(out var decimalY))
@@ -247,7 +246,7 @@ namespace System.Text.Json.JsonDiffPatch
         {
             if (typeY == typeof(JsonElement))
             {
-                // If change this, also change in Compare, CompareNumber and CreateNode
+                // If change this, also change in MaterializeJsonElement, CompareNumber and CreateNode
                 if (y.TryGetValue<long>(out var longY))
                     return CompareDouble(x, Convert.ToDouble(longY));
                 if (y.TryGetValue<decimal>(out var decimalY))
@@ -288,7 +287,7 @@ namespace System.Text.Json.JsonDiffPatch
         {
             if (typeY == typeof(JsonElement))
             {
-                // If change this, also change in Compare, CompareNumber and CreateNode
+                // If change this, also change in MaterializeJsonElement, CompareNumber and CreateNode
                 if (y.TryGetValue<long>(out var longY))
                     return x.CompareTo(Convert.ToDecimal(longY));
                 if (y.TryGetValue<decimal>(out var decimalY))

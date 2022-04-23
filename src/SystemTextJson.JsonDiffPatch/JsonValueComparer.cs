@@ -45,7 +45,7 @@ namespace System.Text.Json.JsonDiffPatch
             switch (valueKind)
             {
                 case JsonValueKind.Number:
-                    // If change this, also change in Compare, CompareNumber and CreateNode
+                    // If change this, also change in MaterializeJsonElement, CompareNumber and CreateNode
                     if (typeX == typeof(JsonElement))
                     {
                         if (x.TryGetValue<long>(out var longX))
