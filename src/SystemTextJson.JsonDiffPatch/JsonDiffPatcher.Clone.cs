@@ -10,29 +10,41 @@ namespace System.Text.Json.JsonDiffPatch
         /// Creates a deep copy of the <see cref="JsonNode"/>.
         /// </summary>
         /// <param name="obj">The <see cref="JsonNode"/>.</param>
-        public static T? DeepClone<T>(this T? obj)
+        public static T? DeepClone<T>(this T? obj) where T : JsonNode
+            => CloneNode(obj, false);
+
+        /// <summary>
+        /// Creates a deep copy of the <see cref="JsonNode"/> and materialize readonly <see cref="JsonNode"/>,
+        /// i.e. backed by <see cref="JsonElement"/>, with value of the most significant type in the processing.
+        /// </summary>
+        /// <param name="obj">The <see cref="JsonNode"/>.</param>
+        public static T? Materialize<T>(this T? obj)
+            where T : JsonNode
+            => CloneNode(obj, true);
+
+        private static T? CloneNode<T>(T? obj, bool materialize)
             where T : JsonNode
         {
             return (T?)(obj switch
             {
                 null => (JsonNode?)null,
-                JsonObject jsonObj => new JsonObject(Enumerate(jsonObj), obj.Options),
-                JsonArray array => CloneArray(array),
-                JsonValue value => CloneJsonValue(value),
+                JsonObject jsonObj => new JsonObject(Enumerate(jsonObj, materialize), obj.Options),
+                JsonArray array => CloneArray(array, materialize),
+                JsonValue value => CloneJsonValue(value, materialize),
                 _ => throw new NotSupportedException(
                     $"JsonNode of type '{obj.GetType().Name}' is not supported.")
             });
 
-            static IEnumerable<KeyValuePair<string, JsonNode?>> Enumerate(JsonObject obj)
+            static IEnumerable<KeyValuePair<string, JsonNode?>> Enumerate(JsonObject obj, bool materialize)
             {
                 foreach (var kvp in obj)
                 {
-                    yield return new KeyValuePair<string, JsonNode?>(kvp.Key, kvp.Value.DeepClone());
+                    yield return new KeyValuePair<string, JsonNode?>(kvp.Key, CloneNode(kvp.Value, materialize));
                 }
             }
         }
 
-        private static JsonValue? CloneJsonValue(JsonValue? value)
+        private static JsonValue? CloneJsonValue(JsonValue? value, bool materialize)
         {
             if (value is null)
             {
@@ -40,7 +52,12 @@ namespace System.Text.Json.JsonDiffPatch
             }
 
             if (value.TryGetValue<JsonElement>(out var element))
-                return JsonValue.Create(element.Clone(), value.Options);
+            {
+                return materialize
+                    ? MaterializeJsonElement(element, value)
+                    : JsonValue.Create(element.Clone(), value.Options);
+            }
+
             if (value.TryGetValue<int>(out var intValue))
                 return JsonValue.Create(intValue, value.Options);
             if (value.TryGetValue<long>(out var longValue))
@@ -80,15 +97,58 @@ namespace System.Text.Json.JsonDiffPatch
             return JsonValue.Create(value.GetValue<object>(), value.Options);
         }
 
-        private static JsonArray CloneArray(JsonArray arr)
+        private static JsonArray CloneArray(JsonArray arr, bool materialize)
         {
             var newArr = new JsonArray(arr.Options);
-            foreach (var cloned in arr.Select(DeepClone))
+            foreach (var cloned in arr.Select(item => CloneNode(item, materialize)))
             {
                 newArr.Add(cloned);
             }
 
             return newArr;
+        }
+
+        private static JsonValue? MaterializeJsonElement(in JsonElement element, JsonValue existingValue)
+        {
+            // If change this, also change in Compare, CompareNumber and CreateNode
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.Number:
+                    if (element.TryGetInt64(out var longValue))
+                        return JsonValue.Create(longValue, existingValue.Options);
+                    if (element.TryGetDecimal(out var decimalValue))
+                        return JsonValue.Create(decimalValue, existingValue.Options);
+                    if (element.TryGetDouble(out var doubleValue))
+                        return JsonValue.Create(doubleValue, existingValue.Options);
+
+                    throw new ArgumentException("Unsupported JSON number.");
+
+                case JsonValueKind.String:
+                    if (element.TryGetDateTimeOffset(out var dateTimeOffsetValue))
+                        return JsonValue.Create(dateTimeOffsetValue, existingValue.Options);
+                    if (element.TryGetDateTime(out var dateTimeValue))
+                        return JsonValue.Create(dateTimeValue, existingValue.Options);
+                    if (element.TryGetGuid(out var guidValue))
+                        return JsonValue.Create(guidValue, existingValue.Options);
+                    if (element.TryGetBytesFromBase64(out var byteArrayValue))
+                        return JsonValue.Create(byteArrayValue, existingValue.Options);
+
+                    return JsonValue.Create(element.GetString(), existingValue.Options);
+
+                case JsonValueKind.True:
+                case JsonValueKind.False:
+                    return JsonValue.Create(element.ValueKind == JsonValueKind.True, existingValue.Options);
+
+                case JsonValueKind.Null:
+                    return null;
+
+                case JsonValueKind.Undefined:
+                case JsonValueKind.Object:
+                case JsonValueKind.Array:
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(element.ValueKind),
+                        $"Unexpected value kind {element.ValueKind:G}");
+            }
         }
     }
 }
