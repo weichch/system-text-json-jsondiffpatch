@@ -14,19 +14,6 @@ namespace System.Text.Json.JsonDiffPatch
         /// <param name="y">The right value.</param>
         public static int Compare(JsonValue? x, JsonValue? y)
         {
-            var valueKindX = x.GetValueKind(out var typeX, out _);
-            var valueKindY = y.GetValueKind(out var typeY, out _);
-
-            if (valueKindX != valueKindY)
-            {
-                return -((int) valueKindX - (int) valueKindY);
-            }
-
-            return Compare(valueKindX, x, typeX, y, typeY);
-        }
-
-        internal static int Compare(JsonValueKind valueKind, JsonValue? x, Type? typeX, JsonValue? y, Type? typeY)
-        {
             if (x is null && y is null)
             {
                 return 0;
@@ -42,58 +29,66 @@ namespace System.Text.Json.JsonDiffPatch
                 return 1;
             }
 
+            var valueKindX = x.GetValueKind(out var typeX, out var isJsonElementX);
+            var valueKindY = y.GetValueKind(out var typeY, out var isJsonElementY);
+
+            if (valueKindX != valueKindY)
+            {
+                return -((int) valueKindX - (int) valueKindY);
+            }
+
+            return Compare(valueKindX, new JsonValueComparisonContext(valueKindX, x, typeX, isJsonElementX),
+                new JsonValueComparisonContext(valueKindY, y, typeY, isJsonElementY));
+        }
+
+        internal static int Compare(JsonValueKind valueKind, in JsonValueComparisonContext x,
+            in JsonValueComparisonContext y)
+        {
             switch (valueKind)
             {
                 case JsonValueKind.Number:
-                    // If change this, also change in MaterializeJsonElement, CompareNumber and CreateNode
-                    if (typeX == typeof(JsonElement))
+                    if (x.ValueType == typeof(decimal) || y.ValueType == typeof(decimal) ||
+                        x.ValueType == typeof(ulong) || y.ValueType == typeof(ulong))
                     {
-                        if (x.TryGetValue<long>(out var longX))
-                            return CompareNumber(longX, y, typeY!);
-                        if (x.TryGetValue<decimal>(out var decimalX))
-                            return CompareNumber(decimalX, y, typeY!);
-                        if (x.TryGetValue<double>(out var doubleX))
-                            return CompareNumber(doubleX, y, typeY!);
-
-                        throw new ArgumentException("Unsupported JSON number.");
+                        return x.GetDecimal().CompareTo(y.GetDecimal());
                     }
 
-                    if (typeX == typeof(int))
-                        return CompareNumber(x.GetValue<int>(), y, typeY!);
-                    if (typeX == typeof(long))
-                        return CompareNumber(x.GetValue<long>(), y, typeY!);
-                    if (typeX == typeof(double))
-                        return CompareNumber(x.GetValue<double>(), y, typeY!);
-                    if (typeX == typeof(short))
-                        return CompareNumber(x.GetValue<short>(), y, typeY!);
-                    if (typeX == typeof(decimal))
-                        return CompareNumber(x.GetValue<decimal>(), y, typeY!);
-                    if (typeX == typeof(byte))
-                        return CompareNumber(x.GetValue<byte>(), y, typeY!);
-                    if (typeX == typeof(float))
-                        return CompareNumber(x.GetValue<float>(), y, typeY!);
-                    if (typeX == typeof(uint))
-                        return CompareNumber(x.GetValue<uint>(), y, typeY!);
-                    if (typeX == typeof(ushort))
-                        return CompareNumber(x.GetValue<ushort>(), y, typeY!);
-                    if (typeX == typeof(ulong))
-                        return CompareNumber(x.GetValue<ulong>(), y, typeY!);
-                    if (typeX == typeof(sbyte))
-                        return CompareNumber(x.GetValue<sbyte>(), y, typeY!);
+                    if (x.ValueType == typeof(double) || y.ValueType == typeof(double) ||
+                        x.ValueType == typeof(float) || y.ValueType == typeof(float))
+                    {
+                        return CompareDouble(x.GetDouble(), y.GetDouble());
+                    }
 
-                    return CompareNumberWithAllocation(x.GetValue<object>(), y);
+                    return x.GetInt64().CompareTo(y.GetInt64());
 
                 case JsonValueKind.String:
-                    if (TryCompareDateTime(x, typeX!, y, typeY!, out var compareResult))
-                        return compareResult;
-                    if (TryCompareGuid(x, typeX!, y, typeY!, out compareResult))
-                        return compareResult;
-                    if (TryCompareChar(x, typeX!, y, typeY!, out compareResult))
-                        return compareResult;
-                    if (TryCompareByteArray(x, typeX!, y, typeY!, out compareResult))
-                        return compareResult;
+                    if (x.StringValueKind == JsonStringValueKind.DateTime &&
+                        y.StringValueKind == JsonStringValueKind.DateTime)
+                    {
+                        return CompareDateTime(x, y);
+                    }
 
-                    return CompareString(x, typeX!, y, typeY!);
+                    if (x.StringValueKind == JsonStringValueKind.Guid &&
+                        y.StringValueKind == JsonStringValueKind.Guid)
+                    {
+                        return x.GetGuid().CompareTo(y.GetGuid());
+                    }
+
+                    if (x.StringValueKind == JsonStringValueKind.Bytes ||
+                        y.StringValueKind == JsonStringValueKind.Bytes)
+                    {
+                        if (TryCompareByteArray(x, y, out var compareResult))
+                        {
+                            return compareResult;
+                        }
+                    }
+
+                    if (x.ValueType == typeof(char) && y.ValueType == typeof(char))
+                    {
+                        return x.GetChar().CompareTo(y.GetChar());
+                    }
+
+                    return StringComparer.Ordinal.Compare(x.GetString(), y.GetString());
 
                 case JsonValueKind.Null:
                 case JsonValueKind.False:

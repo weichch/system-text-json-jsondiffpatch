@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text.Json.Nodes;
+﻿using System.Text.Json.Nodes;
 
 namespace System.Text.Json.JsonDiffPatch
 {
@@ -19,7 +18,7 @@ namespace System.Text.Json.JsonDiffPatch
             {
                 if (value.TryGetValue<JsonElement>(out var element))
                 {
-                    valueType = typeof(JsonElement);
+                    valueType = GetElementValueType(element);
                     isJsonElement = true;
                     return element.ValueKind;
                 }
@@ -167,6 +166,45 @@ namespace System.Text.Json.JsonDiffPatch
 
             valueType = null;
             return false;
+        }
+
+        private static Type? GetElementValueType(in JsonElement element)
+        {
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.Number:
+                    if (element.TryGetInt64(out _))
+                        return typeof(long);
+                    if (element.TryGetDecimal(out _))
+                        return typeof(decimal);
+                    if (element.TryGetDouble(out _))
+                        return typeof(double);
+
+                    throw new ArgumentException("Unsupported JSON number.");
+
+                case JsonValueKind.String:
+                    if (element.TryGetDateTimeOffset(out _))
+                        return typeof(DateTimeOffset);
+                    if (element.TryGetDateTime(out _))
+                        return typeof(DateTime);
+                    if (element.TryGetGuid(out _))
+                        return typeof(Guid);
+                    
+                    // Don't test base64 here, it's too expensive to test
+
+                    return typeof(string);
+
+                case JsonValueKind.True:
+                case JsonValueKind.False:
+                    return typeof(bool);
+
+                case JsonValueKind.Undefined:
+                case JsonValueKind.Object:
+                case JsonValueKind.Array:
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(element.ValueKind),
+                        $"Unexpected value kind {element.ValueKind:G}");
+            }
         }
     }
 }

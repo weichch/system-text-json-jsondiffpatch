@@ -152,26 +152,87 @@ namespace System.Text.Json.JsonDiffPatch
             var kindX = x.GetValueKind(out var typeX, out var isJsonElementX);
             var kindY = y.GetValueKind(out var typeY, out var isJsonElementY);
 
+            Debug.Assert(typeX != typeof(JsonElement));
+            Debug.Assert(typeY != typeof(JsonElement));
+
             if (kindX != kindY)
             {
                 return false;
             }
 
+            // Fast: raw text comparison
+            if (comparerOptions.JsonElementComparison is JsonElementComparison.RawText
+                && isJsonElementX
+                && isJsonElementY)
+            {
+                return kindX is JsonValueKind.String
+                    ? x.GetValue<JsonElement>().ValueEquals(y.GetValue<JsonElement>().GetString())
+                    : string.Equals(x.GetValue<JsonElement>().GetRawText(),
+                        y.GetValue<JsonElement>().GetRawText());
+            }
+
+            // Slow: semantic comparison
+            var contextX = new JsonValueComparisonContext(kindX, x, typeX, isJsonElementX);
+            var contextY = new JsonValueComparisonContext(kindY, y, typeY, isJsonElementY);
+            
             switch (kindX)
             {
                 case JsonValueKind.Number:
+                    return JsonValueComparer.Compare(kindX, contextX, contextY) == 0;
+
                 case JsonValueKind.String:
-                    // Happy scenario: both backed by JsonElement
-                    if (isJsonElementX && isJsonElementY &&
-                        comparerOptions.JsonElementComparison is JsonElementComparison.RawText)
+                    if (contextX.StringValueKind != contextY.StringValueKind)
                     {
-                        return kindX is JsonValueKind.String
-                            ? x.GetValue<JsonElement>().ValueEquals(y.GetValue<JsonElement>().GetString())
-                            : string.Equals(x.GetValue<JsonElement>().GetRawText(),
-                                y.GetValue<JsonElement>().GetRawText());
+                        if (contextX.StringValueKind == JsonStringValueKind.Bytes ||
+                            contextY.StringValueKind == JsonStringValueKind.Bytes)
+                        {
+                            if (contextX.StringValueKind == JsonStringValueKind.Bytes)
+                            {
+                                if (!isJsonElementY)
+                                {
+                                    return false;
+                                }
+                            }
+                            else
+                            {
+                                if (!isJsonElementX)
+                                {
+                                    return false;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    
+                    // Compare string when possible
+                    if (isJsonElementX && contextY.StringValueKind == JsonStringValueKind.String)
+                    {
+                        if (typeY == typeof(char))
+                        {
+                            Span<char> valueY = stackalloc char[1];
+                            valueY[0] = y.GetValue<char>();
+                            return x.GetValue<JsonElement>().ValueEquals(valueY);
+                        }
+
+                        return x.GetValue<JsonElement>().ValueEquals(y.GetValue<string>());
                     }
 
-                    return JsonValueComparer.Compare(kindX, x, typeX, y, typeY) == 0;
+                    if (isJsonElementY && contextX.StringValueKind == JsonStringValueKind.String)
+                    {
+                        if (typeX == typeof(char))
+                        {
+                            Span<char> valueX = stackalloc char[1];
+                            valueX[0] = x.GetValue<char>();
+                            return y.GetValue<JsonElement>().ValueEquals(valueX);
+                        }
+
+                        return y.GetValue<JsonElement>().ValueEquals(x.GetValue<string>());
+                    }
+
+                    return JsonValueComparer.Compare(kindX, contextX, contextY) == 0;
 
                 case JsonValueKind.Null:
                 case JsonValueKind.True:
