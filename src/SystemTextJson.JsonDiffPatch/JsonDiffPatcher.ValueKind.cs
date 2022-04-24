@@ -168,8 +168,9 @@ namespace System.Text.Json.JsonDiffPatch
             return false;
         }
 
-        private static Type? GetElementValueType(in JsonElement element)
+        private static Type GetElementValueType(in JsonElement element)
         {
+            // If change this, also change in MaterializeJsonElement and GetElementValueType
             switch (element.ValueKind)
             {
                 case JsonValueKind.Number:

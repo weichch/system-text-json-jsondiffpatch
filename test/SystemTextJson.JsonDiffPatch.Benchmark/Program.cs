@@ -1,5 +1,4 @@
-﻿using System;
-using BenchmarkDotNet.Columns;
+﻿using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters;
@@ -27,10 +26,9 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             config.AddLogger(new ConsoleLogger(true));
             config.AddExporter(MarkdownExporter.GitHub);
 
-            BenchmarkRunner.Run<DeepEqualsBenchmarks>(config);
+            //BenchmarkRunner.Run<DeepEqualsBenchmarks>(config);
             BenchmarkRunner.Run<DemoObjectBenchmarks>(config);
             BenchmarkRunner.Run<LargeObjectBenchmarks>(config);
-            Console.ReadLine();
         }
     }
 }

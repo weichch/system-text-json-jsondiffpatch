@@ -2,7 +2,7 @@
 
 namespace SystemTextJson.JsonDiffPatch.Benchmark
 {
-    public class LargeObjectBenchmarks : DiffPatchBenchmarks
+    public class LargeObjectBenchmarks : JsonNetComparisonBenchmark
     {
         [Params(@"Examples\large_left.json")]
         public override string BeforeFile { get; set; } = null!;
@@ -12,8 +12,5 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         
         [Params(@"Examples\large_diff_notext.json")]
         public override string DiffFile { get; set; } = null!;
-
-        [Params("_id")]
-        public override string KeyPropertyName { get; set; } = null!;
     }
 }

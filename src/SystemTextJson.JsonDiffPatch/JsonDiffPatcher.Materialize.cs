@@ -68,7 +68,7 @@ namespace System.Text.Json.JsonDiffPatch
 
         private static JsonValue? MaterializeJsonElement(in JsonElement element, JsonValue existingValue)
         {
-            // If change this, also change in MaterializeJsonElement, CompareNumber and CreateNode
+            // If change this, also change in MaterializeJsonElement and GetElementValueType
             switch (element.ValueKind)
             {
                 case JsonValueKind.Number:

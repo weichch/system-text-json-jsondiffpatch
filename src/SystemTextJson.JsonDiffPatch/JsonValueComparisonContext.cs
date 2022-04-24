@@ -21,16 +21,18 @@ namespace System.Text.Json.JsonDiffPatch
 
         public decimal GetDecimal()
         {
-            if (ValueType == typeof(int))
-                return Convert.ToDecimal(Value.GetValue<int>());
+            if (ValueType == typeof(decimal))
+                return Value.GetValue<decimal>();
+            if (ValueType == typeof(ulong))
+                return Convert.ToDecimal(Value.GetValue<ulong>());
             if (ValueType == typeof(long))
                 return Convert.ToDecimal(Value.GetValue<long>());
             if (ValueType == typeof(double))
                 return Convert.ToDecimal(Value.GetValue<double>());
+            if (ValueType == typeof(int))
+                return Convert.ToDecimal(Value.GetValue<int>());
             if (ValueType == typeof(short))
                 return Convert.ToDecimal(Value.GetValue<short>());
-            if (ValueType == typeof(decimal))
-                return Value.GetValue<decimal>();
             if (ValueType == typeof(byte))
                 return Convert.ToDecimal(Value.GetValue<byte>());
             if (ValueType == typeof(float))
@@ -39,8 +41,6 @@ namespace System.Text.Json.JsonDiffPatch
                 return Convert.ToDecimal(Value.GetValue<uint>());
             if (ValueType == typeof(ushort))
                 return Convert.ToDecimal(Value.GetValue<ushort>());
-            if (ValueType == typeof(ulong))
-                return Convert.ToDecimal(Value.GetValue<ulong>());
             if (ValueType == typeof(sbyte))
                 return Convert.ToDecimal(Value.GetValue<sbyte>());
 
@@ -49,16 +49,16 @@ namespace System.Text.Json.JsonDiffPatch
 
         public double GetDouble()
         {
-            if (ValueType == typeof(int))
-                return Convert.ToDouble(Value.GetValue<int>());
-            if (ValueType == typeof(long))
-                return Convert.ToDouble(Value.GetValue<long>());
             if (ValueType == typeof(double))
                 return Value.GetValue<double>();
-            if (ValueType == typeof(short))
-                return Convert.ToDouble(Value.GetValue<short>());
+            if (ValueType == typeof(long))
+                return Convert.ToDouble(Value.GetValue<long>());
             if (ValueType == typeof(decimal))
                 return Convert.ToDouble(Value.GetValue<decimal>());
+            if (ValueType == typeof(int))
+                return Convert.ToDouble(Value.GetValue<int>());
+            if (ValueType == typeof(short))
+                return Convert.ToDouble(Value.GetValue<short>());
             if (ValueType == typeof(byte))
                 return Convert.ToDouble(Value.GetValue<byte>());
             if (ValueType == typeof(float))
@@ -77,16 +77,16 @@ namespace System.Text.Json.JsonDiffPatch
 
         public long GetInt64()
         {
-            if (ValueType == typeof(int))
-                return Convert.ToInt64(Value.GetValue<int>());
             if (ValueType == typeof(long))
                 return Value.GetValue<long>();
-            if (ValueType == typeof(double))
-                return Convert.ToInt64(Value.GetValue<double>());
-            if (ValueType == typeof(short))
-                return Convert.ToInt64(Value.GetValue<short>());
             if (ValueType == typeof(decimal))
                 return Convert.ToInt64(Value.GetValue<decimal>());
+            if (ValueType == typeof(double))
+                return Convert.ToInt64(Value.GetValue<double>());
+            if (ValueType == typeof(int))
+                return Convert.ToInt64(Value.GetValue<int>());
+            if (ValueType == typeof(short))
+                return Convert.ToInt64(Value.GetValue<short>());
             if (ValueType == typeof(byte))
                 return Convert.ToInt64(Value.GetValue<byte>());
             if (ValueType == typeof(float))
