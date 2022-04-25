@@ -29,16 +29,16 @@ namespace System.Text.Json.JsonDiffPatch
                 return 1;
             }
 
-            var valueKindX = x.GetValueKind(out var typeX, out var isJsonElementX);
-            var valueKindY = y.GetValueKind(out var typeY, out var isJsonElementY);
+            var valueKindX = x.GetValueKind(out var typeX);
+            var valueKindY = y.GetValueKind(out var typeY);
 
             if (valueKindX != valueKindY)
             {
                 return -((int) valueKindX - (int) valueKindY);
             }
 
-            return Compare(valueKindX, new JsonValueComparisonContext(valueKindX, x, typeX, isJsonElementX),
-                new JsonValueComparisonContext(valueKindY, y, typeY, isJsonElementY));
+            return Compare(valueKindX, new JsonValueComparisonContext(valueKindX, x, typeX),
+                new JsonValueComparisonContext(valueKindY, y, typeY));
         }
 
         internal static int Compare(JsonValueKind valueKind, in JsonValueComparisonContext x,
@@ -73,6 +73,11 @@ namespace System.Text.Json.JsonDiffPatch
                     {
                         return x.GetGuid().CompareTo(y.GetGuid());
                     }
+                    
+                    if (x.ValueType == typeof(char) && y.ValueType == typeof(char))
+                    {
+                        return x.GetChar().CompareTo(y.GetChar());
+                    }
 
                     if (x.StringValueKind == JsonStringValueKind.Bytes ||
                         y.StringValueKind == JsonStringValueKind.Bytes)
@@ -81,11 +86,6 @@ namespace System.Text.Json.JsonDiffPatch
                         {
                             return compareResult;
                         }
-                    }
-
-                    if (x.ValueType == typeof(char) && y.ValueType == typeof(char))
-                    {
-                        return x.GetChar().CompareTo(y.GetChar());
                     }
 
                     return StringComparer.Ordinal.Compare(x.GetString(), y.GetString());

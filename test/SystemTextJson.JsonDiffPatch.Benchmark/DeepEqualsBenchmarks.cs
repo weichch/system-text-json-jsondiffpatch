@@ -10,10 +10,8 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         [Benchmark]
         public bool JsonNet()
         {
-            var tokenX = new JArray(new JValue(1), new JValue(2), new JValue(3), new JValue(4),
-                new JValue(5), new JValue(6), new JValue(7), new JValue(8), new JValue(9), new JValue(10));
-            var tokenY = new JArray(new JValue(1), new JValue(2), new JValue(3), new JValue(4),
-                new JValue(5), new JValue(6), new JValue(7), new JValue(8), new JValue(9), new JValue(10));
+            var tokenX = new JArray(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+            var tokenY = new JArray(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
             return JToken.DeepEquals(tokenX, tokenY);
         }

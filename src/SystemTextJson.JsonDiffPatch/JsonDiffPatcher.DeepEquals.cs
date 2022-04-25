@@ -35,6 +35,7 @@ namespace System.Text.Json.JsonDiffPatch
         /// <param name="valueComparer">The JSON value comparer.</param>
         public static bool DeepEquals(this JsonNode? left, JsonNode? right, IEqualityComparer<JsonValue> valueComparer)
         {
+            _ = valueComparer ?? throw new ArgumentNullException(nameof(valueComparer));
             return DeepEquals(left, right, new JsonComparerOptions(default, valueComparer));
         }
 
@@ -61,9 +62,9 @@ namespace System.Text.Json.JsonDiffPatch
 
             return left switch
             {
+                JsonValue val1 when right is JsonValue val2 => ValueEquals(val1, val2, comparerOptions),
                 JsonObject obj1 when right is JsonObject obj2 => ObjectEquals(obj1, obj2, comparerOptions),
                 JsonArray arr1 when right is JsonArray arr2 => ArrayEquals(arr1, arr2, comparerOptions),
-                JsonValue val1 when right is JsonValue val2 => ValueEquals(val1, val2, comparerOptions),
                 _ => false
             };
         }
@@ -149,11 +150,8 @@ namespace System.Text.Json.JsonDiffPatch
         private static bool CompareJsonValueWithOptions(JsonValue x, JsonValue y,
             in JsonComparerOptions comparerOptions)
         {
-            var kindX = x.GetValueKind(out var typeX, out var isJsonElementX);
-            var kindY = y.GetValueKind(out var typeY, out var isJsonElementY);
-
-            Debug.Assert(typeX != typeof(JsonElement));
-            Debug.Assert(typeY != typeof(JsonElement));
+            var kindX = x.GetValueKind(out var typeX);
+            var kindY = y.GetValueKind(out var typeY);
 
             if (kindX != kindY)
             {
@@ -162,8 +160,8 @@ namespace System.Text.Json.JsonDiffPatch
 
             // Fast: raw text comparison
             if (comparerOptions.JsonElementComparison is JsonElementComparison.RawText
-                && isJsonElementX
-                && isJsonElementY)
+                && typeX == typeof(JsonElement)
+                && typeY == typeof(JsonElement))
             {
                 return kindX is JsonValueKind.String
                     ? x.GetValue<JsonElement>().ValueEquals(y.GetValue<JsonElement>().GetString())
@@ -172,8 +170,8 @@ namespace System.Text.Json.JsonDiffPatch
             }
 
             // Slow: semantic comparison
-            var contextX = new JsonValueComparisonContext(kindX, x, typeX, isJsonElementX);
-            var contextY = new JsonValueComparisonContext(kindY, y, typeY, isJsonElementY);
+            var contextX = new JsonValueComparisonContext(kindX, x, typeX);
+            var contextY = new JsonValueComparisonContext(kindY, y, typeY);
             
             switch (kindX)
             {
@@ -188,14 +186,14 @@ namespace System.Text.Json.JsonDiffPatch
                         {
                             if (contextX.StringValueKind == JsonStringValueKind.Bytes)
                             {
-                                if (!isJsonElementY)
+                                if (!contextY.IsJsonElement)
                                 {
                                     return false;
                                 }
                             }
                             else
                             {
-                                if (!isJsonElementX)
+                                if (!contextX.IsJsonElement)
                                 {
                                     return false;
                                 }
@@ -208,7 +206,7 @@ namespace System.Text.Json.JsonDiffPatch
                     }
                     
                     // Compare string when possible
-                    if (isJsonElementX && contextY.StringValueKind == JsonStringValueKind.String)
+                    if (contextX.IsJsonElement && contextY.StringValueKind == JsonStringValueKind.String)
                     {
                         if (typeY == typeof(char))
                         {
@@ -220,7 +218,7 @@ namespace System.Text.Json.JsonDiffPatch
                         return x.GetValue<JsonElement>().ValueEquals(y.GetValue<string>());
                     }
 
-                    if (isJsonElementY && contextX.StringValueKind == JsonStringValueKind.String)
+                    if (contextY.IsJsonElement && contextX.StringValueKind == JsonStringValueKind.String)
                     {
                         if (typeX == typeof(char))
                         {
