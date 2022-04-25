@@ -181,32 +181,11 @@ namespace System.Text.Json.JsonDiffPatch
                 case JsonValueKind.String:
                     if (contextX.StringValueKind != contextY.StringValueKind)
                     {
-                        if (contextX.StringValueKind == JsonStringValueKind.Bytes ||
-                            contextY.StringValueKind == JsonStringValueKind.Bytes)
-                        {
-                            if (contextX.StringValueKind == JsonStringValueKind.Bytes)
-                            {
-                                if (!contextY.IsJsonElement)
-                                {
-                                    return false;
-                                }
-                            }
-                            else
-                            {
-                                if (!contextX.IsJsonElement)
-                                {
-                                    return false;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            return false;
-                        }
+                        return false;
                     }
                     
                     // Compare string when possible
-                    if (contextX.IsJsonElement && contextY.StringValueKind == JsonStringValueKind.String)
+                    if (contextX.IsJsonElement && (typeY == typeof(string) || typeY == typeof(char)))
                     {
                         if (typeY == typeof(char))
                         {
@@ -218,7 +197,7 @@ namespace System.Text.Json.JsonDiffPatch
                         return x.GetValue<JsonElement>().ValueEquals(y.GetValue<string>());
                     }
 
-                    if (contextY.IsJsonElement && contextX.StringValueKind == JsonStringValueKind.String)
+                    if (contextY.IsJsonElement && (typeX == typeof(string) || typeX == typeof(char)))
                     {
                         if (typeX == typeof(char))
                         {

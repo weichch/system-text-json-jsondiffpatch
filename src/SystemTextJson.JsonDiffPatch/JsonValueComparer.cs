@@ -62,33 +62,34 @@ namespace System.Text.Json.JsonDiffPatch
                     return x.GetInt64().CompareTo(y.GetInt64());
 
                 case JsonValueKind.String:
-                    if (x.StringValueKind == JsonStringValueKind.DateTime &&
-                        y.StringValueKind == JsonStringValueKind.DateTime)
+                    if (x.StringValueKind == y.StringValueKind)
                     {
-                        return CompareDateTime(x, y);
-                    }
-
-                    if (x.StringValueKind == JsonStringValueKind.Guid &&
-                        y.StringValueKind == JsonStringValueKind.Guid)
-                    {
-                        return x.GetGuid().CompareTo(y.GetGuid());
-                    }
-                    
-                    if (x.ValueType == typeof(char) && y.ValueType == typeof(char))
-                    {
-                        return x.GetChar().CompareTo(y.GetChar());
-                    }
-
-                    if (x.StringValueKind == JsonStringValueKind.Bytes ||
-                        y.StringValueKind == JsonStringValueKind.Bytes)
-                    {
-                        if (TryCompareByteArray(x, y, out var compareResult))
+                        switch (x.StringValueKind)
                         {
-                            return compareResult;
+                            case JsonStringValueKind.DateTime:
+                                return CompareDateTime(x, y);
+                            case JsonStringValueKind.Guid:
+                                return x.GetGuid().CompareTo(y.GetGuid());
+                            case JsonStringValueKind.String:
+                            default:
+                                if ((x.ValueType == typeof(string) || x.ValueType == typeof(char))
+                                    && (y.ValueType == typeof(string) || y.ValueType == typeof(char)))
+                                {
+                                    return StringComparer.Ordinal.Compare(x.GetString(), y.GetString());
+                                }
+                                else if (x.ValueType == typeof(byte[]) || y.ValueType == typeof(byte[]))
+                                {
+                                    if (TryCompareByteArray(x, y, out var compareResult))
+                                    {
+                                        return compareResult;
+                                    }
+                                }
+
+                                break;
                         }
                     }
 
-                    return StringComparer.Ordinal.Compare(x.GetString(), y.GetString());
+                    return StringComparer.Ordinal.Compare(x.Value.ToJsonString(), y.Value.ToJsonString());
 
                 case JsonValueKind.Null:
                 case JsonValueKind.False:

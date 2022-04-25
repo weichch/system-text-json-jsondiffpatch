@@ -9,9 +9,10 @@ namespace System.Text.Json.JsonDiffPatch
             Value = value;
             var isJsonElement = valueType == typeof(JsonElement);
             IsJsonElement = isJsonElement;
-            ValueType = isJsonElement ? GetElementValueType(value.GetValue<JsonElement>()) : valueType;
+            var actualValueType = isJsonElement ? GetElementValueType(value.GetValue<JsonElement>()) : valueType;
+            ValueType = actualValueType;
             StringValueKind = valueKind == JsonValueKind.String
-                ? GetStringValueKind(valueType)
+                ? GetStringValueKind(actualValueType)
                 : JsonStringValueKind.String;
         }
 
@@ -137,22 +138,12 @@ namespace System.Text.Json.JsonDiffPatch
 
         public string GetString()
         {
-            if (ValueType == typeof(string))
-            {
-                return Value.GetValue<string>();
-            }
-
             if (ValueType == typeof(char))
             {
                 return Value.GetValue<char>().ToString();
             }
 
-            if (Value.TryGetValue<string>(out var strValue))
-            {
-                return strValue;
-            }
-
-            return Value.ToJsonString();
+            return Value.GetValue<string>();
         }
         
         private static JsonStringValueKind GetStringValueKind(Type? valueType)
@@ -165,11 +156,6 @@ namespace System.Text.Json.JsonDiffPatch
             if (valueType == typeof(Guid))
             {
                 return JsonStringValueKind.Guid;
-            }
-
-            if (valueType == typeof(byte[]))
-            {
-                return JsonStringValueKind.Bytes;
             }
 
             return JsonStringValueKind.String;

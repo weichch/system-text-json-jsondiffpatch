@@ -4,7 +4,6 @@
     {
         String,
         DateTime,
-        Guid,
-        Bytes
+        Guid
     }
 }

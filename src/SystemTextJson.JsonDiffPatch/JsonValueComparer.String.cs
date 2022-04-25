@@ -25,7 +25,7 @@
         private static bool TryCompareByteArray(in JsonValueComparisonContext x, in JsonValueComparisonContext y,
             out int result)
         {
-            if (x.StringValueKind == JsonStringValueKind.Bytes)
+            if (x.ValueType == typeof(byte[]))
             {
                 if (y.TryGetByteArray(out var byteArrayY))
                 {
@@ -33,7 +33,7 @@
                     return true;
                 }
             }
-            else if (y.StringValueKind == JsonStringValueKind.Bytes)
+            else if (y.ValueType == typeof(byte[]))
             {
                 if (x.TryGetByteArray(out var byteArrayX))
                 {
