@@ -111,8 +111,6 @@ namespace System.Text.Json.JsonDiffPatch
 
         public Guid GetGuid() => Value.GetValue<Guid>();
 
-        public char GetChar() => Value.GetValue<char>();
-
         public byte[] GetByteArray() => Value.GetValue<byte[]>();
 
         public bool TryGetByteArray(out byte[]? value)

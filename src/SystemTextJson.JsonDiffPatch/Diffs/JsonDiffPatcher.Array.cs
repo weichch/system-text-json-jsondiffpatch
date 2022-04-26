@@ -23,13 +23,14 @@ namespace System.Text.Json.JsonDiffPatch
 
             var match = options.ArrayItemMatcher ?? new ArrayItemMatch((ref ArrayItemMatchContext context) =>
                 new DefaultArrayItemComparer(options).MatchArrayItem(ref context));
+            var comparerOptions = options.CreateComparerOptions();
 
             // Find command head
             int commonHead;
             for (commonHead = 0; commonHead < left.Count && commonHead < right.Count; commonHead++)
             {
                 var matchContext = new ArrayItemMatchContext(left[commonHead], commonHead,
-                    right[commonHead], commonHead);
+                    right[commonHead], commonHead, comparerOptions);
 
                 if (!match(ref matchContext))
                 {
@@ -48,7 +49,7 @@ namespace System.Text.Json.JsonDiffPatch
                 var leftIndex = left.Count - 1 - commonTail;
                 var rightIndex = right.Count - 1 - commonTail;
                 var matchContext = new ArrayItemMatchContext(left[leftIndex], leftIndex,
-                    right[rightIndex], rightIndex);
+                    right[rightIndex], rightIndex, comparerOptions);
 
                 if (!match(ref matchContext))
                 {
@@ -92,7 +93,7 @@ namespace System.Text.Json.JsonDiffPatch
 
             var trimmedLeft = left.ToArray().AsSpan(commonHead, left.Count - commonTail - commonHead);
             var trimmedRight = right.ToArray().AsSpan(commonHead, right.Count - commonTail - commonHead);
-            var lcs = Lcs.Get(trimmedLeft, trimmedRight, match);
+            var lcs = Lcs.Get(trimmedLeft, trimmedRight, match, comparerOptions);
 
             try
             {

@@ -29,7 +29,20 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
                 }
             }
 
-            if (context.Left.DeepEquals(context.Right, _options.CreateComparerOptions()))
+            if (context.ComparerOptions.JsonElementComparison == JsonElementComparison.Semantic)
+            {
+                if (context.TryCompareValue(out var valueCompareResult))
+                {
+                    if (valueCompareResult)
+                    {
+                        context.DeepEqual();
+                    }
+
+                    return valueCompareResult;
+                }
+            }
+
+            if (context.Left.DeepEquals(context.Right, context.ComparerOptions))
             {
                 context.DeepEqual();
                 return true;

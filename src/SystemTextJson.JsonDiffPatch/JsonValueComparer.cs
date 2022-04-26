@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Nodes;
+﻿using System.Globalization;
+using System.Text.Json.Nodes;
 
 namespace System.Text.Json.JsonDiffPatch
 {
@@ -99,6 +100,93 @@ namespace System.Text.Json.JsonDiffPatch
                 case JsonValueKind.Undefined:
                 case JsonValueKind.Object:
                 case JsonValueKind.Array:
+                default:
+                    throw new ArgumentOutOfRangeException(
+                        nameof(valueKind), $"Unexpected value kind {valueKind:G}");
+            }
+        }
+        
+        internal static int CompareValue(JsonValueKind valueKind, object? x, object? y)
+        {
+            if (x is null && y is null)
+            {
+                return 0;
+            }
+
+            if (x is null)
+            {
+                return -1;
+            }
+
+            if (y is null)
+            {
+                return 1;
+            }
+
+            switch (valueKind)
+            {
+                case JsonValueKind.Number:
+                    if (x is decimal or ulong || y is decimal or ulong)
+                    {
+                        return Convert.ToDecimal(x, CultureInfo.InvariantCulture).CompareTo(
+                            Convert.ToDecimal(y, CultureInfo.InvariantCulture));
+                    }
+                    else if (x is double or float || y is double or float)
+                    {
+                        return CompareDouble(Convert.ToDouble(x, CultureInfo.InvariantCulture),
+                            Convert.ToDouble(y, CultureInfo.InvariantCulture));
+                    }
+
+                    return Convert.ToInt64(x, CultureInfo.InvariantCulture).CompareTo(
+                        Convert.ToInt64(y, CultureInfo.InvariantCulture));
+
+                case JsonValueKind.String:
+                    if (x is DateTime or DateTimeOffset && y is DateTime or DateTimeOffset)
+                    {
+                        if (x is DateTime dateTimeX)
+                        {
+                            if (y is DateTime dateTimeY)
+                            {
+                                return dateTimeX.CompareTo(dateTimeY);
+                            }
+
+                            if (y is DateTimeOffset dateTimeOffsetY)
+                            {
+                                return new DateTimeOffset(dateTimeX).CompareTo(dateTimeOffsetY);
+                            }
+                        }
+                        else if (x is DateTimeOffset dateTimeOffsetX)
+                        {
+                            if (y is DateTime dateTimeY)
+                            {
+                                return dateTimeOffsetX.CompareTo(new DateTimeOffset(dateTimeY));
+                            }
+
+                            if (y is DateTimeOffset dateTimeOffsetY)
+                            {
+                                return dateTimeOffsetX.CompareTo(dateTimeOffsetY);
+                            }
+                        }
+                    }
+                    else if (x is Guid guidX && y is Guid guidY)
+                    {
+                        return guidX.CompareTo(guidY);
+                    }
+
+                    var strX = x is byte[] bytesX
+                        ? Convert.ToBase64String(bytesX)
+                        : Convert.ToString(x, CultureInfo.InvariantCulture);
+                    var strY = y is byte[] bytesY
+                        ? Convert.ToBase64String(bytesY)
+                        : Convert.ToString(y, CultureInfo.InvariantCulture);
+
+                    return StringComparer.Ordinal.Compare(strX, strY);
+
+                case JsonValueKind.True:
+                case JsonValueKind.False:
+                case JsonValueKind.Null:
+                    return 0;
+
                 default:
                     throw new ArgumentOutOfRangeException(
                         nameof(valueKind), $"Unexpected value kind {valueKind:G}");
