@@ -116,7 +116,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
                 for (var i = 1; i < m; i++)
                 {
                     if (x[i - 1] is JsonValue jsonValueX &&
-                        JsonValueComparisonContext.TryCreateFromValueObject(jsonValueX, out var valueCacheEntryX))
+                        JsonValueComparisonContext.TryCreateValueCached(jsonValueX, out var valueCacheEntryX))
                     {
                         valueCacheSpan[i - 1] = valueCacheEntryX;
                     }
@@ -125,7 +125,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
                 for (var j = 1; j < n; j++)
                 {
                     if (y[j - 1] is JsonValue jsonValueY &&
-                        JsonValueComparisonContext.TryCreateFromValueObject(jsonValueY, out var valueCacheEntryY))
+                        JsonValueComparisonContext.TryCreateValueCached(jsonValueY, out var valueCacheEntryY))
                     {
                         valueCacheSpan[x.Length + j - 1] = valueCacheEntryY;
                     }

@@ -4,6 +4,7 @@
     {
         String,
         DateTime,
-        Guid
+        Guid,
+        RawText
     }
 }

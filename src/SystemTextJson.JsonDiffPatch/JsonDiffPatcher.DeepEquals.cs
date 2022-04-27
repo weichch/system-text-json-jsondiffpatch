@@ -144,35 +144,21 @@ namespace System.Text.Json.JsonDiffPatch
                 return valueComparer.Equals(val1, val2);
             }
 
-            return CompareJsonValueWithOptions(val1, val2, comparerOptions);
-        }
-
-        private static bool CompareJsonValueWithOptions(JsonValue x, JsonValue y,
-            in JsonComparerOptions comparerOptions)
-        {
-            var kindX = x.GetValueKind(out var typeX);
-            var kindY = y.GetValueKind(out var typeY);
-
-            if (kindX != kindY)
+            JsonValueComparisonContext ctx1, ctx2;
+            if (comparerOptions.JsonElementComparison is JsonElementComparison.RawText &&
+                val1.TryGetValue<JsonElement>(out var element1) &&
+                val2.TryGetValue<JsonElement>(out var element2))
             {
-                return false;
+                ctx1 = new JsonValueComparisonContext(element1);
+                ctx2 = new JsonValueComparisonContext(element2);
+            }
+            else
+            {
+                ctx1 = new JsonValueComparisonContext(val1);
+                ctx2 = new JsonValueComparisonContext(val2);
             }
 
-            // Fast: raw text comparison
-            if (comparerOptions.JsonElementComparison is JsonElementComparison.RawText
-                && typeX == typeof(JsonElement)
-                && typeY == typeof(JsonElement))
-            {
-                return kindX is JsonValueKind.String
-                    ? x.GetValue<JsonElement>().ValueEquals(y.GetValue<JsonElement>().GetString())
-                    : string.Equals(x.GetValue<JsonElement>().GetRawText(),
-                        y.GetValue<JsonElement>().GetRawText());
-            }
-
-            // Slow: semantic comparison
-            var contextX = new JsonValueComparisonContext(kindX, x, typeX);
-            var contextY = new JsonValueComparisonContext(kindY, y, typeY);
-            return contextX.DeepEquals(contextY);
+            return ctx1.DeepEquals(ctx2);
         }
     }
 }

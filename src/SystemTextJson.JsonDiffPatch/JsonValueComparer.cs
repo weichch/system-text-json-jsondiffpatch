@@ -30,16 +30,15 @@ namespace System.Text.Json.JsonDiffPatch
                 return 1;
             }
 
-            var valueKindX = x.GetValueKind(out var typeX);
-            var valueKindY = y.GetValueKind(out var typeY);
+            var contextX = new JsonValueComparisonContext(x);
+            var contextY = new JsonValueComparisonContext(y);
 
-            if (valueKindX != valueKindY)
+            if (contextX.ValueKind != contextY.ValueKind)
             {
-                return -((int) valueKindX - (int) valueKindY);
+                return -((int) contextX.ValueKind - (int) contextY.ValueKind);
             }
 
-            return Compare(valueKindX, new JsonValueComparisonContext(valueKindX, x, typeX),
-                new JsonValueComparisonContext(valueKindY, y, typeY));
+            return Compare(contextX.ValueKind, contextX, contextY);
         }
 
         internal static int Compare(JsonValueKind valueKind, in JsonValueComparisonContext x,
@@ -67,6 +66,13 @@ namespace System.Text.Json.JsonDiffPatch
                     return x.GetInt64().CompareTo(y.GetInt64());
 
                 case JsonValueKind.String:
+                    if (x.StringValueKind is JsonStringValueKind.RawText ||
+                        y.StringValueKind is JsonStringValueKind.RawText)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(x.StringValueKind),
+                            $"Unexpected string value kind {x.StringValueKind:G}");
+                    }
+
                     if (x.StringValueKind == y.StringValueKind)
                     {
                         switch (x.StringValueKind)
@@ -76,7 +82,6 @@ namespace System.Text.Json.JsonDiffPatch
                             case JsonStringValueKind.Guid:
                                 return x.GetGuid().CompareTo(y.GetGuid());
                             case JsonStringValueKind.String:
-                            default:
                                 if ((x.ValueType == typeof(string) || x.ValueType == typeof(char))
                                     && (y.ValueType == typeof(string) || y.ValueType == typeof(char)))
                                 {
@@ -117,6 +122,11 @@ namespace System.Text.Json.JsonDiffPatch
             Debug.Assert(y.Value is null);
             Debug.Assert(x.ValueKind == y.ValueKind);
 
+            if (valueKind is JsonValueKind.True or JsonValueKind.False or JsonValueKind.Null)
+            {
+                return 0;
+            }
+
             if (x.ValueObject is null && y.ValueObject is null)
             {
                 return 0;
@@ -147,6 +157,13 @@ namespace System.Text.Json.JsonDiffPatch
                     return x.GetInt64().CompareTo(y.GetInt64());
 
                 case JsonValueKind.String:
+                    if (x.StringValueKind is JsonStringValueKind.RawText ||
+                        y.StringValueKind is JsonStringValueKind.RawText)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(x.StringValueKind),
+                            $"Unexpected string value kind {x.StringValueKind:G}");
+                    }
+
                     if (x.StringValueKind == y.StringValueKind)
                     {
                         switch (x.StringValueKind)
@@ -160,16 +177,9 @@ namespace System.Text.Json.JsonDiffPatch
 
                     var strX = x.GetString();
                     var strY = y.GetString();
+
                     return StringComparer.Ordinal.Compare(strX, strY);
 
-                case JsonValueKind.True:
-                case JsonValueKind.False:
-                case JsonValueKind.Null:
-                    return 0;
-
-                case JsonValueKind.Undefined:
-                case JsonValueKind.Object:
-                case JsonValueKind.Array:
                 default:
                     throw new ArgumentOutOfRangeException(
                         nameof(valueKind), $"Unexpected value kind {valueKind:G}");
