@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
 using System.Text.Json.Nodes;
 
 namespace System.Text.Json.JsonDiffPatch
@@ -45,6 +45,10 @@ namespace System.Text.Json.JsonDiffPatch
         internal static int Compare(JsonValueKind valueKind, in JsonValueComparisonContext x,
             in JsonValueComparisonContext y)
         {
+            Debug.Assert(x.Value is not null);
+            Debug.Assert(y.Value is not null);
+            Debug.Assert(x.ValueKind == y.ValueKind);
+
             switch (valueKind)
             {
                 case JsonValueKind.Number:
@@ -90,7 +94,7 @@ namespace System.Text.Json.JsonDiffPatch
                         }
                     }
 
-                    return StringComparer.Ordinal.Compare(x.Value.ToJsonString(), y.Value.ToJsonString());
+                    return StringComparer.Ordinal.Compare(x.Value!.ToJsonString(), y.Value!.ToJsonString());
 
                 case JsonValueKind.Null:
                 case JsonValueKind.False:
@@ -105,20 +109,25 @@ namespace System.Text.Json.JsonDiffPatch
                         nameof(valueKind), $"Unexpected value kind {valueKind:G}");
             }
         }
-        
-        internal static int CompareValue(JsonValueKind valueKind, object? x, object? y)
+
+        internal static int CompareValue(JsonValueKind valueKind, in JsonValueComparisonContext x,
+            in JsonValueComparisonContext y)
         {
-            if (x is null && y is null)
+            Debug.Assert(x.Value is null);
+            Debug.Assert(y.Value is null);
+            Debug.Assert(x.ValueKind == y.ValueKind);
+
+            if (x.ValueObject is null && y.ValueObject is null)
             {
                 return 0;
             }
 
-            if (x is null)
+            if (x.ValueObject is null)
             {
                 return -1;
             }
 
-            if (y is null)
+            if (y.ValueObject is null)
             {
                 return 1;
             }
@@ -126,60 +135,31 @@ namespace System.Text.Json.JsonDiffPatch
             switch (valueKind)
             {
                 case JsonValueKind.Number:
-                    if (x is decimal or ulong || y is decimal or ulong)
+                    if (x.ValueObject is decimal or ulong || y.ValueObject is decimal or ulong)
                     {
-                        return Convert.ToDecimal(x, CultureInfo.InvariantCulture).CompareTo(
-                            Convert.ToDecimal(y, CultureInfo.InvariantCulture));
+                        return x.GetDecimal().CompareTo(y.GetDecimal());
                     }
-                    else if (x is double or float || y is double or float)
+                    else if (x.ValueObject is double or float || y.ValueObject is double or float)
                     {
-                        return CompareDouble(Convert.ToDouble(x, CultureInfo.InvariantCulture),
-                            Convert.ToDouble(y, CultureInfo.InvariantCulture));
+                        return CompareDouble(x.GetDouble(), y.GetDouble());
                     }
 
-                    return Convert.ToInt64(x, CultureInfo.InvariantCulture).CompareTo(
-                        Convert.ToInt64(y, CultureInfo.InvariantCulture));
+                    return x.GetInt64().CompareTo(y.GetInt64());
 
                 case JsonValueKind.String:
-                    if (x is DateTime or DateTimeOffset && y is DateTime or DateTimeOffset)
+                    if (x.StringValueKind == y.StringValueKind)
                     {
-                        if (x is DateTime dateTimeX)
+                        switch (x.StringValueKind)
                         {
-                            if (y is DateTime dateTimeY)
-                            {
-                                return dateTimeX.CompareTo(dateTimeY);
-                            }
-
-                            if (y is DateTimeOffset dateTimeOffsetY)
-                            {
-                                return new DateTimeOffset(dateTimeX).CompareTo(dateTimeOffsetY);
-                            }
-                        }
-                        else if (x is DateTimeOffset dateTimeOffsetX)
-                        {
-                            if (y is DateTime dateTimeY)
-                            {
-                                return dateTimeOffsetX.CompareTo(new DateTimeOffset(dateTimeY));
-                            }
-
-                            if (y is DateTimeOffset dateTimeOffsetY)
-                            {
-                                return dateTimeOffsetX.CompareTo(dateTimeOffsetY);
-                            }
+                            case JsonStringValueKind.DateTime:
+                                return CompareDateTimeValue(x.ValueObject!, y.ValueObject!);
+                            case JsonStringValueKind.Guid:
+                                return x.GetGuid().CompareTo(y.GetGuid());
                         }
                     }
-                    else if (x is Guid guidX && y is Guid guidY)
-                    {
-                        return guidX.CompareTo(guidY);
-                    }
 
-                    var strX = x is byte[] bytesX
-                        ? Convert.ToBase64String(bytesX)
-                        : Convert.ToString(x, CultureInfo.InvariantCulture);
-                    var strY = y is byte[] bytesY
-                        ? Convert.ToBase64String(bytesY)
-                        : Convert.ToString(y, CultureInfo.InvariantCulture);
-
+                    var strX = x.GetString();
+                    var strY = y.GetString();
                     return StringComparer.Ordinal.Compare(strX, strY);
 
                 case JsonValueKind.True:
@@ -187,6 +167,9 @@ namespace System.Text.Json.JsonDiffPatch
                 case JsonValueKind.Null:
                     return 0;
 
+                case JsonValueKind.Undefined:
+                case JsonValueKind.Object:
+                case JsonValueKind.Array:
                 default:
                     throw new ArgumentOutOfRangeException(
                         nameof(valueKind), $"Unexpected value kind {valueKind:G}");

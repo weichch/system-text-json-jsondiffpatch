@@ -63,8 +63,8 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             IsDeepEqual = false;
         }
 
-        internal ArrayItemMatchContext(JsonNode? left, int leftPos, in Lcs.LcsValueCacheEntry cachedLeftValue,
-            JsonNode? right, int rightPos, in Lcs.LcsValueCacheEntry cachedRightValue,
+        internal ArrayItemMatchContext(JsonNode? left, int leftPos, in JsonValueComparisonContext cachedLeftValue,
+            JsonNode? right, int rightPos, in JsonValueComparisonContext cachedRightValue,
             in JsonComparerOptions comparerOptions)
             : this(left, leftPos, cachedLeftValue.ValueKind, cachedLeftValue.Value,
                 right, rightPos, cachedRightValue.ValueKind, cachedRightValue.Value, comparerOptions)
@@ -137,11 +137,13 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
         {
             if (ComparerOptions.JsonElementComparison == JsonElementComparison.Semantic)
             {
-                if (LeftValueKind is JsonValueKind.Number or JsonValueKind.String &&
-                    RightValueKind is JsonValueKind.Number or JsonValueKind.String)
+                if (LeftValueKind is JsonValueKind.Number or JsonValueKind.String or JsonValueKind.False
+                        or JsonValueKind.True or JsonValueKind.Null
+                    && RightValueKind is JsonValueKind.Number or JsonValueKind.String or JsonValueKind.False
+                        or JsonValueKind.True or JsonValueKind.Null)
                 {
-                    result = LeftValueKind == RightValueKind &&
-                             JsonValueComparer.CompareValue(LeftValueKind, LeftValue, RightValue) == 0;
+                    result = new JsonValueComparisonContext(LeftValueKind, LeftValue).DeepEquals(
+                        new JsonValueComparisonContext(RightValueKind, RightValue));
                     return true;
                 }
             }

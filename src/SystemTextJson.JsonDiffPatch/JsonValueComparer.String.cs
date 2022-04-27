@@ -22,6 +22,36 @@
             return x.GetDateTimeOffset().CompareTo(y.GetDateTimeOffset());
         }
 
+        private static int CompareDateTimeValue(object x, object y)
+        {
+            if (x is DateTime dateTimeX)
+            {
+                if (y is DateTime dateTimeY)
+                {
+                    return dateTimeX.CompareTo(dateTimeY);
+                }
+
+                if (y is DateTimeOffset dateTimeOffsetY)
+                {
+                    return new DateTimeOffset(dateTimeX).CompareTo(dateTimeOffsetY);
+                }
+            }
+            else if (x is DateTimeOffset dateTimeOffsetX)
+            {
+                if (y is DateTime dateTimeY)
+                {
+                    return dateTimeOffsetX.CompareTo(new DateTimeOffset(dateTimeY));
+                }
+
+                if (y is DateTimeOffset dateTimeOffsetY)
+                {
+                    return dateTimeOffsetX.CompareTo(dateTimeOffsetY);
+                }
+            }
+
+            throw new ArgumentException("Objects are not datetime.");
+        }
+
         private static bool TryCompareByteArray(in JsonValueComparisonContext x, in JsonValueComparisonContext y,
             out int result)
         {

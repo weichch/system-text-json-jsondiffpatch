@@ -172,58 +172,7 @@ namespace System.Text.Json.JsonDiffPatch
             // Slow: semantic comparison
             var contextX = new JsonValueComparisonContext(kindX, x, typeX);
             var contextY = new JsonValueComparisonContext(kindY, y, typeY);
-            
-            switch (kindX)
-            {
-                case JsonValueKind.Number:
-                    return JsonValueComparer.Compare(kindX, contextX, contextY) == 0;
-
-                case JsonValueKind.String:
-                    if (contextX.StringValueKind != contextY.StringValueKind)
-                    {
-                        return false;
-                    }
-                    
-                    // Compare string when possible
-                    if (contextX.IsJsonElement && (typeY == typeof(string) || typeY == typeof(char)))
-                    {
-                        if (typeY == typeof(char))
-                        {
-                            Span<char> valueY = stackalloc char[1];
-                            valueY[0] = y.GetValue<char>();
-                            return x.GetValue<JsonElement>().ValueEquals(valueY);
-                        }
-
-                        return x.GetValue<JsonElement>().ValueEquals(y.GetValue<string>());
-                    }
-
-                    if (contextY.IsJsonElement && (typeX == typeof(string) || typeX == typeof(char)))
-                    {
-                        if (typeX == typeof(char))
-                        {
-                            Span<char> valueX = stackalloc char[1];
-                            valueX[0] = x.GetValue<char>();
-                            return y.GetValue<JsonElement>().ValueEquals(valueX);
-                        }
-
-                        return y.GetValue<JsonElement>().ValueEquals(x.GetValue<string>());
-                    }
-
-                    return JsonValueComparer.Compare(kindX, contextX, contextY) == 0;
-
-                case JsonValueKind.Null:
-                case JsonValueKind.True:
-                case JsonValueKind.False:
-                    return true;
-
-                case JsonValueKind.Undefined:
-                case JsonValueKind.Object:
-                case JsonValueKind.Array:
-                default:
-                    return x.TryGetValue<object>(out var objX)
-                           && y.TryGetValue<object>(out var objY)
-                           && Equals(objX, objY);
-            }
+            return contextX.DeepEquals(contextY);
         }
     }
 }

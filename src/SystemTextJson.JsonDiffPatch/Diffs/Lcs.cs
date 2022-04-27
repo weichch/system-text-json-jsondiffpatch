@@ -14,17 +14,17 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
         private readonly Dictionary<int, LcsEntry>? _lookupByRightIndex;
         private readonly int[]? _matrixRented;
         private readonly int[]? _matchMatrixRented;
-        private readonly LcsValueCacheEntry[]? _cacheEntries;
+        private readonly JsonValueComparisonContext[]? _comparisonContextCacheRented;
         private readonly int _rowSize;
 
         private Lcs(List<LcsEntry> indices, int[] matrixRented, int[] matchMatrixRented,
-            LcsValueCacheEntry[]? cacheEntries, int rowSize)
+            JsonValueComparisonContext[]? comparisonContextCacheRented, int rowSize)
         {
             _lookupByLeftIndex = indices.ToDictionary(entry => entry.LeftIndex);
             _lookupByRightIndex = indices.ToDictionary(entry => entry.RightIndex);
             _matrixRented = matrixRented;
             _matchMatrixRented = matchMatrixRented;
-            _cacheEntries = cacheEntries;
+            _comparisonContextCacheRented = comparisonContextCacheRented;
             _rowSize = rowSize;
         }
 
@@ -75,9 +75,9 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
                 ArrayPool<int>.Shared.Return(_matchMatrixRented);
             }
 
-            if (_cacheEntries is not null)
+            if (_comparisonContextCacheRented is not null)
             {
-                ArrayPool<LcsValueCacheEntry>.Shared.Return(_cacheEntries);
+                ArrayPool<JsonValueComparisonContext>.Shared.Return(_comparisonContextCacheRented);
             }
         }
 
@@ -104,19 +104,19 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             
             // For performance reasons, we set materialized values into a cache.
             // We only cache JSON values as they are more efficient to cache than objects and arrays.
-            LcsValueCacheEntry[]? valueCacheRented = null;
-            Span<LcsValueCacheEntry> valueCacheSpan = default;
+            JsonValueComparisonContext[]? valueCacheRented = null;
+            Span<JsonValueComparisonContext> valueCacheSpan = default;
 
             if (comparerOptions.JsonElementComparison == JsonElementComparison.Semantic)
             {
-                valueCacheRented = ArrayPool<LcsValueCacheEntry>.Shared.Rent(x.Length + y.Length);
+                valueCacheRented = ArrayPool<JsonValueComparisonContext>.Shared.Rent(x.Length + y.Length);
                 valueCacheSpan = valueCacheRented.AsSpan(0, x.Length + y.Length);
                 valueCacheSpan.Fill(default);
 
                 for (var i = 1; i < m; i++)
                 {
                     if (x[i - 1] is JsonValue jsonValueX &&
-                        LcsValueCacheEntry.TryCreateFromValue(jsonValueX, out var valueCacheEntryX))
+                        JsonValueComparisonContext.TryCreateFromValueObject(jsonValueX, out var valueCacheEntryX))
                     {
                         valueCacheSpan[i - 1] = valueCacheEntryX;
                     }
@@ -125,7 +125,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
                 for (var j = 1; j < n; j++)
                 {
                     if (y[j - 1] is JsonValue jsonValueY &&
-                        LcsValueCacheEntry.TryCreateFromValue(jsonValueY, out var valueCacheEntryY))
+                        JsonValueComparisonContext.TryCreateFromValueObject(jsonValueY, out var valueCacheEntryY))
                     {
                         valueCacheSpan[x.Length + j - 1] = valueCacheEntryY;
                     }
@@ -243,100 +243,6 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             public readonly int LeftIndex;
             public readonly int RightIndex;
             public readonly bool AreDeepEqual;
-        }
-
-        internal readonly struct LcsValueCacheEntry
-        {
-            public LcsValueCacheEntry(JsonValueKind valueKind, object? value)
-            {
-                ValueKind = valueKind;
-                Value = value;
-            }
-
-            public readonly JsonValueKind ValueKind;
-            public readonly object? Value;
-
-            public static bool TryCreateFromValue(JsonValue jsonValue, out LcsValueCacheEntry result)
-            {
-                if (jsonValue.TryGetValue<JsonElement>(out var element))
-                {
-                    switch (element.ValueKind)
-                    {
-                        case JsonValueKind.Number:
-                            if (element.TryGetInt64(out var longValue))
-                            {
-                                result = new LcsValueCacheEntry(JsonValueKind.Number, longValue);
-                                return true;
-                            }
-
-                            if (element.TryGetDecimal(out var decimalValue))
-                            {
-                                result = new LcsValueCacheEntry(JsonValueKind.Number, decimalValue);
-                                return true;
-                            }
-
-                            if (element.TryGetDouble(out var doubleValue))
-                            {
-                                result = new LcsValueCacheEntry(JsonValueKind.Number, doubleValue);
-                                return true;
-                            }
-
-                            break;
-
-                        case JsonValueKind.String:
-                            if (element.TryGetDateTimeOffset(out var dateTimeOffsetValue))
-                            {
-                                result = new LcsValueCacheEntry(JsonValueKind.String, dateTimeOffsetValue);
-                                return true;
-                            }
-
-                            if (element.TryGetDateTime(out var dateTimeValue))
-                            {
-                                result = new LcsValueCacheEntry(JsonValueKind.String, dateTimeValue);
-                                return true;
-                            }
-
-                            if (element.TryGetGuid(out var guidValue))
-                            {
-                                result = new LcsValueCacheEntry(JsonValueKind.String, guidValue);
-                                return true;
-                            }
-
-                            result = new LcsValueCacheEntry(JsonValueKind.String, element.GetString());
-                            return true;
-
-                        case JsonValueKind.True:
-                        case JsonValueKind.False:
-                        case JsonValueKind.Null:
-                            result = new LcsValueCacheEntry(element.ValueKind, null);
-                            return true;
-                    }
-                }
-                else
-                {
-                    var valueObj = jsonValue.GetValue<object>();
-                    if (valueObj is int or long or double or short or decimal or byte or float or uint or ushort
-                        or ulong or sbyte)
-                    {
-                        result = new LcsValueCacheEntry(JsonValueKind.Number, valueObj);
-                        return true;
-                    }
-                    
-                    if (valueObj is string or DateTime or DateTimeOffset or Guid or char or byte[])
-                    {
-                        result = new LcsValueCacheEntry(JsonValueKind.String, valueObj);
-                        return true;
-                    }
-
-                    if (valueObj is bool boolValue)
-                    {
-                        result = new LcsValueCacheEntry(boolValue ? JsonValueKind.True : JsonValueKind.False, null);
-                    }
-                }
-
-                result = default;
-                return false;
-            }
         }
     }
 }
