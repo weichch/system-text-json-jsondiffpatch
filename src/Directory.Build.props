@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <JsonDiffPatchPackageVersion>1.2.0</JsonDiffPatchPackageVersion>
     <Authors>Wei Chen</Authors>
     <PackageProjectUrl>https://github.com/weichch/system-text-json-jsondiffpatch</PackageProjectUrl>
     <Copyright>Copyright © Wei Chen 2022</Copyright>
