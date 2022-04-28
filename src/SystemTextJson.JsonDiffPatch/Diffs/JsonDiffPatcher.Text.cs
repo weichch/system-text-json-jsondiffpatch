@@ -79,11 +79,9 @@ namespace System.Text.Json.JsonDiffPatch
                     if (elementLeft.TryGetDateTimeOffset(out _)
                         || elementLeft.TryGetDateTime(out _)
                         || elementLeft.TryGetGuid(out _)
-                        || elementLeft.TryGetBytesFromBase64(out _)
                         || elementRight.TryGetDateTimeOffset(out _)
                         || elementRight.TryGetDateTime(out _)
-                        || elementRight.TryGetGuid(out _)
-                        || elementRight.TryGetBytesFromBase64(out _))
+                        || elementRight.TryGetGuid(out _))
                     {
                         // Not text values
                         break;

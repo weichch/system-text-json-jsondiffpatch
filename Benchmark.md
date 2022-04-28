@@ -10,14 +10,14 @@ BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1645 (21H1/May2021Update)
 11th Gen Intel Core i7-1185G7 3.00GHz, 1 CPU, 8 logical and 4 physical cores
 .NET SDK=6.0.200
   [Host]     : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
-  Job-HQIRKD : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
+  Job-ILXIOY : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
 
 
 ```
 |   Method |     Mean |      Min |      Max |      P80 |      P95 | Allocated |
 |--------- |---------:|---------:|---------:|---------:|---------:|----------:|
-|  RawText | 117.8 μs | 113.3 μs | 125.6 μs | 118.4 μs | 124.8 μs |     77 KB |
-| Semantic | 121.5 μs | 118.7 μs | 124.0 μs | 122.3 μs | 123.0 μs |     76 KB |
+|  RawText | 112.0 μs | 109.2 μs | 115.2 μs | 112.8 μs | 114.2 μs |     77 KB |
+| Semantic | 116.1 μs | 113.8 μs | 121.7 μs | 117.0 μs | 119.3 μs |     76 KB |
 
 
 ## Newtonsoft Json vs System.Text.Json

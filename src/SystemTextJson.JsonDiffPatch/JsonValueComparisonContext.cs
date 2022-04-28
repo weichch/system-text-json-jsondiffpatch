@@ -20,7 +20,8 @@ namespace System.Text.Json.JsonDiffPatch
             var isJsonElement = value.TryGetValue(out _element);
             _isJsonElement = isJsonElement;
             Value = value;
-            ValueKind = GetValueKind(value, out var valueType);
+            Type? valueType = null;
+            ValueKind = isJsonElement ? _element.ValueKind : GetValueKind(value, out valueType);
             var actualValueType = isJsonElement ? GetElementValueType(_element) : valueType;
             ValueType = actualValueType;
             StringValueKind = GetStringValueKind(actualValueType);
@@ -464,20 +465,8 @@ namespace System.Text.Json.JsonDiffPatch
             }
         }
 
-        private static JsonValueKind GetValueKind(JsonValue? value, out Type? valueType)
+        private static JsonValueKind GetValueKind(JsonValue value, out Type? valueType)
         {
-            if (value is null)
-            {
-                valueType = null;
-                return JsonValueKind.Null;
-            }
-
-            if (value.TryGetValue<JsonElement>(out var element))
-            {
-                valueType = typeof(JsonElement);
-                return element.ValueKind;
-            }
-
             if (TryGetNumberValueKind(value, out valueType))
             {
                 return JsonValueKind.Number;
