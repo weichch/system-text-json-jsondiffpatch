@@ -25,17 +25,7 @@ High-performance, low-allocating JSON objects diff and patch extension for Syste
 ### Diff
 
 ```csharp
-// Diff JSON files
-JsonNode? diff = JsonDiffPatcher.DiffFile(file1, file2);
-// Diff Span<byte>
-JsonNode? diff = JsonDiffPatcher.Diff(span1, span2);
-// Diff streams
-JsonNode? diff = JsonDiffPatcher.Diff(stream1, stream2);
-// Diff JSON strings
-JsonNode? diff = JsonDiffPatcher.Diff(json1, json2);
-// Diff JSON readers
-JsonNode? diff = JsonDiffPatcher.Diff(ref reader1, ref reader2);
-// Diff JsonNode objects
+// Diff JsonNode
 var node1 = JsonNode.Parse("{\"foo\":\"bar\"}");
 var node2 = JsonNode.Parse("{\"baz\":\"qux\", \"foo\":\"bar\"}");
 JsonNode? diff = node1.Diff(node2);
@@ -46,6 +36,16 @@ JsonNode? diff = node1.Diff(node2, new JsonDiffOptions
 });
 // Diff and convert delta into RFC 6902 JSON Patch format
 JsonNode? diff = node1.Diff(node2, new JsonPatchDeltaFormatter());
+// Diff JSON files
+JsonNode? diff = JsonDiffPatcher.DiffFile(file1, file2);
+// Diff Span<byte>
+JsonNode? diff = JsonDiffPatcher.Diff(span1, span2);
+// Diff streams
+JsonNode? diff = JsonDiffPatcher.Diff(stream1, stream2);
+// Diff JSON strings
+JsonNode? diff = JsonDiffPatcher.Diff(json1, json2);
+// Diff JSON readers
+JsonNode? diff = JsonDiffPatcher.Diff(ref reader1, ref reader2);
 ```
 
 ### DeepClone
