@@ -405,12 +405,6 @@ namespace System.Text.Json.JsonDiffPatch
             }
         }
 
-        public static bool IsValueKind(JsonValueKind jsonValueKind)
-        {
-            return jsonValueKind is JsonValueKind.Number or JsonValueKind.String or JsonValueKind.True
-                or JsonValueKind.False or JsonValueKind.Null;
-        }
-
         private static JsonStringValueKind GetStringValueKind(Type? valueType)
         {
             if (valueType == typeof(DateTime) || valueType == typeof(DateTimeOffset))
