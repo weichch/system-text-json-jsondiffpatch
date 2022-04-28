@@ -22,7 +22,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             RightPosition = rightPos;
             IsDeepEqual = false;
         }
-        
+
         /// <summary>
         /// Gets the left item.
         /// </summary>

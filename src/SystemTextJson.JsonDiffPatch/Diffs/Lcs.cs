@@ -14,14 +14,17 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
         private readonly Dictionary<int, LcsEntry>? _lookupByRightIndex;
         private readonly int[]? _matrixRented;
         private readonly int[]? _matchMatrixRented;
+        private readonly JsonValueComparisonContext[]? _comparisonContextCacheRented;
         private readonly int _rowSize;
 
-        private Lcs(List<LcsEntry> indices, int[] matrixRented, int[] matchMatrixRented, int rowSize)
+        private Lcs(List<LcsEntry> indices, int[] matrixRented, int[] matchMatrixRented,
+            JsonValueComparisonContext[]? comparisonContextCacheRented, int rowSize)
         {
             _lookupByLeftIndex = indices.ToDictionary(entry => entry.LeftIndex);
             _lookupByRightIndex = indices.ToDictionary(entry => entry.RightIndex);
             _matrixRented = matrixRented;
             _matchMatrixRented = matchMatrixRented;
+            _comparisonContextCacheRented = comparisonContextCacheRented;
             _rowSize = rowSize;
         }
 
@@ -71,9 +74,14 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             {
                 ArrayPool<int>.Shared.Return(_matchMatrixRented);
             }
+
+            if (_comparisonContextCacheRented is not null)
+            {
+                ArrayPool<JsonValueComparisonContext>.Shared.Return(_comparisonContextCacheRented);
+            }
         }
 
-        public static Lcs Get(Span<JsonNode?> x, Span<JsonNode?> y, ArrayItemMatch match)
+        public static Lcs Get(Span<JsonNode?> x, Span<JsonNode?> y, JsonDiffOptions options)
         {
             if (x.Length == 0 || y.Length == 0)
             {
@@ -87,11 +95,32 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             var matrixRented = ArrayPool<int>.Shared.Rent(matrixLength);
             var matrix = matrixRented.AsSpan(0, matrixLength);
             var matchMatrixRented = ArrayPool<int>.Shared.Rent(matrixLength);
-            var matchMatrix = matchMatrixRented.AsSpan(0, matrixLength);
+            var matchMatrixSpan = matchMatrixRented.AsSpan(0, matrixLength);
+            // For performance reasons, we set materialized values into a cache.
+            // We only cache JSON values as they are more efficient to cache than objects and arrays.
+            var valueCacheRented = ArrayPool<JsonValueComparisonContext>.Shared.Rent(x.Length + y.Length);
+            var valueCacheSpan = valueCacheRented.AsSpan(0, x.Length + y.Length);
+            var comparerOptions = options.CreateComparerOptions();
 
-            // Initializes the matrix
             matrix.Fill(0);
-            matchMatrix.Fill(0);
+            matchMatrixSpan.Fill(0);
+            valueCacheSpan.Fill(default);
+
+            for (var i = 1; i < m; i++)
+            {
+                if (x[i - 1] is JsonValue jsonValueX)
+                {
+                    valueCacheSpan[i - 1] = new JsonValueComparisonContext(jsonValueX, true);
+                }
+            }
+
+            for (var j = 1; j < n; j++)
+            {
+                if (y[j - 1] is JsonValue jsonValueY)
+                {
+                    valueCacheSpan[x.Length + j - 1] = new JsonValueComparisonContext(jsonValueY, true);
+                }
+            }
 
             // Construct length matrix represented in a one-dimensional array using DP
             // https://en.wikipedia.org/wiki/Longest_common_subsequence_problem
@@ -110,16 +139,30 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             // 
             // One-dimensional representation is:
             // [ [X=0, Y=[0 1 2 3 ... N]], [X=1, X=[0 1 2 3 ... N]], ..., [X=N, X=[0 1 2 3 ... N]] ]
-
             for (var i = 1; i < m; i++)
             {
                 for (var j = 1; j < n; j++)
                 {
                     var matchContext = new ArrayItemMatchContext(x[i - 1], i - 1, y[j - 1], j - 1);
-                    if (match(ref matchContext))
+                    bool itemMatched;
+                    
+                    if (x[i - 1] is JsonValue && y[j - 1] is JsonValue)
+                    {
+                        itemMatched = JsonDiffPatcher.MatchArrayItem(ref matchContext,
+                            ref valueCacheSpan[i - 1],
+                            ref valueCacheSpan[x.Length + j - 1],
+                            options,
+                            comparerOptions);
+                    }
+                    else
+                    {
+                        itemMatched = JsonDiffPatcher.MatchArrayItem(ref matchContext, options, comparerOptions);
+                    }
+
+                    if (itemMatched)
                     {
                         matrix[i * n + j] = 1 + matrix[(i - 1) * n + (j - 1)];
-                        matchMatrix[i * n + j] = matchContext.IsDeepEqual ? DeepEqual : Equal;
+                        matchMatrixSpan[i * n + j] = matchContext.IsDeepEqual ? DeepEqual : Equal;
                     }
                     else
                     {
@@ -140,18 +183,13 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             }
 
             var entries = new List<LcsEntry>();
-
             for (int i = m - 1, j = n - 1; i > 0 && j > 0;)
             {
-                if (matchMatrix[i * n + j] > 0)
+                if (matchMatrixSpan[i * n + j] > 0)
                 {
                     // X[i - 1] == Y [j - 1]
-                    entries.Insert(0, new LcsEntry
-                    {
-                        LeftIndex = i - 1,
-                        RightIndex = j - 1,
-                        AreDeepEqual = matchMatrix[i * n + j] == DeepEqual
-                    });
+                    entries.Insert(0, new LcsEntry(i - 1, j - 1,
+                        matchMatrixSpan[i * n + j] == DeepEqual));
                     i--;
                     j--;
                 }
@@ -168,8 +206,8 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
                     {
                         if (valueAbove == valueLeft)
                         {
-                            var weightAbove = matchMatrix[(i - 1) * n + j];
-                            var weightLeft = matchMatrix[(i - 1) * n + j];
+                            var weightAbove = matchMatrixSpan[(i - 1) * n + j];
+                            var weightLeft = matchMatrixSpan[(i - 1) * n + j];
                             if (weightAbove > weightLeft)
                             {
                                 // Move to above, e.g. above was deeply equal
@@ -184,14 +222,21 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
                 }
             }
 
-            return new Lcs(entries, matrixRented, matchMatrixRented, n);
+            return new Lcs(entries, matrixRented, matchMatrixRented, valueCacheRented, n);
         }
 
-        public readonly struct LcsEntry
+        internal readonly struct LcsEntry
         {
-            public int LeftIndex { get; init; }
-            public int RightIndex { get; init; }
-            public bool AreDeepEqual { get; init; }
+            public LcsEntry(int leftIndex, int rightIndex, bool deepEqual)
+            {
+                LeftIndex = leftIndex;
+                RightIndex = rightIndex;
+                AreDeepEqual = deepEqual;
+            }
+
+            public readonly int LeftIndex;
+            public readonly int RightIndex;
+            public readonly bool AreDeepEqual;
         }
     }
 }

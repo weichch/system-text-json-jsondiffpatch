@@ -35,6 +35,7 @@ namespace System.Text.Json.JsonDiffPatch
         /// <param name="valueComparer">The JSON value comparer.</param>
         public static bool DeepEquals(this JsonNode? left, JsonNode? right, IEqualityComparer<JsonValue> valueComparer)
         {
+            _ = valueComparer ?? throw new ArgumentNullException(nameof(valueComparer));
             return DeepEquals(left, right, new JsonComparerOptions(default, valueComparer));
         }
 
@@ -61,9 +62,9 @@ namespace System.Text.Json.JsonDiffPatch
 
             return left switch
             {
+                JsonValue val1 when right is JsonValue val2 => ValueEquals(val1, val2, comparerOptions),
                 JsonObject obj1 when right is JsonObject obj2 => ObjectEquals(obj1, obj2, comparerOptions),
                 JsonArray arr1 when right is JsonArray arr2 => ArrayEquals(arr1, arr2, comparerOptions),
-                JsonValue val1 when right is JsonValue val2 => ValueEquals(val1, val2, comparerOptions),
                 _ => false
             };
         }
@@ -143,51 +144,9 @@ namespace System.Text.Json.JsonDiffPatch
                 return valueComparer.Equals(val1, val2);
             }
 
-            return CompareJsonValueWithOptions(val1, val2, comparerOptions);
-        }
-
-        private static bool CompareJsonValueWithOptions(JsonValue x, JsonValue y,
-            in JsonComparerOptions comparerOptions)
-        {
-            var kindX = x.GetValueKind(out var typeX, out var isJsonElementX);
-            var kindY = y.GetValueKind(out var typeY, out var isJsonElementY);
-
-            if (kindX != kindY)
-            {
-                return false;
-            }
-
-            switch (kindX)
-            {
-                case JsonValueKind.Number:
-                case JsonValueKind.String:
-
-                    // Happy scenario: both backed by JsonElement
-                    if (isJsonElementX && isJsonElementY &&
-                        comparerOptions.JsonElementComparison is JsonElementComparison.RawText)
-                    {
-                        return kindX is JsonValueKind.String
-                            ? x.GetValue<JsonElement>().ValueEquals(y.GetValue<JsonElement>().GetString())
-                            : string.Equals(x.GetValue<JsonElement>().GetRawText(),
-                                y.GetValue<JsonElement>().GetRawText(),
-                                StringComparison.Ordinal);
-                    }
-
-                    return JsonValueComparer.Compare(kindX, x, typeX, y, typeY) == 0;
-
-                case JsonValueKind.Null:
-                case JsonValueKind.True:
-                case JsonValueKind.False:
-                    return true;
-
-                case JsonValueKind.Undefined:
-                case JsonValueKind.Object:
-                case JsonValueKind.Array:
-                default:
-                    return x.TryGetValue<object>(out var objX)
-                           && y.TryGetValue<object>(out var objY)
-                           && Equals(objX, objY);
-            }
+            var ctx1 = new JsonValueComparisonContext(val1);
+            var ctx2 = new JsonValueComparisonContext(val2);
+            return ctx1.DeepEquals(ref ctx2, comparerOptions.JsonElementComparison);
         }
     }
 }

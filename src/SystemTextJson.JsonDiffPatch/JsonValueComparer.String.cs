@@ -1,54 +1,33 @@
-﻿using System.Globalization;
-using System.Text.Json.Nodes;
-
-namespace System.Text.Json.JsonDiffPatch
+﻿namespace System.Text.Json.JsonDiffPatch
 {
     static partial class JsonValueComparer
     {
-        private static int CompareString(JsonValue x, Type typeX, JsonValue y, Type typeY)
+        private static int CompareDateTime(ref JsonValueComparisonContext x, ref JsonValueComparisonContext y)
         {
-            if ((typeX == typeof(string) || typeX == typeof(JsonElement))
-                && (typeY == typeof(string) || typeY == typeof(JsonElement)))
+            if (x.ValueType == typeof(DateTime))
             {
-                if (x.TryGetValue<string>(out var valueX) && y.TryGetValue<string>(out var valueY))
-                {
-                    return StringComparer.Ordinal.Compare(valueX, valueY);
-                }
+                return x.GetDateTime().CompareTo(y.GetDateTime());
             }
 
-            return StringComparer.Ordinal.Compare(
-                Convert.ToString(x.GetValue<object>(), CultureInfo.InvariantCulture),
-                Convert.ToString(y.GetValue<object>(), CultureInfo.InvariantCulture));
+            return x.GetDateTimeOffset().CompareTo(y.GetDateTimeOffset());
         }
 
-        private static bool TryCompareDateTime(JsonValue x, Type typeX, JsonValue y, Type typeY, out int result)
+        private static bool TryCompareByteArray(ref JsonValueComparisonContext x, ref JsonValueComparisonContext y,
+            out int result)
         {
-            if ((typeX == typeof(DateTime) || typeX == typeof(DateTimeOffset) || typeX == typeof(JsonElement))
-                && (typeY == typeof(DateTime) || typeY == typeof(DateTimeOffset) || typeY == typeof(JsonElement)))
+            if (x.ValueType == typeof(byte[]))
             {
-                if (x.TryGetValue<DateTimeOffset>(out var dateTimeOffsetX)
-                    && y.TryGetValue<DateTimeOffset>(out var dateTimeOffsetY))
+                if (y.TryGetByteArray(out var byteArrayY))
                 {
-                    result = dateTimeOffsetX.CompareTo(dateTimeOffsetY);
+                    result = CompareByteArray(x.GetByteArray(), byteArrayY);
                     return true;
                 }
-
-                if (x.TryGetValue<DateTime>(out var dateTimeX)
-                    && y.TryGetValue<DateTime>(out var dateTimeY))
+            }
+            else if (y.ValueType == typeof(byte[]))
+            {
+                if (x.TryGetByteArray(out var byteArrayX))
                 {
-                    result = dateTimeX.CompareTo(dateTimeY);
-                    return true;
-                }
-
-                if (x.TryGetValue(out dateTimeOffsetX) && y.TryGetValue(out dateTimeY))
-                {
-                    result = dateTimeOffsetX.CompareTo(new DateTimeOffset(dateTimeY));
-                    return true;
-                }
-
-                if (x.TryGetValue(out dateTimeX) && y.TryGetValue(out dateTimeOffsetY))
-                {
-                    result = new DateTimeOffset(dateTimeX).CompareTo(dateTimeOffsetY);
+                    result = CompareByteArray(byteArrayX, y.GetByteArray());
                     return true;
                 }
             }
@@ -57,74 +36,23 @@ namespace System.Text.Json.JsonDiffPatch
             return false;
         }
 
-        private static bool TryCompareGuid(JsonValue x, Type typeX, JsonValue y, Type typeY, out int result)
+        private static int CompareByteArray(byte[]? x, byte[]? y)
         {
-            if ((typeX == typeof(Guid) || typeX == typeof(JsonElement))
-                && (typeY == typeof(Guid) || typeY == typeof(JsonElement)))
+            if (x is null && y is null)
             {
-                if (x.TryGetValue<Guid>(out var valueX) && y.TryGetValue<Guid>(out var valueY))
-                {
-                    result = valueX.CompareTo(valueY);
-                    return true;
-                }
+                return 0;
             }
 
-            result = -1;
-            return false;
-        }
-
-        private static bool TryCompareChar(JsonValue x, Type typeX, JsonValue y, Type typeY, out int result)
-        {
-            if ((typeX == typeof(char) || typeX == typeof(JsonElement))
-                && (typeY == typeof(char) || typeY == typeof(JsonElement)))
+            if (x is null)
             {
-                if (x.TryGetValue<char>(out var valueX) && y.TryGetValue<char>(out var valueY))
-                {
-                    result = valueX.CompareTo(valueY);
-                    return true;
-                }
+                return -1;
             }
 
-            result = -1;
-            return false;
-        }
-
-        private static bool TryCompareByteArray(JsonValue x, Type typeX, JsonValue y, Type typeY, out int result)
-        {
-            if ((typeX == typeof(byte[]) || typeX == typeof(JsonElement))
-                && (typeY == typeof(byte[]) || typeY == typeof(JsonElement)))
+            if (y is null)
             {
-                var valueX = GetByteArray(x);
-                if (valueX is not null)
-                {
-                    var valueY = GetByteArray(y);
-                    if (valueY is not null)
-                    {
-                        result = CompareByteArray(valueX, valueY);
-                        return true;
-                    }
-                }
+                return 1;
             }
 
-            result = -1;
-            return false;
-
-            static byte[]? GetByteArray(JsonValue value)
-            {
-                if (!value.TryGetValue<byte[]>(out var byteArray))
-                {
-                    if (value.TryGetValue<JsonElement>(out var jsonElement))
-                    {
-                        jsonElement.TryGetBytesFromBase64(out byteArray);
-                    }
-                }
-
-                return byteArray;
-            }
-        }
-
-        private static int CompareByteArray(byte[] x, byte[] y)
-        {
             if (x.Length == 0 && y.Length == 0)
             {
                 return 0;

@@ -1,5 +1,4 @@
-﻿using System;
-using BenchmarkDotNet.Columns;
+﻿using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters;
@@ -19,18 +18,18 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
                 StatisticColumn.Mean,
                 StatisticColumn.Min,
                 StatisticColumn.Max,
-                StatisticColumn.P95,
-                StatisticColumn.P80);
+                StatisticColumn.P80,
+                StatisticColumn.P95);
             config.AddColumnProvider(DefaultColumnProviders.Metrics);
             config.AddDiagnoser(new MemoryDiagnoser(new MemoryDiagnoserConfig(false)));
             config.AddValidator(JitOptimizationsValidator.FailOnError);
             config.AddLogger(new ConsoleLogger(true));
             config.AddExporter(MarkdownExporter.GitHub);
 
+            BenchmarkRunner.Run<OptionsBenchmarks>(config);
             BenchmarkRunner.Run<DeepEqualsBenchmarks>(config);
             BenchmarkRunner.Run<DemoObjectBenchmarks>(config);
             BenchmarkRunner.Run<LargeObjectBenchmarks>(config);
-            Console.ReadLine();
         }
     }
 }
