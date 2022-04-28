@@ -1,16 +1,12 @@
-﻿using BenchmarkDotNet.Attributes;
-
-namespace SystemTextJson.JsonDiffPatch.Benchmark
+﻿namespace SystemTextJson.JsonDiffPatch.Benchmark
 {
     public class DemoObjectBenchmarks : JsonNetComparisonBenchmark
     {
-        [Params(@"Examples\demo_left.json")]
-        public override string BeforeFile { get; set; } = null!;
-        
-        [Params(@"Examples\demo_right.json")]
-        public override string AfterFile { get; set; } = null!;
-
-        [Params(@"Examples\demo_diff_notext.json")]
-        public override string DiffFile { get; set; } = null!;
+        public DemoObjectBenchmarks()
+            : base(GetExampleFile("demo_left.json"),
+                GetExampleFile("demo_right.json"),
+                GetExampleFile("demo_diff_notext.json"))
+        {
+        }
     }
 }

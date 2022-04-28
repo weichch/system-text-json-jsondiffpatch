@@ -5,42 +5,29 @@ using Newtonsoft.Json.Linq;
 
 namespace SystemTextJson.JsonDiffPatch.Benchmark
 {
+    [IterationCount(50)]
     public class DeepEqualsBenchmarks
     {
         [Benchmark]
-        public bool JsonNet()
+        public JToken JsonNet()
         {
-            var tokenX = new JArray(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-            var tokenY = new JArray(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+            var tokenX = JToken.Parse("[1,2,3,0,1,2,3,4,5,6,7,8,9,10,1,2,3]");
+            var tokenY = JToken.Parse("[1,2,3,10,0,1,7,2,4,5,6,88,9,3,1,2,3]");
 
-            return JToken.DeepEquals(tokenX, tokenY);
+            return new JsonDiffPatchDotNet.JsonDiffPatch().Diff(tokenX, tokenY);
         }
 
         [Benchmark]
-        public bool JsonNet_String()
+        public JsonNode SystemTextJson()
         {
-            var tokenX = JToken.Parse("[1,2,3,4,5,6,7,8,9,10]");
-            var tokenY = JToken.Parse("[1,2,3,4,5,6,7,8,9,10]");
-
-            return JToken.DeepEquals(tokenX, tokenY);
-        }
-
-        [Benchmark]
-        public bool SystemTextJson()
-        {
-            var nodeX = new JsonArray(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-            var nodeY = new JsonArray(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-
-            return nodeX.DeepEquals(nodeY);
-        }
-
-        [Benchmark]
-        public bool SystemTextJson_String()
-        {
-            var nodeX = JsonNode.Parse("[1,2,3,4,5,6,7,8,9,10]");
-            var nodeY = JsonNode.Parse("[1,2,3,4,5,6,7,8,9,10]");
-
-            return nodeX.DeepEquals(nodeY, JsonElementComparison.Semantic);
+            var nodeX = JsonNode.Parse("[1,2,3,0,1,2,3,4,5,6,7,8,9,10,1,2,3]");
+            var nodeY = JsonNode.Parse("[1,2,3,10,0,1,7,2,4,5,6,88,9,3,1,2,3]");
+        
+            return nodeX.Diff(nodeY, new JsonDiffOptions
+            {
+                SuppressDetectArrayMove = true,
+                JsonElementComparison = JsonElementComparison.Semantic
+            })!;
         }
     }
 }

@@ -14,10 +14,11 @@
     <Copyright>Copyright © Wei Chen 2022</Copyright>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReleaseNotes>https://github.com/weichch/system-text-json-jsondiffpatch/blob/$(JsonDiffPatchPackageVersion)/ReleaseNotes.md</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.2.0</Version>
+    <Version>$(JsonDiffPatchPackageVersion)</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>

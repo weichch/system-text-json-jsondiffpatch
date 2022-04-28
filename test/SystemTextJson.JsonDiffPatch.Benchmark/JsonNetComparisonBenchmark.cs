@@ -1,32 +1,18 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Text.Json.JsonDiffPatch;
+﻿using System.Text.Json.JsonDiffPatch;
 using System.Text.Json.JsonDiffPatch.Diffs;
-using System.Text.Json.JsonDiffPatch.Diffs.Formatters;
 using System.Text.Json.Nodes;
 using BenchmarkDotNet.Attributes;
 using JsonDiffPatchDotNet;
-using JsonDiffPatchDotNet.Formatters.JsonPatch;
 using Newtonsoft.Json.Linq;
 
 namespace SystemTextJson.JsonDiffPatch.Benchmark
 {
-    public abstract class JsonNetComparisonBenchmark
+    [IterationCount(50)]
+    public abstract class JsonNetComparisonBenchmark : ExampleJsonFileBenchmark
     {
-        private string _jsonBefore = null!;
-        private string _jsonAfter = null!;
-        private string _jsonDiff = null!;
-
-        public abstract string BeforeFile { get; set; }
-        public abstract string AfterFile { get; set; }
-        public abstract string DiffFile { get; set; }
-
-        [GlobalSetup]
-        public virtual void Setup()
+        protected JsonNetComparisonBenchmark(string beforeFile, string afterFile, string diffFile)
+            : base(beforeFile, afterFile, diffFile)
         {
-            _jsonBefore = File.ReadAllText(BeforeFile);
-            _jsonAfter = File.ReadAllText(AfterFile);
-            _jsonDiff = File.ReadAllText(DiffFile);
         }
 
         [Benchmark]
@@ -45,24 +31,6 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             var node2 = JsonNode.Parse(_jsonAfter);
 
             return node1.Diff(node2, CreateDiffOptionsWithJsonNetMatch());
-        }
-
-        [Benchmark]
-        public IList<Operation> Diff_JsonNet_Rfc()
-        {
-            var token1 = JToken.Parse(_jsonBefore);
-            var token2 = JToken.Parse(_jsonAfter);
-
-            return new JsonDeltaFormatter().Format(CreateJsonNetDiffPatch().Diff(token1, token2));
-        }
-
-        [Benchmark]
-        public JsonNode? Diff_SystemTextJson_Rfc()
-        {
-            var node1 = JsonNode.Parse(_jsonBefore);
-            var node2 = JsonNode.Parse(_jsonAfter);
-
-            return node1.Diff(node2, new JsonPatchDeltaFormatter(), CreateDiffOptionsWithJsonNetMatch());
         }
 
         [Benchmark]
@@ -137,9 +105,8 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         // https://github.com/wbish/jsondiffpatch.net/blob/master/Src/JsonDiffPatchDotNet/Lcs.cs#L51
         private static bool JsonNetArrayItemMatch(ref ArrayItemMatchContext context)
         {
-            if (context.Left.DeepEquals(context.Right, JsonElementComparison.Semantic)
-                || (context.Left is JsonObject && context.Right is JsonObject)
-                || (context.Left is JsonArray && context.Right is JsonArray))
+            if (context.Left is JsonObject && context.Right is JsonObject ||
+                context.Left is JsonArray && context.Right is JsonArray)
             {
                 return true;
             }
