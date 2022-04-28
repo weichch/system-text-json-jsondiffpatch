@@ -81,8 +81,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             }
         }
 
-        public static Lcs Get(Span<JsonNode?> x, Span<JsonNode?> y, ArrayItemMatch match,
-            in JsonComparerOptions comparerOptions)
+        public static Lcs Get(Span<JsonNode?> x, Span<JsonNode?> y, JsonDiffOptions options)
         {
             if (x.Length == 0 || y.Length == 0)
             {
@@ -97,38 +96,29 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             var matrix = matrixRented.AsSpan(0, matrixLength);
             var matchMatrixRented = ArrayPool<int>.Shared.Rent(matrixLength);
             var matchMatrixSpan = matchMatrixRented.AsSpan(0, matrixLength);
-
-            // Initializes the matrix
-            matrix.Fill(0);
-            matchMatrixSpan.Fill(0);
-            
             // For performance reasons, we set materialized values into a cache.
             // We only cache JSON values as they are more efficient to cache than objects and arrays.
-            JsonValueComparisonContext[]? valueCacheRented = null;
-            Span<JsonValueComparisonContext> valueCacheSpan = default;
+            var valueCacheRented = ArrayPool<JsonValueComparisonContext>.Shared.Rent(x.Length + y.Length);
+            var valueCacheSpan = valueCacheRented.AsSpan(0, x.Length + y.Length);
+            var comparerOptions = options.CreateComparerOptions();
 
-            if (comparerOptions.JsonElementComparison == JsonElementComparison.Semantic)
+            matrix.Fill(0);
+            matchMatrixSpan.Fill(0);
+            valueCacheSpan.Fill(default);
+
+            for (var i = 1; i < m; i++)
             {
-                valueCacheRented = ArrayPool<JsonValueComparisonContext>.Shared.Rent(x.Length + y.Length);
-                valueCacheSpan = valueCacheRented.AsSpan(0, x.Length + y.Length);
-                valueCacheSpan.Fill(default);
-
-                for (var i = 1; i < m; i++)
+                if (x[i - 1] is JsonValue jsonValueX)
                 {
-                    if (x[i - 1] is JsonValue jsonValueX &&
-                        JsonValueComparisonContext.TryCreateValueCached(jsonValueX, out var valueCacheEntryX))
-                    {
-                        valueCacheSpan[i - 1] = valueCacheEntryX;
-                    }
+                    valueCacheSpan[i - 1] = new JsonValueComparisonContext(jsonValueX, true);
                 }
+            }
 
-                for (var j = 1; j < n; j++)
+            for (var j = 1; j < n; j++)
+            {
+                if (y[j - 1] is JsonValue jsonValueY)
                 {
-                    if (y[j - 1] is JsonValue jsonValueY &&
-                        JsonValueComparisonContext.TryCreateValueCached(jsonValueY, out var valueCacheEntryY))
-                    {
-                        valueCacheSpan[x.Length + j - 1] = valueCacheEntryY;
-                    }
+                    valueCacheSpan[x.Length + j - 1] = new JsonValueComparisonContext(jsonValueY, true);
                 }
             }
 
@@ -153,19 +143,23 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             {
                 for (var j = 1; j < n; j++)
                 {
-                    ArrayItemMatchContext matchContext;
-                    if (valueCacheRented is null)
+                    var matchContext = new ArrayItemMatchContext(x[i - 1], i - 1, y[j - 1], j - 1);
+                    bool itemMatched;
+                    
+                    if (x[i - 1] is JsonValue && y[j - 1] is JsonValue)
                     {
-                        matchContext = new ArrayItemMatchContext(x[i - 1], i - 1, y[j - 1], j - 1,
+                        itemMatched = JsonDiffPatcher.MatchArrayItem(ref matchContext,
+                            ref valueCacheSpan[i - 1],
+                            ref valueCacheSpan[x.Length + j - 1],
+                            options,
                             comparerOptions);
                     }
                     else
                     {
-                        matchContext = new ArrayItemMatchContext(x[i - 1], i - 1, valueCacheSpan[i - 1],
-                            y[j - 1], j - 1, valueCacheSpan[x.Length + j - 1], comparerOptions);
+                        itemMatched = JsonDiffPatcher.MatchArrayItem(ref matchContext, options, comparerOptions);
                     }
 
-                    if (match(ref matchContext))
+                    if (itemMatched)
                     {
                         matrix[i * n + j] = 1 + matrix[(i - 1) * n + (j - 1)];
                         matchMatrixSpan[i * n + j] = matchContext.IsDeepEqual ? DeepEqual : Equal;

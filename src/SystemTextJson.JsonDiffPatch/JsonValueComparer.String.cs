@@ -2,57 +2,17 @@
 {
     static partial class JsonValueComparer
     {
-        private static int CompareDateTime(in JsonValueComparisonContext x, in JsonValueComparisonContext y)
+        private static int CompareDateTime(ref JsonValueComparisonContext x, ref JsonValueComparisonContext y)
         {
             if (x.ValueType == typeof(DateTime))
             {
-                if (y.ValueType == typeof(DateTime))
-                {
-                    return x.GetDateTime().CompareTo(y.GetDateTime());
-                }
-
-                return new DateTimeOffset(x.GetDateTime()).CompareTo(y.GetDateTimeOffset());
-            }
-
-            if (y.ValueType == typeof(DateTime))
-            {
-                return x.GetDateTimeOffset().CompareTo(new DateTimeOffset(y.GetDateTime()));
+                return x.GetDateTime().CompareTo(y.GetDateTime());
             }
 
             return x.GetDateTimeOffset().CompareTo(y.GetDateTimeOffset());
         }
 
-        private static int CompareDateTimeValue(object x, object y)
-        {
-            if (x is DateTime dateTimeX)
-            {
-                if (y is DateTime dateTimeY)
-                {
-                    return dateTimeX.CompareTo(dateTimeY);
-                }
-
-                if (y is DateTimeOffset dateTimeOffsetY)
-                {
-                    return new DateTimeOffset(dateTimeX).CompareTo(dateTimeOffsetY);
-                }
-            }
-            else if (x is DateTimeOffset dateTimeOffsetX)
-            {
-                if (y is DateTime dateTimeY)
-                {
-                    return dateTimeOffsetX.CompareTo(new DateTimeOffset(dateTimeY));
-                }
-
-                if (y is DateTimeOffset dateTimeOffsetY)
-                {
-                    return dateTimeOffsetX.CompareTo(dateTimeOffsetY);
-                }
-            }
-
-            throw new ArgumentException("Objects are not datetime.");
-        }
-
-        private static bool TryCompareByteArray(in JsonValueComparisonContext x, in JsonValueComparisonContext y,
+        private static bool TryCompareByteArray(ref JsonValueComparisonContext x, ref JsonValueComparisonContext y,
             out int result)
         {
             if (x.ValueType == typeof(byte[]))

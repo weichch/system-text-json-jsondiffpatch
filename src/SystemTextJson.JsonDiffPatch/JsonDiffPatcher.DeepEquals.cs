@@ -144,21 +144,9 @@ namespace System.Text.Json.JsonDiffPatch
                 return valueComparer.Equals(val1, val2);
             }
 
-            JsonValueComparisonContext ctx1, ctx2;
-            if (comparerOptions.JsonElementComparison is JsonElementComparison.RawText &&
-                val1.TryGetValue<JsonElement>(out var element1) &&
-                val2.TryGetValue<JsonElement>(out var element2))
-            {
-                ctx1 = new JsonValueComparisonContext(element1);
-                ctx2 = new JsonValueComparisonContext(element2);
-            }
-            else
-            {
-                ctx1 = new JsonValueComparisonContext(val1);
-                ctx2 = new JsonValueComparisonContext(val2);
-            }
-
-            return ctx1.DeepEquals(ctx2);
+            var ctx1 = new JsonValueComparisonContext(val1);
+            var ctx2 = new JsonValueComparisonContext(val2);
+            return ctx1.DeepEquals(ref ctx2, comparerOptions.JsonElementComparison);
         }
     }
 }

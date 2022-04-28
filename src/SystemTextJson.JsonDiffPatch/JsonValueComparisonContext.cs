@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.Json.Nodes;
 
 namespace System.Text.Json.JsonDiffPatch
@@ -7,14 +6,17 @@ namespace System.Text.Json.JsonDiffPatch
     /// <summary>
     /// Wrapper of <see cref="JsonNode"/> for value comparison purpose.
     /// </summary>
-    internal readonly struct JsonValueComparisonContext
+    internal struct JsonValueComparisonContext
     {
+        private readonly bool _cacheRead;
         private readonly bool _isJsonElement;
         private readonly JsonElement _element;
-        private readonly bool _isJsonElementRead;
+        private object? _valueObject;
+        private string? _rawText;
 
-        public JsonValueComparisonContext(JsonValue value)
+        public JsonValueComparisonContext(JsonValue value, bool cacheRead = false)
         {
+            _cacheRead = cacheRead;
             var isJsonElement = value.TryGetValue(out _element);
             _isJsonElement = isJsonElement;
             Value = value;
@@ -23,179 +25,222 @@ namespace System.Text.Json.JsonDiffPatch
             ValueType = actualValueType;
             StringValueKind = GetStringValueKind(actualValueType);
 
-            ValueObject = null;
-            _isJsonElementRead = false;
-        }
-
-        public JsonValueComparisonContext(in JsonElement element, bool readElement = false)
-        {
-            _element = element;
-            ValueKind = element.ValueKind;
-            StringValueKind = JsonStringValueKind.RawText;
-            ValueObject = readElement ? element.GetRawText() : null;
-            _isJsonElement = true;
-
-            Value = null;
-            ValueType = null;
-            _isJsonElementRead = false;
-        }
-
-        public JsonValueComparisonContext(JsonValueKind valueKind, object? valueObject)
-        {
-            _element = default;
-            ValueKind = valueKind;
-            Value = null;
-            ValueObject = valueObject;
-            _isJsonElement = false;
-            ValueType = null;
-            StringValueKind = valueKind is JsonValueKind.String
-                ? GetStringValueKind(valueObject)
-                : JsonStringValueKind.String;
-            _isJsonElementRead = false;
+            _valueObject = null;
+            _rawText = null;
         }
 
         public JsonValueKind ValueKind { get; }
-        public JsonValue? Value { get; }
-        public object? ValueObject { get; }
+        public JsonValue Value { get; }
         public Type? ValueType { get; }
         public JsonStringValueKind StringValueKind { get; }
 
-        public decimal GetDecimal()
+        private T ReadValue<T>()
         {
-            if (Value is null)
+            var valueObj = Value.GetValue<T>();
+
+            if (_cacheRead && _valueObject is null)
             {
-                return Convert.ToDecimal(ValueObject, CultureInfo.InvariantCulture);
+                _valueObject = valueObj;
             }
 
-            if (ValueType == typeof(decimal))
-                return Value.GetValue<decimal>();
-            if (ValueType == typeof(ulong))
-                return Convert.ToDecimal(Value.GetValue<ulong>());
+            return valueObj;
+        }
+
+        public decimal GetDecimal()
+        {
+            if (_valueObject is not null)
+            {
+                return Convert.ToDecimal(_valueObject, CultureInfo.InvariantCulture);
+            }
+
             if (ValueType == typeof(long))
-                return Convert.ToDecimal(Value.GetValue<long>());
+                return Convert.ToDecimal(ReadValue<long>());
+            if (ValueType == typeof(decimal))
+                return ReadValue<decimal>();
             if (ValueType == typeof(double))
-                return Convert.ToDecimal(Value.GetValue<double>());
+                return Convert.ToDecimal(ReadValue<double>());
             if (ValueType == typeof(int))
-                return Convert.ToDecimal(Value.GetValue<int>());
+                return Convert.ToDecimal(ReadValue<int>());
             if (ValueType == typeof(short))
-                return Convert.ToDecimal(Value.GetValue<short>());
+                return Convert.ToDecimal(ReadValue<short>());
             if (ValueType == typeof(byte))
-                return Convert.ToDecimal(Value.GetValue<byte>());
+                return Convert.ToDecimal(ReadValue<byte>());
             if (ValueType == typeof(float))
-                return Convert.ToDecimal(Value.GetValue<float>());
+                return Convert.ToDecimal(ReadValue<float>());
             if (ValueType == typeof(uint))
-                return Convert.ToDecimal(Value.GetValue<uint>());
+                return Convert.ToDecimal(ReadValue<uint>());
+            if (ValueType == typeof(ulong))
+                return Convert.ToDecimal(ReadValue<ulong>());
             if (ValueType == typeof(ushort))
-                return Convert.ToDecimal(Value.GetValue<ushort>());
+                return Convert.ToDecimal(ReadValue<ushort>());
             if (ValueType == typeof(sbyte))
-                return Convert.ToDecimal(Value.GetValue<sbyte>());
+                return Convert.ToDecimal(ReadValue<sbyte>());
 
             throw new ArgumentOutOfRangeException($"Unsupported value type '{ValueType?.FullName ?? "null"}'.");
         }
 
         public double GetDouble()
         {
-            if (Value is null)
+            if (_valueObject is not null)
             {
-                return Convert.ToDouble(ValueObject, CultureInfo.InvariantCulture);
+                return Convert.ToDouble(_valueObject, CultureInfo.InvariantCulture);
             }
 
-            if (ValueType == typeof(double))
-                return Value.GetValue<double>();
             if (ValueType == typeof(long))
-                return Convert.ToDouble(Value.GetValue<long>());
+                return Convert.ToDouble(ReadValue<long>());
             if (ValueType == typeof(decimal))
-                return Convert.ToDouble(Value.GetValue<decimal>());
+                return Convert.ToDouble(ReadValue<decimal>());
+            if (ValueType == typeof(double))
+                return ReadValue<double>();
             if (ValueType == typeof(int))
-                return Convert.ToDouble(Value.GetValue<int>());
+                return Convert.ToDouble(ReadValue<int>());
             if (ValueType == typeof(short))
-                return Convert.ToDouble(Value.GetValue<short>());
+                return Convert.ToDouble(ReadValue<short>());
             if (ValueType == typeof(byte))
-                return Convert.ToDouble(Value.GetValue<byte>());
+                return Convert.ToDouble(ReadValue<byte>());
             if (ValueType == typeof(float))
-                return Convert.ToDouble(Value.GetValue<float>());
+                return Convert.ToDouble(ReadValue<float>());
             if (ValueType == typeof(uint))
-                return Convert.ToDouble(Value.GetValue<uint>());
-            if (ValueType == typeof(ushort))
-                return Convert.ToDouble(Value.GetValue<ushort>());
+                return Convert.ToDouble(ReadValue<uint>());
             if (ValueType == typeof(ulong))
-                return Convert.ToDouble(Value.GetValue<ulong>());
+                return Convert.ToDouble(ReadValue<ulong>());
+            if (ValueType == typeof(ushort))
+                return Convert.ToDouble(ReadValue<ushort>());
             if (ValueType == typeof(sbyte))
-                return Convert.ToDouble(Value.GetValue<sbyte>());
+                return Convert.ToDouble(ReadValue<sbyte>());
 
             throw new ArgumentOutOfRangeException($"Unsupported value type '{ValueType?.FullName ?? "null"}'.");
         }
 
         public long GetInt64()
         {
-            if (Value is null)
+            if (_valueObject is not null)
             {
-                return Convert.ToInt64(ValueObject, CultureInfo.InvariantCulture);
+                return Convert.ToInt64(_valueObject, CultureInfo.InvariantCulture);
             }
 
             if (ValueType == typeof(long))
-                return Value.GetValue<long>();
+                return ReadValue<long>();
             if (ValueType == typeof(decimal))
-                return Convert.ToInt64(Value.GetValue<decimal>());
+                return Convert.ToInt64(ReadValue<decimal>());
             if (ValueType == typeof(double))
-                return Convert.ToInt64(Value.GetValue<double>());
+                return Convert.ToInt64(ReadValue<double>());
             if (ValueType == typeof(int))
-                return Convert.ToInt64(Value.GetValue<int>());
+                return Convert.ToInt64(ReadValue<int>());
             if (ValueType == typeof(short))
-                return Convert.ToInt64(Value.GetValue<short>());
+                return Convert.ToInt64(ReadValue<short>());
             if (ValueType == typeof(byte))
-                return Convert.ToInt64(Value.GetValue<byte>());
+                return Convert.ToInt64(ReadValue<byte>());
             if (ValueType == typeof(float))
-                return Convert.ToInt64(Value.GetValue<float>());
+                return Convert.ToInt64(ReadValue<float>());
             if (ValueType == typeof(uint))
-                return Convert.ToInt64(Value.GetValue<uint>());
-            if (ValueType == typeof(ushort))
-                return Convert.ToInt64(Value.GetValue<ushort>());
+                return Convert.ToInt64(ReadValue<uint>());
             if (ValueType == typeof(ulong))
-                return Convert.ToInt64(Value.GetValue<ulong>());
+                return Convert.ToInt64(ReadValue<ulong>());
+            if (ValueType == typeof(ushort))
+                return Convert.ToInt64(ReadValue<ushort>());
             if (ValueType == typeof(sbyte))
-                return Convert.ToInt64(Value.GetValue<sbyte>());
+                return Convert.ToInt64(ReadValue<sbyte>());
 
             throw new ArgumentOutOfRangeException($"Unsupported value type '{ValueType?.FullName ?? "null"}'.");
         }
 
-        public DateTime GetDateTime() =>
-            Value?.GetValue<DateTime>() ?? Convert.ToDateTime(ValueObject, CultureInfo.InvariantCulture);
+        public DateTime GetDateTime()
+        {
+            if (_valueObject is not null)
+            {
+                if (_valueObject is DateTime dateTime)
+                {
+                    return dateTime;
+                }
 
-        public DateTimeOffset GetDateTimeOffset() =>
-            Value?.GetValue<DateTimeOffset>() ?? new DateTimeOffset(Convert.ToDateTime(ValueObject,
-                CultureInfo.InvariantCulture));
+                if (_valueObject is DateTimeOffset dateTimeOffset)
+                {
+                    return dateTimeOffset.DateTime;
+                }
 
-        private char GetChar() => Value?.GetValue<char>() ?? (char) ValueObject!;
+                return Convert.ToDateTime(_valueObject, CultureInfo.InvariantCulture);
+            }
 
-        public Guid GetGuid() => Value?.GetValue<Guid>() ?? (Guid) ValueObject!;
+            if (ValueType == typeof(DateTime))
+            {
+                return ReadValue<DateTime>();
+            }
 
-        public byte[] GetByteArray() => Value is null ? (byte[]) ValueObject! : Value.GetValue<byte[]>();
+            if (ValueType == typeof(DateTimeOffset))
+            {
+                return ReadValue<DateTimeOffset>().DateTime;
+            }
+
+            return Convert.ToDateTime(ReadValue<object>(), CultureInfo.InvariantCulture);
+        }
+
+        public DateTimeOffset GetDateTimeOffset()
+        {
+            if (_valueObject is not null)
+            {
+                if (_valueObject is DateTimeOffset dateTimeOffset)
+                {
+                    return dateTimeOffset;
+                }
+
+                if (_valueObject is DateTime dateTime)
+                {
+                    return new DateTimeOffset(dateTime);
+                }
+
+                return new DateTimeOffset(Convert.ToDateTime(_valueObject, CultureInfo.InvariantCulture));
+            }
+
+            if (ValueType == typeof(DateTimeOffset))
+            {
+                return ReadValue<DateTimeOffset>();
+            }
+
+            if (ValueType == typeof(DateTime))
+            {
+                return new DateTimeOffset(ReadValue<DateTime>());
+            }
+
+            return new DateTimeOffset(Convert.ToDateTime(ReadValue<object>(), CultureInfo.InvariantCulture));
+        }
+
+        private char GetChar() => _valueObject is not null
+            ? (char) _valueObject
+            : ReadValue<char>();
+
+        public Guid GetGuid() => _valueObject is not null
+            ? (Guid) _valueObject
+            : ReadValue<Guid>();
+
+        public byte[] GetByteArray() => _valueObject is not null
+            ? (byte[]) _valueObject
+            : ReadValue<byte[]>();
 
         public bool TryGetByteArray(out byte[]? value)
         {
-            if (Value is null)
+            if (_valueObject is not null)
             {
-                if (ValueObject is byte[] byteArray)
-                {
-                    value = byteArray;
-                    return true;
-                }
+                value = (byte[]) _valueObject;
+                return true;
             }
-            else
-            {
-                if (ValueType == typeof(byte[]))
-                {
-                    value = Value.GetValue<byte[]>();
-                    return true;
-                }
 
-                if (_isJsonElement)
+            if (ValueType == typeof(byte[]))
+            {
+                value = ReadValue<byte[]>();
+                return true;
+            }
+
+            if (_isJsonElement)
+            {
+                if (_element.TryGetBytesFromBase64(out value))
                 {
-                    if (_element.TryGetBytesFromBase64(out value))
+                    if (_cacheRead)
                     {
-                        return true;
+                        _valueObject = value;
                     }
+
+                    return true;
                 }
             }
 
@@ -205,46 +250,84 @@ namespace System.Text.Json.JsonDiffPatch
 
         public string? GetString()
         {
-            if (StringValueKind is JsonStringValueKind.RawText)
+            if (_valueObject is not null)
             {
-                return _element.GetString();
-            }
+                if (_valueObject is string str)
+                {
+                    return str;
+                }
 
-            if (Value is null)
-            {
-                if (ValueObject is byte[] byteArray)
+                if (_valueObject is char charValue)
+                {
+                    return charValue.ToString();
+                }
+
+                if (_valueObject is byte[] byteArray)
                 {
                     return Convert.ToBase64String(byteArray);
                 }
 
-                return Convert.ToString(ValueObject, CultureInfo.InvariantCulture);
+                return Convert.ToString(_valueObject, CultureInfo.InvariantCulture);
             }
 
-            return ValueType == typeof(char)
-                ? Value.GetValue<char>().ToString()
-                : Value.GetValue<string>();
+            if (ValueType == typeof(string))
+            {
+                return ReadValue<string>();
+            }
+
+            if (ValueType == typeof(char))
+            {
+                return ReadValue<char>().ToString();
+            }
+
+            if (ValueType == typeof(byte[]))
+            {
+                return Convert.ToBase64String(ReadValue<byte[]>());
+            }
+
+            return Convert.ToString(ReadValue<object>(), CultureInfo.InvariantCulture);
         }
 
-        private string GetRawText()
+        public string GetRawText()
         {
-            if (StringValueKind != JsonStringValueKind.RawText)
+            if (_rawText is not null)
             {
-                throw new InvalidOperationException("No raw JSON text.");
+                return _rawText;
             }
 
-            if (_isJsonElementRead)
+            var rawText = _isJsonElement ? _element.GetRawText() : Value.ToJsonString();
+            if (_cacheRead)
             {
-                return (string) ValueObject!;
+                _rawText = rawText;
             }
 
-            return _element.GetRawText();
+            return rawText;
         }
 
         private bool StringValueEquals(string? text) => _element.ValueEquals(text);
 
         private bool StringValueEquals(in ReadOnlySpan<char> text) => _element.ValueEquals(text);
 
-        public bool DeepEquals(in JsonValueComparisonContext another)
+        public bool DeepEquals(ref JsonValueComparisonContext another, in JsonComparerOptions comparerOptions)
+        {
+            var valueComparer = comparerOptions.ValueComparer;
+            if (valueComparer is not null)
+            {
+                var hash1 = valueComparer.GetHashCode(Value);
+                var hash2 = valueComparer.GetHashCode(another.Value);
+
+                if (hash1 != hash2)
+                {
+                    return false;
+                }
+
+                return valueComparer.Equals(Value, another.Value);
+            }
+
+            return DeepEquals(ref another, comparerOptions.JsonElementComparison);
+        }
+
+        public bool DeepEquals(ref JsonValueComparisonContext another, JsonElementComparison jsonElementComparison)
         {
             if (ValueKind != another.ValueKind)
             {
@@ -257,91 +340,68 @@ namespace System.Text.Json.JsonDiffPatch
             }
 
             // Fast: raw text comparison
-            if (StringValueKind is JsonStringValueKind.RawText ||
-                another.StringValueKind is JsonStringValueKind.RawText)
+            if (jsonElementComparison is JsonElementComparison.RawText
+                && _isJsonElement
+                && another._isJsonElement)
             {
-                if (StringValueKind != another.StringValueKind)
+                return ValueKind switch
                 {
-                    Debug.Assert(false, "Unexpected comparison of raw text and value");
-                    return false;
-                }
+                    JsonValueKind.String => StringValueEquals(another.GetString()),
+                    _ => string.Equals(GetRawText(), another.GetRawText())
+                };
+            }
 
-                switch (ValueKind)
-                {
-                    case JsonValueKind.String:
+            // Slow: value semantic comparison
+            switch (ValueKind)
+            {
+                case JsonValueKind.Number:
+                    return JsonValueComparer.Compare(ValueKind, ref this, ref another) == 0;
+
+                case JsonValueKind.String:
+                    if (StringValueKind is JsonStringValueKind.DateTime or JsonStringValueKind.Guid &&
+                        another.StringValueKind is JsonStringValueKind.DateTime or JsonStringValueKind.Guid)
+                    {
+                        if (StringValueKind != another.StringValueKind)
+                        {
+                            return false;
+                        }
+                    }
+
+                    // Try compare strings when possible
+                    if (_isJsonElement &&
+                        (another.ValueType == typeof(string) || another.ValueType == typeof(char) ||
+                         another.ValueType == typeof(byte[])))
+                    {
+                        if (another.ValueType == typeof(char))
+                        {
+                            Span<char> valueY = stackalloc char[1];
+                            valueY[0] = another.GetChar();
+                            return StringValueEquals(valueY);
+                        }
+
                         return StringValueEquals(another.GetString());
-                    default:
-                        return string.Equals(GetRawText(), another.GetRawText());
-                }
-            }
+                    }
 
-            // Slow: value semantic comparison without cached value
-            if (Value is not null || another.Value is not null)
-            {
-                if (Value is null || another.Value is null)
-                {
-                    Debug.Assert(false, "Unexpected comparison of value and cached value");
-                    return false;
-                }
-
-                switch (ValueKind)
-                {
-                    case JsonValueKind.Number:
-                        return JsonValueComparer.Compare(ValueKind, this, another) == 0;
-
-                    case JsonValueKind.String:
-                        if (StringValueKind is JsonStringValueKind.DateTime or JsonStringValueKind.Guid &&
-                            another.StringValueKind is JsonStringValueKind.DateTime or JsonStringValueKind.Guid)
+                    if (another._isJsonElement &&
+                        (ValueType == typeof(string) || ValueType == typeof(char) || ValueType == typeof(byte[])))
+                    {
+                        if (ValueType == typeof(char))
                         {
-                            if (StringValueKind != another.StringValueKind)
-                            {
-                                return false;
-                            }
+                            Span<char> valueX = stackalloc char[1];
+                            valueX[0] = GetChar();
+                            return another.StringValueEquals(valueX);
                         }
 
-                        // Try compare strings when possible
-                        if (_isJsonElement &&
-                            (another.ValueType == typeof(string) || another.ValueType == typeof(char)))
-                        {
-                            if (another.ValueType == typeof(char))
-                            {
-                                Span<char> valueY = stackalloc char[1];
-                                valueY[0] = another.GetChar();
-                                return StringValueEquals(valueY);
-                            }
+                        return another.StringValueEquals(GetString());
+                    }
 
-                            return StringValueEquals(another.GetString());
-                        }
+                    return JsonValueComparer.Compare(ValueKind, ref this, ref another) == 0;
 
-                        if (another._isJsonElement && (ValueType == typeof(string) || ValueType == typeof(char)))
-                        {
-                            if (ValueType == typeof(char))
-                            {
-                                Span<char> valueX = stackalloc char[1];
-                                valueX[0] = GetChar();
-                                return another.StringValueEquals(valueX);
-                            }
-
-                            return another.StringValueEquals(GetString());
-                        }
-
-                        return JsonValueComparer.Compare(ValueKind, this, another) == 0;
-
-                    default:
-                        return Value.TryGetValue<object>(out var objX)
-                               && another.Value.TryGetValue<object>(out var objY)
-                               && Equals(objX, objY);
-                }
+                default:
+                    return Value.TryGetValue<object>(out var objX)
+                           && another.Value.TryGetValue<object>(out var objY)
+                           && Equals(objX, objY);
             }
-
-            // Perf: cached value semantic comparison
-            if (Value is null && another.Value is null)
-            {
-                return JsonValueComparer.CompareValue(ValueKind, this, another) == 0;
-            }
-
-            Debug.Assert(false, "Unknown JSON value comparison type");
-            return false;
         }
 
         public static bool IsValueKind(JsonValueKind jsonValueKind)
@@ -358,21 +418,6 @@ namespace System.Text.Json.JsonDiffPatch
             }
 
             if (valueType == typeof(Guid))
-            {
-                return JsonStringValueKind.Guid;
-            }
-
-            return JsonStringValueKind.String;
-        }
-
-        private static JsonStringValueKind GetStringValueKind(object? valueObject)
-        {
-            if (valueObject is DateTime or DateTimeOffset)
-            {
-                return JsonStringValueKind.DateTime;
-            }
-
-            if (valueObject is Guid)
             {
                 return JsonStringValueKind.Guid;
             }
@@ -565,88 +610,6 @@ namespace System.Text.Json.JsonDiffPatch
             }
 
             valueType = null;
-            return false;
-        }
-
-        public static bool TryCreateValueCached(JsonValue jsonValue, out JsonValueComparisonContext result)
-        {
-            if (jsonValue.TryGetValue<JsonElement>(out var element))
-            {
-                switch (element.ValueKind)
-                {
-                    case JsonValueKind.Number:
-                        if (element.TryGetInt64(out var longValue))
-                        {
-                            result = new JsonValueComparisonContext(JsonValueKind.Number, longValue);
-                            return true;
-                        }
-
-                        if (element.TryGetDecimal(out var decimalValue))
-                        {
-                            result = new JsonValueComparisonContext(JsonValueKind.Number, decimalValue);
-                            return true;
-                        }
-
-                        if (element.TryGetDouble(out var doubleValue))
-                        {
-                            result = new JsonValueComparisonContext(JsonValueKind.Number, doubleValue);
-                            return true;
-                        }
-
-                        break;
-
-                    case JsonValueKind.String:
-                        if (element.TryGetDateTimeOffset(out var dateTimeOffsetValue))
-                        {
-                            result = new JsonValueComparisonContext(JsonValueKind.String, dateTimeOffsetValue);
-                            return true;
-                        }
-
-                        if (element.TryGetDateTime(out var dateTimeValue))
-                        {
-                            result = new JsonValueComparisonContext(JsonValueKind.String, dateTimeValue);
-                            return true;
-                        }
-
-                        if (element.TryGetGuid(out var guidValue))
-                        {
-                            result = new JsonValueComparisonContext(JsonValueKind.String, guidValue);
-                            return true;
-                        }
-
-                        result = new JsonValueComparisonContext(JsonValueKind.String, element.GetString());
-                        return true;
-
-                    case JsonValueKind.True:
-                    case JsonValueKind.False:
-                    case JsonValueKind.Null:
-                        result = new JsonValueComparisonContext(element.ValueKind, null);
-                        return true;
-                }
-            }
-            else
-            {
-                var valueObj = jsonValue.GetValue<object>();
-                if (valueObj is int or long or double or short or decimal or byte or float or uint or ushort
-                    or ulong or sbyte)
-                {
-                    result = new JsonValueComparisonContext(JsonValueKind.Number, valueObject: valueObj);
-                    return true;
-                }
-
-                if (valueObj is string or DateTime or DateTimeOffset or Guid or char or byte[])
-                {
-                    result = new JsonValueComparisonContext(JsonValueKind.String, valueObj);
-                    return true;
-                }
-
-                if (valueObj is bool boolValue)
-                {
-                    result = new JsonValueComparisonContext(boolValue ? JsonValueKind.True : JsonValueKind.False, null);
-                }
-            }
-
-            result = default;
             return false;
         }
     }

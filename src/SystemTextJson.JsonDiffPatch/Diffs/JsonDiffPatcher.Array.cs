@@ -21,8 +21,6 @@ namespace System.Text.Json.JsonDiffPatch
                 return;
             }
 
-            var match = options.ArrayItemMatcher ?? new ArrayItemMatch((ref ArrayItemMatchContext context) =>
-                new DefaultArrayItemComparer(options).MatchArrayItem(ref context));
             var comparerOptions = options.CreateComparerOptions();
 
             // Find command head
@@ -30,9 +28,9 @@ namespace System.Text.Json.JsonDiffPatch
             for (commonHead = 0; commonHead < left.Count && commonHead < right.Count; commonHead++)
             {
                 var matchContext = new ArrayItemMatchContext(left[commonHead], commonHead,
-                    right[commonHead], commonHead, comparerOptions);
+                    right[commonHead], commonHead);
 
-                if (!match(ref matchContext))
+                if (!MatchArrayItem(ref matchContext, options, comparerOptions))
                 {
                     break;
                 }
@@ -49,9 +47,9 @@ namespace System.Text.Json.JsonDiffPatch
                 var leftIndex = left.Count - 1 - commonTail;
                 var rightIndex = right.Count - 1 - commonTail;
                 var matchContext = new ArrayItemMatchContext(left[leftIndex], leftIndex,
-                    right[rightIndex], rightIndex, comparerOptions);
+                    right[rightIndex], rightIndex);
 
-                if (!match(ref matchContext))
+                if (!MatchArrayItem(ref matchContext, options, comparerOptions))
                 {
                     break;
                 }
@@ -93,7 +91,7 @@ namespace System.Text.Json.JsonDiffPatch
 
             var trimmedLeft = left.ToArray().AsSpan(commonHead, left.Count - commonTail - commonHead);
             var trimmedRight = right.ToArray().AsSpan(commonHead, right.Count - commonTail - commonHead);
-            var lcs = Lcs.Get(trimmedLeft, trimmedRight, match, comparerOptions);
+            var lcs = Lcs.Get(trimmedLeft, trimmedRight, options);
 
             try
             {
@@ -194,6 +192,89 @@ namespace System.Text.Json.JsonDiffPatch
                     delta.ArrayChange(context.RightPosition, false, itemDiff);
                 }
             }
+        }
+
+        internal static bool MatchArrayItem(ref ArrayItemMatchContext context, JsonDiffOptions options,
+            in JsonComparerOptions comparerOptions)
+        {
+            if (context.Left.DeepEquals(context.Right, comparerOptions))
+            {
+                context.DeepEqual();
+                return true;
+            }
+
+            if (context.Left is JsonObject or JsonArray && context.Right is JsonObject or JsonArray)
+            {
+                if (FuzzyMatchArrayItem(ref context, options, out var fuzzyResult))
+                {
+                    return fuzzyResult;
+                }
+            }
+
+            if (options.ArrayItemMatcher is not null)
+            {
+                return options.ArrayItemMatcher(ref context);
+            }
+
+            return false;
+        }
+
+        internal static bool MatchArrayItem(
+            ref ArrayItemMatchContext context,
+            ref JsonValueComparisonContext valueContextLeft,
+            ref JsonValueComparisonContext valueContextRight,
+            JsonDiffOptions options,
+            in JsonComparerOptions comparerOptions)
+        {
+            if (valueContextLeft.DeepEquals(ref valueContextRight, comparerOptions))
+            {
+                context.DeepEqual();
+                return true;
+            }
+
+            if (options.ArrayItemMatcher is not null)
+            {
+                return options.ArrayItemMatcher(ref context);
+            }
+
+            return false;
+        }
+
+        private static bool FuzzyMatchArrayItem(ref ArrayItemMatchContext context, JsonDiffOptions options,
+            out bool result)
+        {
+            result = false;
+
+            var keyFinder = options.ArrayObjectItemKeyFinder;
+            if (keyFinder is not null)
+            {
+                var keyX = keyFinder(context.Left, context.LeftPosition);
+                var keyY = keyFinder(context.Right, context.RightPosition);
+
+                if (keyX is null && keyY is null)
+                {
+                    // Use DeepEquals if both items are not keyed
+                    return false;
+                }
+
+                result = Equals(keyX, keyY);
+                return true;
+            }
+
+            if (options.ArrayObjectItemMatchByPosition)
+            {
+                if (context.LeftPosition == context.RightPosition)
+                {
+                    result = true;
+                    return true;
+                }
+
+                // We don't return a result for objects at different position
+                // so that we could still compare them using DeepEquals, or
+                // return "not equal" if this method is called after.
+            }
+
+            return false;
         }
     }
 }

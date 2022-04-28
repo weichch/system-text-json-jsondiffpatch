@@ -43,14 +43,6 @@ namespace System.Text.Json.JsonDiffPatch
         public bool ArrayObjectItemMatchByPosition { get; set; }
 
         /// <summary>
-        /// Gets or sets whether to prefer <see cref="ArrayObjectItemKeyFinder"/> and
-        /// <see cref="ArrayObjectItemMatchByPosition"/> than using deep value comparison
-        /// to match array object items. By settings this property to <c>true</c>,
-        /// a diff could be returned faster but larger in size. Default value is <c>false</c>.
-        /// </summary>
-        public bool PreferFuzzyArrayItemMatch { get; set; }
-
-        /// <summary>
         /// Gets or sets the minimum length for diffing texts using <see cref="TextDiffProvider"/>
         /// or default text diffing algorithm, aka Google's diff-match-patch algorithm. When text
         /// diffing algorithm is not used, text diffing is fallback to value replacement. If this
