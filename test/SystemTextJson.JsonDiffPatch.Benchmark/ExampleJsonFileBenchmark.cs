@@ -22,7 +22,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
 
         protected static string GetExampleFile(string fileName)
         {
-            return $"Examples\\{fileName}";
+            return $"Examples/{fileName}";
         }
 
         [GlobalSetup]
