@@ -8,22 +8,30 @@ env:
   JsonDiffPatchSolutionPath: src/SystemTextJson.JsonDiffPatch.sln
 jobs:
   build:
-    name: Build And Test
-    runs-on: "ubuntu-latest"
     strategy:
       matrix:
+        os: [ ubuntu-latest ]
         build-configuration: [ Debug, Release ]
-        test-target-framework: [ net6.0, net5.0, netcoreapp3.1, net48, net461 ]
+        test-target-framework: [ net6.0, net5.0, netcoreapp3.1 ]
+        include:
+          - test-target-framework: net6.0
+            dotnet-version: 6.x
+          - test-target-framework: net5.0
+            dotnet-version: 5.x
+          - test-target-framework: netcoreapp3.1
+            dotnet-version: 3.1.x
+    name: Build And Test (${{ matrix.os }}, ${{ matrix.test-target-framework }}, ${{ matrix.build-configuration }})
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - name: Setup DotNet
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: "6.x"
-      - name: Restore dependencies
+          dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Restore
         run: dotnet restore ${{ env.JsonDiffPatchSolutionPath }}
-      - name: Build (${{ matrix.build-configuration }})
+      - name: Build
         run: dotnet build -c ${{ matrix.build-configuration }} --no-restore ${{ env.JsonDiffPatchSolutionPath }}
-      - name: Test (${{ matrix.build-configuration }})
+      - name: Test
         run: dotnet test -c ${{ matrix.build-configuration }} -f ${{ matrix.test-target-framework }} --no-restore --no-build ${{ env.JsonDiffPatchSolutionPath }}
 

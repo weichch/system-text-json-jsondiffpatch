@@ -22,12 +22,12 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         public void Diff_DemoJson()
         {
             // Compare the two JSON objects from https://benjamine.github.io/jsondiffpatch/demo/index.html
-            var result = File.ReadAllText(@"Examples\demo_diff.json");
+            var result = File.ReadAllText(@"Examples/demo_diff.json");
 
             var sw = Stopwatch.StartNew();
             var diff = JsonDiffPatcher.DiffFile(
-                @"Examples\demo_left.json",
-                @"Examples\demo_right.json",
+                @"Examples/demo_left.json",
+                @"Examples/demo_right.json",
                 new JsonDiffOptions
                 {
                     TextDiffMinLength = 60,
@@ -66,9 +66,9 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         public void Roundtrip_DemoFile()
         {
             var diffOptions = new JsonDiffOptions {TextDiffMinLength = 60};
-            var left = JsonNode.Parse(File.ReadAllText(@"Examples\demo_left.json"));
-            var originalLeft = JsonNode.Parse(File.ReadAllText(@"Examples\demo_left.json"));
-            var right = JsonNode.Parse(File.ReadAllText(@"Examples\demo_right.json"));
+            var left = JsonNode.Parse(File.ReadAllText(@"Examples/demo_left.json"));
+            var originalLeft = JsonNode.Parse(File.ReadAllText(@"Examples/demo_left.json"));
+            var right = JsonNode.Parse(File.ReadAllText(@"Examples/demo_right.json"));
             var diff = left.Diff(right, diffOptions);
 
             Assert.Null(left.Diff(originalLeft, diffOptions));
@@ -83,10 +83,10 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         [Fact]
         public void Diff_DemoJson_JsonPatch()
         {
-            var expectedDiff = JsonNode.Parse(File.ReadAllText(@"Examples\demo_diff_jsonpatch.json"));
+            var expectedDiff = JsonNode.Parse(File.ReadAllText(@"Examples/demo_diff_jsonpatch.json"));
 
-            var diff = JsonDiffPatcher.DiffFile(@"Examples\demo_left.json",
-                @"Examples\demo_right.json",
+            var diff = JsonDiffPatcher.DiffFile(@"Examples/demo_left.json",
+                @"Examples/demo_right.json",
                 new JsonPatchDeltaFormatter());
 
             Assert.True(expectedDiff.DeepEquals(diff));
@@ -96,8 +96,8 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         public void Diff_LargeObjects()
         {
             var diff = JsonDiffPatcher.DiffFile(
-                @"Examples\large_left.json",
-                @"Examples\large_right.json");
+                @"Examples/large_left.json",
+                @"Examples/large_right.json");
 
             Assert.NotNull(diff);
 
@@ -113,9 +113,9 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         public void Roundtrip_LargeObjects()
         {
             var diffOptions = new JsonDiffOptions { TextDiffMinLength = 60 };
-            var left = JsonNode.Parse(File.ReadAllText(@"Examples\large_left.json"));
-            var originalLeft = JsonNode.Parse(File.ReadAllText(@"Examples\large_left.json"));
-            var right = JsonNode.Parse(File.ReadAllText(@"Examples\large_right.json"));
+            var left = JsonNode.Parse(File.ReadAllText(@"Examples/large_left.json"));
+            var originalLeft = JsonNode.Parse(File.ReadAllText(@"Examples/large_left.json"));
+            var right = JsonNode.Parse(File.ReadAllText(@"Examples/large_right.json"));
             var diff = left.Diff(right, diffOptions);
 
             Assert.Null(left.Diff(originalLeft, diffOptions));
@@ -130,10 +130,10 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         [Fact]
         public void Diff_LargeObjects_JsonPatch()
         {
-            var expectedDiff = JsonNode.Parse(File.ReadAllText(@"Examples\large_diff_jsonpatch.json"));
+            var expectedDiff = JsonNode.Parse(File.ReadAllText(@"Examples/large_diff_jsonpatch.json"));
 
-            var diff = JsonDiffPatcher.DiffFile(@"Examples\large_left.json",
-                @"Examples\large_right.json",
+            var diff = JsonDiffPatcher.DiffFile(@"Examples/large_left.json",
+                @"Examples/large_right.json",
                 new JsonPatchDeltaFormatter());
 
             Assert.True(expectedDiff.DeepEquals(diff));
