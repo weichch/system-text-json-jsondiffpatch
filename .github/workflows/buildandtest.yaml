@@ -1,4 +1,4 @@
-name: Build And Test All Projects
+name: Pull Reqeust Check
 on:
   pull_request:
     branches: [ main ]
