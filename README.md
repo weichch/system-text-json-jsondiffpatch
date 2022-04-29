@@ -6,7 +6,7 @@ High-performance, low-allocating JSON objects diff and patch extension for Syste
 
 ## Features
 
-- Use [jsondiffpatch](https://github.com/benjamine/jsondiffpatch) delta format described [here](https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md)
+- Compatible with [jsondiffpatch delta format](https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md)
 - Support generating patch document in RFC 6902 JSON Patch format
 - Target latest .NET Standard and .NET Framework 4.6.1 (for legacy apps) and leverage latest .NET features
 - Alternative to [jsondiffpatch.net](https://github.com/wbish/jsondiffpatch.net) which is based on Newtonsoft.Json
