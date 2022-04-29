@@ -1,0 +1,32 @@
+name: Pull Reqeust Check
+on:
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - "**/*.md"
+env:
+  JsonDiffPatchSolutionPath: src/SystemTextJson.JsonDiffPatch.sln
+jobs:
+  build:
+    strategy:
+      matrix:
+        build-configuration: [ Debug, Release ]
+        test-target-framework: [ net6.0, net5.0, netcoreapp3.1 ]
+    name: Build And Test (${{ matrix.test-target-framework }}, ${{ matrix.build-configuration }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup DotNet
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: |
+            6.x
+            5.x
+            3.1.x
+      - name: Restore
+        run: dotnet restore ${{ env.JsonDiffPatchSolutionPath }}
+      - name: Build
+        run: dotnet build -c ${{ matrix.build-configuration }} --no-restore ${{ env.JsonDiffPatchSolutionPath }}
+      - name: Test
+        run: dotnet test -c ${{ matrix.build-configuration }} -f ${{ matrix.test-target-framework }} --no-restore --no-build ${{ env.JsonDiffPatchSolutionPath }}
+
