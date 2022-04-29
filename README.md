@@ -1,10 +1,12 @@
 # SystemTextJson.JsonDiffPatch
 
+![GitHub](https://img.shields.io/github/license/weichch/system-text-json-jsondiffpatch?color=blueviolet) ![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/weichch/system-text-json-jsondiffpatch/build-and-test/main) ![Nuget](https://img.shields.io/nuget/dt/SystemTextJson.JsonDiffPatch?color=important)
+
 High-performance, low-allocating JSON objects diff and patch extension for System.Text.Json.
 
 ## Features
 
-- Use [jsondiffpatch](https://github.com/benjamine/jsondiffpatch) delta format described [here](https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md)
+- Compatible with [jsondiffpatch delta format](https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md)
 - Support generating patch document in RFC 6902 JSON Patch format
 - Target latest .NET Standard and .NET Framework 4.6.1 (for legacy apps) and leverage latest .NET features
 - Alternative to [jsondiffpatch.net](https://github.com/wbish/jsondiffpatch.net) which is based on Newtonsoft.Json
