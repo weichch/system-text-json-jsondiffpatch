@@ -9,8 +9,8 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        build-configuration: [ "Debug", "Release" ]
-        test-target-framework: [ "net6.0", "net5.0", "netcoreapp3.1", "net48", "net461" ]
+        build-configuration: [ Debug, Release ]
+        test-target-framework: [ net6.0, net5.0, netcoreapp3.1, net48, net461 ]
     steps:
       - uses: actions/checkout@v3
       - name: Setup DotNet
@@ -22,5 +22,5 @@ jobs:
       - name: Build (${{ matrix.build-configuration }})
         run: dotnet build -c ${{ matrix.build-configuration }} --no-restore
       - name: Test (${{ matrix.build-configuration }})
-        run: dotnet run -c ${{ matrix.build-configuration }} -f ${{ test-target-framework }} --no-restore --no-build
+        run: dotnet run -c ${{ matrix.build-configuration }} -f ${{ matrix.test-target-framework }} --no-restore --no-build
 
