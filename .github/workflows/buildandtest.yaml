@@ -4,8 +4,11 @@ on:
     branches: [ main ]
     paths-ignore:
       - "**/*.md"
+env:
+  JsonDiffPatchSolutionPath: src/SystemTextJson.JsonDiffPatch.sln
 jobs:
   build:
+    name: Build And Test
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
@@ -18,9 +21,9 @@ jobs:
         with:
           dotnet-version: "6.x"
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore $JsonDiffPatchSolutionPath
       - name: Build (${{ matrix.build-configuration }})
-        run: dotnet build -c ${{ matrix.build-configuration }} --no-restore
+        run: dotnet build -c ${{ matrix.build-configuration }} --no-restore $JsonDiffPatchSolutionPath
       - name: Test (${{ matrix.build-configuration }})
-        run: dotnet run -c ${{ matrix.build-configuration }} -f ${{ matrix.test-target-framework }} --no-restore --no-build
+        run: dotnet run -c ${{ matrix.build-configuration }} -f ${{ matrix.test-target-framework }} --no-restore --no-build $JsonDiffPatchSolutionPath
 
