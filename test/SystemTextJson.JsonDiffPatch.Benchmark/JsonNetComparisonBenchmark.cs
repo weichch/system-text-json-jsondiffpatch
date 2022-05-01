@@ -1,8 +1,11 @@
-﻿using System.Text.Json.JsonDiffPatch;
+﻿using System.Collections.Generic;
+using System.Text.Json.JsonDiffPatch;
 using System.Text.Json.JsonDiffPatch.Diffs;
+using System.Text.Json.JsonDiffPatch.Diffs.Formatters;
 using System.Text.Json.Nodes;
 using BenchmarkDotNet.Attributes;
 using JsonDiffPatchDotNet;
+using JsonDiffPatchDotNet.Formatters.JsonPatch;
 using Newtonsoft.Json.Linq;
 
 namespace SystemTextJson.JsonDiffPatch.Benchmark
@@ -31,6 +34,24 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             var node2 = JsonNode.Parse(_jsonAfter);
 
             return node1.Diff(node2, CreateDiffOptionsWithJsonNetMatch());
+        }
+
+        [Benchmark]
+        public IList<Operation> Diff_JsonNet_Rfc()
+        {
+            var token1 = JToken.Parse(_jsonBefore);
+            var token2 = JToken.Parse(_jsonAfter);
+
+            return new JsonDeltaFormatter().Format(CreateJsonNetDiffPatch().Diff(token1, token2));
+        }
+
+        [Benchmark]
+        public JsonNode? Diff_SystemTextJson_Rfc()
+        {
+            var node1 = JsonNode.Parse(_jsonBefore);
+            var node2 = JsonNode.Parse(_jsonAfter);
+
+            return node1.Diff(node2, new JsonPatchDeltaFormatter(), CreateDiffOptionsWithJsonNetMatch());
         }
 
         [Benchmark]

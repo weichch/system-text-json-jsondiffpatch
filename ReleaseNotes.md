@@ -2,7 +2,7 @@
 
 ## 1.2.0
 
-- Major performance improvement in array comparion
+- Major performance improvement in array comparison
 - Performance improvements in `DeepEquals` and `JsonValueComparer`
 - **[BREAKING CHANGE]** Breaking changes in array comparison:
   - Removed `JsonDiffOptions.PreferFuzzyArrayItemMatch` option

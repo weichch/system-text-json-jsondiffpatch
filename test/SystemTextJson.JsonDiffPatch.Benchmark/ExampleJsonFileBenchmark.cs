@@ -19,7 +19,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             _afterFile = afterFile;
             _diffFile = diffFile;
         }
-
+        
         protected static string GetExampleFile(string fileName)
         {
             return $"Examples/{fileName}";

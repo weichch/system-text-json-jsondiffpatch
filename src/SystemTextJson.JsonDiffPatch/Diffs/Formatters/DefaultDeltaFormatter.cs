@@ -76,7 +76,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs.Formatters
         protected virtual TResult? FormatArray(ref JsonDiffDelta delta, JsonArray left, TResult? existingValue)
         {
             var arrayChangeEnumerable = _usePatchableArrayChangeEnumerable
-                ? delta.GetPatchableArrayChangeEnumerable(left, false)
+                ? delta.GetPatchableArrayChangeEnumerable(left)
                 : delta.GetArrayChangeEnumerable();
 
             return arrayChangeEnumerable
