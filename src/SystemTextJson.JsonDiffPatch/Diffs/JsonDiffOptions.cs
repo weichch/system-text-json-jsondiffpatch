@@ -18,35 +18,26 @@ namespace System.Text.Json.JsonDiffPatch
         public bool SuppressDetectArrayMove { get; set; }
 
         /// <summary>
-        /// Gets or sets the function to match array items.
+        /// Gets or sets custom function to match array items when array items are found not equal using default match
+        /// algorithm.
         /// </summary>
         public ArrayItemMatch? ArrayItemMatcher { get; set; }
 
         /// <summary>
-        /// Gets or sets the function to find key of a <see cref="JsonObject"/>
-        /// or <see cref="JsonArray"/>. This is used when matching array items by
-        /// their keys. If this function returns <c>null</c>, the items being
-        /// compared are treated as "not keyed". When comparing two "not keyed"
-        /// objects, their contents are compared. This function is only used when
-        /// <see cref="ArrayItemMatcher"/> is set to <c>null</c>.
+        /// Gets or sets the function to find key of a <see cref="JsonObject"/> or <see cref="JsonArray"/>.
         /// </summary>
         public Func<JsonNode?, int, object?>? ArrayObjectItemKeyFinder { get; set; }
 
         /// <summary>
-        /// Gets or sets whether two instances of JSON object types (object and array)
-        /// are considered equal if their position is the same in their parent
-        /// arrays regardless of their contents. This property is only used when
-        /// <see cref="ArrayItemMatcher"/> is set to <c>null</c>. By settings this
-        /// property to <c>true</c>, a diff could be returned faster but larger in
-        /// size. Default value is <c>false</c>.
+        /// Gets or sets whether two JSON objects (object or array) should be considered equal if they are at the same
+        /// index inside their parent arrays.
         /// </summary>
         public bool ArrayObjectItemMatchByPosition { get; set; }
 
         /// <summary>
-        /// Gets or sets the minimum length for diffing texts using <see cref="TextDiffProvider"/>
-        /// or default text diffing algorithm, aka Google's diff-match-patch algorithm. When text
-        /// diffing algorithm is not used, text diffing is fallback to value replacement. If this
-        /// property is set to <c>0</c>, diffing algorithm is disabled. Default value is <c>0</c>.
+        /// Gets or sets the minimum length of texts that should be compared using long text comparison algorithm, e.g.
+        /// <c>diff_match_patch</c> from Google. If this property is set to <c>0</c>, long text comparison algorithm is
+        /// disabled. Default value is <c>0</c>.
         /// </summary>
         public int TextDiffMinLength { get; set; }
 
@@ -68,7 +59,7 @@ namespace System.Text.Json.JsonDiffPatch
         internal ref JsonComparerOptions CreateComparerOptions()
         {
             if (JsonElementComparison != _comparerOptions.JsonElementComparison
-                || !Equals(ValueComparer, _comparerOptions.ValueComparer))
+                || !ReferenceEquals(ValueComparer, _comparerOptions.ValueComparer))
             {
                 _comparerOptions = new JsonComparerOptions(JsonElementComparison, ValueComparer);
             }
