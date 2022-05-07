@@ -15,16 +15,14 @@ BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1645 (21H1/May2021Update)
 
 ## Comparison Modes
 
-_All benchmarks are generated using the same small JSON object used in the **Newtonsoft Json vs System.Text.Json** section below, with array move detection enabled (default)._
-
 |   Method | FileSize |     Mean |   Median |      Min |      Max |      P80 |      P95 | Allocated |
 |--------- |--------- |---------:|---------:|---------:|---------:|---------:|---------:|----------:|
 |  RawText |    Small | 100.9 μs | 100.3 μs | 98.36 μs | 105.7 μs | 102.0 μs | 104.9 μs |     77 KB |
 | Semantic |    Small | 102.2 μs | 101.9 μs | 99.37 μs | 107.0 μs | 103.1 μs | 105.6 μs |     76 KB |
 
-## Newtonsoft Json vs System.Text.Json
+\* _All benchmarks are generated using the same small JSON object used in the **Newtonsoft Json vs System.Text.Json** section below, with array move detection enabled (default)._
 
-_All benchmarks for `SystemTextJson` methods are generated with `JsonElementComparison.Semantic` option._
+## Newtonsoft Json vs System.Text.Json
 
 ### Diff (including RFC JsonPatch)
 
@@ -65,3 +63,5 @@ _All benchmarks for `SystemTextJson` methods are generated with `JsonElementComp
 |        JsonNet |    Small |    42.99 μs |    42.84 μs |    41.90 μs |    45.02 μs |    43.41 μs |    44.70 μs |     70 KB |
 | **SystemTextJson** |    **Large** | **1,251.60 μs** | **1,247.97 μs** | **1,192.19 μs** | **1,323.97 μs** | **1,276.05 μs** | **1,310.40 μs** |  **1,675 KB** |
 |        JsonNet |    Large | 1,708.43 μs | 1,706.69 μs | 1,664.39 μs | 1,783.04 μs | 1,731.47 μs | 1,759.00 μs |  2,128 KB |
+
+\* _All benchmarks for `SystemTextJson` methods are generated with `JsonElementComparison.Semantic` option and array move detection disabled because JsonDiffPatch.Net does not support array move detection._
