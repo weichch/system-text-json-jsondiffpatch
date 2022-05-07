@@ -19,25 +19,25 @@ High-performance, low-allocating JSON object diff and patch extension for System
 
 ## Install
 
-### JsonDiffPatch
+#### JsonDiffPatch
 
 ```
 Install-Package SystemTextJson.JsonDiffPatch
 ```
 
-### xUnit Assert
+#### xUnit Assert
 
 ```
 Install-Package SystemTextJson.JsonDiffPatch.Xunit
 ```
 
-### MSTest v2 Assert
+#### MSTest v2 Assert
 
 ```
 Install-Package SystemTextJson.JsonDiffPatch.MSTest
 ```
 
-### NUnit Assert
+#### NUnit Assert
 
 ```
 Install-Package SystemTextJson.JsonDiffPatch.NUnit
