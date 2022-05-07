@@ -37,4 +37,10 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="BenchmarkDotNet.Artifacts\**" />
+    <Compile Remove="BenchmarkDotNet.Artifacts\**" />
+    <EmbeddedResource Remove="BenchmarkDotNet.Artifacts\**" />
+  </ItemGroup>
+
 </Project>

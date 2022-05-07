@@ -4,7 +4,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace SystemTextJson.JsonDiffPatch.Benchmark
 {
-    public class OptionsBenchmarks : JsonFileBenchmark
+    public class OptionsJsonFileBenchmark : JsonFileBenchmark
     {
         [Params(JsonFileSize.Small)]
         public override JsonFileSize FileSize { get; set; }

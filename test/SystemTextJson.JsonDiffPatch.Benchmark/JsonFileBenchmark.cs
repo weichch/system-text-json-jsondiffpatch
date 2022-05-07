@@ -8,7 +8,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
     {
         [ParamsAllValues]
         public virtual JsonFileSize FileSize { get; set; }
-        
+
         protected string JsonLeft { get; set; } = null!;
         protected string JsonRight { get; set; } = null!;
         protected string JsonDiff { get; set; } = null!;

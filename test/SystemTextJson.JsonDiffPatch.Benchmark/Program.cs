@@ -16,10 +16,11 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             config.AddColumn(
                 TargetMethodColumn.Method,
                 StatisticColumn.Mean,
-                StatisticColumn.Min,
-                StatisticColumn.Max,
+                StatisticColumn.Median,
                 StatisticColumn.P80,
-                StatisticColumn.P95);
+                StatisticColumn.P95,
+                StatisticColumn.Min,
+                StatisticColumn.Max);
             config.AddColumnProvider(DefaultColumnProviders.Params);
             config.AddColumnProvider(DefaultColumnProviders.Metrics);
             config.AddDiagnoser(new MemoryDiagnoser(new MemoryDiagnoserConfig(false)));
@@ -27,8 +28,7 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
             config.AddLogger(new ConsoleLogger(true));
             config.AddExporter(MarkdownExporter.GitHub);
 
-            BenchmarkSwitcher.FromAssembly(typeof(BenchmarkHelper).Assembly)
-                .Run(args, config);
+            BenchmarkSwitcher.FromAssembly(typeof(BenchmarkHelper).Assembly).Run(args, config);
         }
     }
 }

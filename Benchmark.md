@@ -1,8 +1,6 @@
 # Benchmarks
 
-## Benchmarks with different options
-
-_All benchmarks are generated using the same small JSON object used in the **Newtonsoft Json vs System.Text.Json** section below._
+## Hardware and Software
 
 ``` ini
 
@@ -14,78 +12,56 @@ BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1645 (21H1/May2021Update)
 
 
 ```
-|   Method |     Mean |      Min |      Max |      P80 |      P95 | Allocated |
-|--------- |---------:|---------:|---------:|---------:|---------:|----------:|
-|  RawText | 112.0 μs | 109.2 μs | 115.2 μs | 112.8 μs | 114.2 μs |     77 KB |
-| Semantic | 116.1 μs | 113.8 μs | 121.7 μs | 117.0 μs | 119.3 μs |     76 KB |
 
+## Comparison Modes
+
+_All benchmarks are generated using the same small JSON object used in the **Newtonsoft Json vs System.Text.Json** section below._
+
+|   Method | FileSize |     Mean |   Median |      Min |      Max |      P80 |      P95 | Allocated |
+|--------- |--------- |---------:|---------:|---------:|---------:|---------:|---------:|----------:|
+|  RawText |    Small | 100.9 μs | 100.3 μs | 98.36 μs | 105.7 μs | 102.0 μs | 104.9 μs |     77 KB |
+| Semantic |    Small | 102.2 μs | 101.9 μs | 99.37 μs | 107.0 μs | 103.1 μs | 105.6 μs |     76 KB |
 
 ## Newtonsoft Json vs System.Text.Json
 
-_All benchmarks for `*_SystemTextJson` methods are generated with `JsonElementComparison.Semantic` option._
+_All benchmarks for `SystemTextJson` methods are generated with `JsonElementComparison.Semantic` option._
 
-### Small JSON object
+### Diff (including RFC JsonPatch)
 
-``` ini
+|             Method | FileSize |        Mean |      Median |         Min |         Max |         P80 |         P95 | Allocated |
+|------------------- |--------- |------------:|------------:|------------:|------------:|------------:|------------:|----------:|
+|     **SystemTextJson** |    **Small** |    **79.09 μs** |    **78.25 μs** |    **75.72 μs** |    **84.89 μs** |    **81.91 μs** |    **84.16 μs** |     **66 KB** |
+|            JsonNet |    Small |    91.98 μs |    92.15 μs |    90.06 μs |    94.50 μs |    92.77 μs |    93.78 μs |    132 KB |
+| SystemTextJson_Rfc |    Small |    94.88 μs |    94.74 μs |    93.34 μs |    97.80 μs |    95.69 μs |    96.86 μs |     87 KB |
+|        JsonNet_Rfc |    Small |   106.41 μs |   106.01 μs |   103.58 μs |   110.69 μs |   107.38 μs |   109.75 μs |    150 KB |
+|     **SystemTextJson** |    **Large** | **3,717.44 μs** | **3,700.53 μs** | **3,577.00 μs** | **3,913.15 μs** | **3,766.22 μs** | **3,901.23 μs** |  **3,258 KB** |
+|            JsonNet |    Large | 4,104.18 μs | 4,085.60 μs | 3,922.80 μs | 4,343.10 μs | 4,199.56 μs | 4,273.98 μs |  4,386 KB |
+| SystemTextJson_Rfc |    Large | 4,900.93 μs | 4,890.86 μs | 4,772.28 μs | 5,128.16 μs | 4,958.30 μs | 5,021.94 μs |  4,561 KB |
+|        JsonNet_Rfc |    Large | 5,569.83 μs | 5,535.12 μs | 5,354.93 μs | 5,976.46 μs | 5,682.46 μs | 5,822.63 μs |  6,147 KB |
 
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1645 (21H1/May2021Update)
-11th Gen Intel Core i7-1185G7 3.00GHz, 1 CPU, 8 logical and 4 physical cores
-.NET SDK=6.0.200
-  [Host]     : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
-  Job-HEQUNO : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
+### DeepEquals
 
+|         Method | FileSize |        Mean |      Median |         Min |         Max |         P80 |         P95 | Allocated |
+|--------------- |--------- |------------:|------------:|------------:|------------:|------------:|------------:|----------:|
+| **SystemTextJson** |    **Small** |    **52.92 μs** |    **52.89 μs** |    **52.00 μs** |    **54.46 μs** |    **53.31 μs** |    **53.90 μs** |     **39 KB** |
+|        JsonNet |    Small |    58.82 μs |    58.77 μs |    57.78 μs |    60.41 μs |    59.16 μs |    59.74 μs |     91 KB |
+| **SystemTextJson** |    **Large** | **2,099.55 μs** | **2,090.78 μs** | **1,963.92 μs** | **2,302.56 μs** | **2,161.80 μs** | **2,223.10 μs** |  **1,631 KB** |
+|        JsonNet |    Large | 2,296.54 μs | 2,293.76 μs | 2,239.68 μs | 2,393.52 μs | 2,323.09 μs | 2,378.88 μs |  2,426 KB |
 
-```
-|                    Method |      Mean |       Min |       Max |       P80 |       P95 | Allocated |
-|-------------------------- |----------:|----------:|----------:|----------:|----------:|----------:|
-|              Diff_JsonNet | 109.05 μs | 105.82 μs | 119.70 μs | 111.81 μs | 115.36 μs |    132 KB |
-|       Diff_SystemTextJson |  88.99 μs |  87.03 μs |  90.95 μs |  89.82 μs |  90.78 μs |     66 KB |
-|             Patch_JsonNet | 115.06 μs | 112.71 μs | 126.55 μs | 115.31 μs | 117.95 μs |    162 KB |
-|      Patch_SystemTextJson |  41.39 μs |  40.67 μs |  42.67 μs |  41.62 μs |  42.03 μs |     35 KB |
-|        DeepEquals_JsonNet |  70.90 μs |  68.80 μs |  74.54 μs |  71.31 μs |  72.68 μs |     91 KB |
-| DeepEquals_SystemTextJson |  63.46 μs |  61.45 μs |  66.30 μs |  64.26 μs |  64.70 μs |     39 KB |
-|         DeepClone_JsonNet |  49.64 μs |  48.66 μs |  50.77 μs |  50.05 μs |  50.39 μs |     70 KB |
-|  DeepClone_SystemTextJson |  34.90 μs |  33.38 μs |  38.59 μs |  36.32 μs |  37.19 μs |     40 KB |
+### Patch
 
+|         Method | FileSize |        Mean |      Median |         Min |         Max |         P80 |         P95 | Allocated |
+|--------------- |--------- |------------:|------------:|------------:|------------:|------------:|------------:|----------:|
+| **SystemTextJson** |    **Small** |    **35.45 μs** |    **35.42 μs** |    **34.43 μs** |    **36.97 μs** |    **35.86 μs** |    **36.52 μs** |     **35 KB** |
+|        JsonNet |    Small |    95.50 μs |    95.35 μs |    94.14 μs |    97.36 μs |    96.28 μs |    96.70 μs |    162 KB |
+| **SystemTextJson** |    **Large** | **1,945.77 μs** | **1,935.61 μs** | **1,799.91 μs** | **2,203.39 μs** | **2,047.02 μs** | **2,093.61 μs** |  **1,732 KB** |
+|        JsonNet |    Large | 4,324.16 μs | 4,315.50 μs | 4,184.21 μs | 4,506.67 μs | 4,378.94 μs | 4,433.86 μs |  5,088 KB |
 
-### Large JSON object
+### DeepClone
 
-``` ini
-
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1645 (21H1/May2021Update)
-11th Gen Intel Core i7-1185G7 3.00GHz, 1 CPU, 8 logical and 4 physical cores
-.NET SDK=6.0.200
-  [Host]     : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
-  Job-BZNWDS : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
-
-
-```
-|                    Method |     Mean |      Min |      Max |      P80 |      P95 | Allocated |
-|-------------------------- |---------:|---------:|---------:|---------:|---------:|----------:|
-|              Diff_JsonNet | 5.534 ms | 4.986 ms | 6.186 ms | 5.732 ms | 6.008 ms |      4 MB |
-|       Diff_SystemTextJson | 5.026 ms | 4.725 ms | 5.229 ms | 5.124 ms | 5.216 ms |      3 MB |
-|             Patch_JsonNet | 5.998 ms | 5.342 ms | 6.634 ms | 6.171 ms | 6.541 ms |      5 MB |
-|      Patch_SystemTextJson | 2.603 ms | 2.276 ms | 2.965 ms | 2.720 ms | 2.934 ms |      2 MB |
-|        DeepEquals_JsonNet | 2.986 ms | 2.684 ms | 3.512 ms | 3.252 ms | 3.307 ms |      2 MB |
-| DeepEquals_SystemTextJson | 2.461 ms | 2.348 ms | 2.644 ms | 2.514 ms | 2.620 ms |      2 MB |
-|         DeepClone_JsonNet | 2.029 ms | 1.991 ms | 2.067 ms | 2.047 ms | 2.061 ms |      2 MB |
-|  DeepClone_SystemTextJson | 1.522 ms | 1.484 ms | 1.576 ms | 1.538 ms | 1.562 ms |      2 MB |
-
-
-### `DeepEquals`
-
-``` ini
-
-BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1645 (21H1/May2021Update)
-11th Gen Intel Core i7-1185G7 3.00GHz, 1 CPU, 8 logical and 4 physical cores
-.NET SDK=6.0.200
-  [Host]     : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
-  Job-MDGOSR : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
-
-
-```
-|         Method |     Mean |      Min |      Max |      P80 |      P95 | Allocated |
-|--------------- |---------:|---------:|---------:|---------:|---------:|----------:|
-|        JsonNet | 17.22 μs | 16.87 μs | 17.73 μs | 17.37 μs | 17.48 μs |     23 KB |
-| SystemTextJson | 16.76 μs | 16.44 μs | 17.07 μs | 16.87 μs | 16.99 μs |     10 KB |
-
+|         Method | FileSize |        Mean |      Median |         Min |         Max |         P80 |         P95 | Allocated |
+|--------------- |--------- |------------:|------------:|------------:|------------:|------------:|------------:|----------:|
+| **SystemTextJson** |    **Small** |    **28.98 μs** |    **29.05 μs** |    **27.99 μs** |    **29.53 μs** |    **29.29 μs** |    **29.42 μs** |     **40 KB** |
+|        JsonNet |    Small |    42.99 μs |    42.84 μs |    41.90 μs |    45.02 μs |    43.41 μs |    44.70 μs |     70 KB |
+| **SystemTextJson** |    **Large** | **1,251.60 μs** | **1,247.97 μs** | **1,192.19 μs** | **1,323.97 μs** | **1,276.05 μs** | **1,310.40 μs** |  **1,675 KB** |
+|        JsonNet |    Large | 1,708.43 μs | 1,706.69 μs | 1,664.39 μs | 1,783.04 μs | 1,731.47 μs | 1,759.00 μs |  2,128 KB |

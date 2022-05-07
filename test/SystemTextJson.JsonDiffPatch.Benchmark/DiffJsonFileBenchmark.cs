@@ -11,15 +11,6 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
     public class DiffJsonFileBenchmark : JsonFileBenchmark
     {
         [Benchmark]
-        public JToken JsonNet()
-        {
-            var token1 = JToken.Parse(JsonLeft);
-            var token2 = JToken.Parse(JsonRight);
-
-            return BenchmarkHelper.CreateJsonNetDiffPatch().Diff(token1, token2);
-        }
-
-        [Benchmark]
         public JsonNode? SystemTextJson()
         {
             var node1 = JsonNode.Parse(JsonLeft);
@@ -29,13 +20,12 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
         }
 
         [Benchmark]
-        public IList<Operation> JsonNet_Rfc()
+        public JToken JsonNet()
         {
             var token1 = JToken.Parse(JsonLeft);
             var token2 = JToken.Parse(JsonRight);
 
-            return new JsonDeltaFormatter().Format(
-                BenchmarkHelper.CreateJsonNetDiffPatch().Diff(token1, token2));
+            return BenchmarkHelper.CreateJsonNetDiffPatch().Diff(token1, token2);
         }
 
         [Benchmark]
@@ -46,6 +36,16 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
 
             return node1.Diff(node2, new JsonPatchDeltaFormatter(),
                 BenchmarkHelper.CreateDiffOptionsWithJsonNetMatch());
+        }
+
+        [Benchmark]
+        public IList<Operation> JsonNet_Rfc()
+        {
+            var token1 = JToken.Parse(JsonLeft);
+            var token2 = JToken.Parse(JsonRight);
+
+            return new JsonDeltaFormatter().Format(
+                BenchmarkHelper.CreateJsonNetDiffPatch().Diff(token1, token2));
         }
     }
 }
