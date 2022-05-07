@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 namespace SystemTextJson.JsonDiffPatch.Benchmark
 {
     [IterationCount(50)]
-    public class DeepEqualsBenchmarks
+    public class DeepEqualsBenchmark
     {
         [Benchmark]
         public JToken JsonNet()

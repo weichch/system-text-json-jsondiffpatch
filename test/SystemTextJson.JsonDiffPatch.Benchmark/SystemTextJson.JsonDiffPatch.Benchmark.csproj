@@ -17,13 +17,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\Examples\demo_left.json" Link="Examples\demo_left.json">
+    <None Include="..\Examples\demo_left.json" Link="Examples\small_left.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="..\Examples\demo_right.json" Link="Examples\demo_right.json">
+    <None Include="..\Examples\demo_right.json" Link="Examples\small_right.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="..\Examples\demo_diff_notext.json" Link="Examples\demo_diff_notext.json">
+    <None Include="..\Examples\demo_diff_notext.json" Link="Examples\small_diff.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="..\Examples\large_left.json" Link="Examples\large_left.json">
@@ -32,7 +32,7 @@
     <None Include="..\Examples\large_right.json" Link="Examples\large_right.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="..\Examples\large_diff_notext.json" Link="Examples\large_diff_notext.json">
+    <None Include="..\Examples\large_diff_notext.json" Link="Examples\large_diff.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
