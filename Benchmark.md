@@ -15,7 +15,7 @@ BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1645 (21H1/May2021Update)
 
 ## Comparison Modes
 
-_All benchmarks are generated using the same small JSON object used in the **Newtonsoft Json vs System.Text.Json** section below._
+_All benchmarks are generated using the same small JSON object used in the **Newtonsoft Json vs System.Text.Json** section below, with array move detection enabled (default)._
 
 |   Method | FileSize |     Mean |   Median |      Min |      Max |      P80 |      P95 | Allocated |
 |--------- |--------- |---------:|---------:|---------:|---------:|---------:|---------:|----------:|
