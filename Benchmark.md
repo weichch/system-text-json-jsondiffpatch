@@ -20,9 +20,9 @@ BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19043.1645 (21H1/May2021Update)
 |  RawText |    Small | 100.9 μs | 100.3 μs | 98.36 μs | 105.7 μs | 102.0 μs | 104.9 μs |     77 KB |
 | Semantic |    Small | 102.2 μs | 101.9 μs | 99.37 μs | 107.0 μs | 103.1 μs | 105.6 μs |     76 KB |
 
-\* _All benchmarks are generated using the same small JSON object used in the **Newtonsoft Json vs System.Text.Json** section below, with array move detection enabled (default)._
+\* _All benchmarks are generated using the same small JSON object used in the **System.Text.Json vs Newtonsoft Json** section below, with array move detection enabled (default)._
 
-## Newtonsoft Json vs System.Text.Json
+## System.Text.Json vs Newtonsoft Json
 
 ### Diff (including RFC JsonPatch)
 
