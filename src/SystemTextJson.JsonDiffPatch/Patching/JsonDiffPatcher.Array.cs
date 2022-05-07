@@ -10,7 +10,7 @@ namespace System.Text.Json.JsonDiffPatch
             // When make changes in this method, also copy the changes to ReversePatch* method
 
             var arrayDelta = new JsonDiffDelta(patch);
-            foreach (var entry in arrayDelta.GetPatchableArrayChangeEnumerable(left, false))
+            foreach (var entry in arrayDelta.GetPatchableArrayChangeEnumerable(left))
             {
                 var delta = entry.Diff;
                 var kind = delta.Kind;

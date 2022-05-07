@@ -100,7 +100,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             // We only cache JSON values as they are more efficient to cache than objects and arrays.
             var valueCacheRented = ArrayPool<JsonValueComparisonContext>.Shared.Rent(x.Length + y.Length);
             var valueCacheSpan = valueCacheRented.AsSpan(0, x.Length + y.Length);
-            var comparerOptions = options.CreateComparerOptions();
+            ref var comparerOptions = ref options.CreateComparerOptions();
 
             matrix.Fill(0);
             matchMatrixSpan.Fill(0);

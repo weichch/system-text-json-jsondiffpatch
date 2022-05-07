@@ -21,7 +21,7 @@ namespace System.Text.Json.JsonDiffPatch
                 return;
             }
 
-            var comparerOptions = options.CreateComparerOptions();
+            ref var comparerOptions = ref options.CreateComparerOptions();
 
             // Find command head
             int commonHead;

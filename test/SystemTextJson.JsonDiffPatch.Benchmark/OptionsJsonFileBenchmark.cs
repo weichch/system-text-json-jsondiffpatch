@@ -4,33 +4,28 @@ using BenchmarkDotNet.Attributes;
 
 namespace SystemTextJson.JsonDiffPatch.Benchmark
 {
-    [IterationCount(50)]
-    public class OptionsBenchmarks : ExampleJsonFileBenchmark
+    public class OptionsJsonFileBenchmark : JsonFileBenchmark
     {
-        public OptionsBenchmarks()
-            : base(GetExampleFile("demo_left.json"),
-                GetExampleFile("demo_right.json"),
-                GetExampleFile("demo_diff_notext.json"))
-        {
-        }
+        [Params(JsonFileSize.Small)]
+        public override JsonFileSize FileSize { get; set; }
 
         [Benchmark]
         public JsonNode RawText()
         {
-            var node1 = JsonNode.Parse(_jsonBefore);
-            var node2 = JsonNode.Parse(_jsonAfter);
+            var node1 = JsonNode.Parse(JsonLeft);
+            var node2 = JsonNode.Parse(JsonRight);
 
             return node1.Diff(node2, new JsonDiffOptions
             {
                 JsonElementComparison = JsonElementComparison.RawText
             })!;
         }
-        
+
         [Benchmark]
         public JsonNode Semantic()
         {
-            var node1 = JsonNode.Parse(_jsonBefore);
-            var node2 = JsonNode.Parse(_jsonAfter);
+            var node1 = JsonNode.Parse(JsonLeft);
+            var node2 = JsonNode.Parse(JsonRight);
 
             return node1.Diff(node2, new JsonDiffOptions
             {
