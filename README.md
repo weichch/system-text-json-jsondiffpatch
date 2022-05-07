@@ -1,8 +1,8 @@
 # SystemTextJson.JsonDiffPatch
 
-![GitHub](https://img.shields.io/github/license/weichch/system-text-json-jsondiffpatch?color=blueviolet) ![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/weichch/system-text-json-jsondiffpatch/build-and-test/main) ![Nuget](https://img.shields.io/nuget/dt/SystemTextJson.JsonDiffPatch?color=important)
+![GitHub](https://img.shields.io/github/license/weichch/system-text-json-jsondiffpatch?color=blueviolet) ![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/weichch/system-text-json-jsondiffpatch/build-and-test/main) [![JsonDiffPatch](https://img.shields.io/nuget/vpre/SystemTextJson.JsonDiffPatch?style=flat)](https://www.nuget.org/packages/SystemTextJson.JsonDiffPatch/) ![Nuget](https://img.shields.io/nuget/dt/SystemTextJson.JsonDiffPatch?color=important)
 
-High-performance, low-allocating JSON objects diff and patch extension for System.Text.Json.
+High-performance, low-allocating JSON object diff and patch extension for System.Text.Json.
 
 ## Features
 
@@ -19,9 +19,29 @@ High-performance, low-allocating JSON objects diff and patch extension for Syste
 
 ## Install
 
-|                                                                        JsonDiffPatch                                                                        |                                                                              xUnit Assert                                                                              |                                                                               MSTest v2 Assert                                                                               |                                                                              NUnit Assert                                                                              |
-|:-----------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| [![JsonDiffPatch](https://img.shields.io/nuget/vpre/SystemTextJson.JsonDiffPatch?style=flat)](https://www.nuget.org/packages/SystemTextJson.JsonDiffPatch/) | [![xUnit Assert](https://img.shields.io/nuget/vpre/SystemTextJson.JsonDiffPatch.Xunit?style=flat)](https://www.nuget.org/packages/SystemTextJson.JsonDiffPatch.Xunit/) | [![MSTest v2 Assert](https://img.shields.io/nuget/vpre/SystemTextJson.JsonDiffPatch.MSTest?style=flat)](https://www.nuget.org/packages/SystemTextJson.JsonDiffPatch.MSTest/) | [![NUnit Assert](https://img.shields.io/nuget/vpre/SystemTextJson.JsonDiffPatch.NUnit?style=flat)](https://www.nuget.org/packages/SystemTextJson.JsonDiffPatch.NUnit/) |
+#### JsonDiffPatch
+
+```
+Install-Package SystemTextJson.JsonDiffPatch
+```
+
+#### xUnit Assert
+
+```
+Install-Package SystemTextJson.JsonDiffPatch.Xunit
+```
+
+#### MSTest v2 Assert
+
+```
+Install-Package SystemTextJson.JsonDiffPatch.MSTest
+```
+
+#### NUnit Assert
+
+```
+Install-Package SystemTextJson.JsonDiffPatch.NUnit
+```
 
 ## Usage
 
