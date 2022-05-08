@@ -9,8 +9,7 @@ namespace System.Text.Json.JsonDiffPatch
     /// </summary>
     public class JsonDiffOptions
     {
-        internal static readonly JsonDiffOptions Default = new();
-        private JsonComparerOptions _comparerOptions;
+        private JsonElementComparison? _jsonElementComparison;
 
         /// <summary>
         /// Specifies whether to suppress detect array move. Default value is <c>false</c>.
@@ -49,22 +48,20 @@ namespace System.Text.Json.JsonDiffPatch
         /// <summary>
         /// Gets or sets the mode to compare two <see cref="JsonElement"/> instances.
         /// </summary>
-        public JsonElementComparison JsonElementComparison { get; set; }
+        public JsonElementComparison JsonElementComparison
+        {
+            get => _jsonElementComparison ?? JsonDiffPatcher.DefaultDeepEqualsComparison;
+            set => _jsonElementComparison = value;
+        }
 
         /// <summary>
         /// Gets or sets the <see cref="JsonValue"/> comparer.
         /// </summary>
         public IEqualityComparer<JsonValue>? ValueComparer { get; set; }
 
-        internal ref JsonComparerOptions CreateComparerOptions()
+        internal JsonComparerOptions CreateComparerOptions()
         {
-            if (JsonElementComparison != _comparerOptions.JsonElementComparison
-                || !ReferenceEquals(ValueComparer, _comparerOptions.ValueComparer))
-            {
-                _comparerOptions = new JsonComparerOptions(JsonElementComparison, ValueComparer);
-            }
-
-            return ref _comparerOptions;
+            return new JsonComparerOptions(JsonElementComparison, ValueComparer);
         }
     }
 }

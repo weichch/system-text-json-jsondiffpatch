@@ -81,7 +81,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             }
         }
 
-        public static Lcs Get(Span<JsonNode?> x, Span<JsonNode?> y, JsonDiffOptions options)
+        public static Lcs Get(Span<JsonNode?> x, Span<JsonNode?> y, JsonDiffOptions? options)
         {
             if (x.Length == 0 || y.Length == 0)
             {
@@ -100,7 +100,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             // We only cache JSON values as they are more efficient to cache than objects and arrays.
             var valueCacheRented = ArrayPool<JsonValueComparisonContext>.Shared.Rent(x.Length + y.Length);
             var valueCacheSpan = valueCacheRented.AsSpan(0, x.Length + y.Length);
-            ref var comparerOptions = ref options.CreateComparerOptions();
+            var comparerOptions = options?.CreateComparerOptions() ?? default;
 
             matrix.Fill(0);
             matchMatrixSpan.Fill(0);

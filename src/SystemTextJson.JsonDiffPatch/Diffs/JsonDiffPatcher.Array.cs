@@ -13,7 +13,7 @@ namespace System.Text.Json.JsonDiffPatch
             ref JsonDiffDelta delta,
             JsonArray left, 
             JsonArray right,
-            JsonDiffOptions options)
+            JsonDiffOptions? options)
         {
             // Both are empty arrays
             if (left.Count == 0 && right.Count == 0)
@@ -21,7 +21,7 @@ namespace System.Text.Json.JsonDiffPatch
                 return;
             }
 
-            ref var comparerOptions = ref options.CreateComparerOptions();
+            var comparerOptions = options?.CreateComparerOptions() ?? default;
 
             // Find command head
             int commonHead;
@@ -131,15 +131,15 @@ namespace System.Text.Json.JsonDiffPatch
                     {
                         // Added, detect if it's moved item
                         var isMoved = false;
-                        if (!options.SuppressDetectArrayMove && removedIndices is not null)
+                        if (options?.SuppressDetectArrayMove != true && removedIndices is not null)
                         {
                             for (var j = 0; j < removedIndices.Count; j++)
                             {
                                 var removedLeftIndex = removedIndices[j];
                                 if (lcs.AreEqual(
-                                    removedLeftIndex - commonHead /* Deleted in left */,
-                                    i - commonHead /* Current in right */,
-                                    out var isDeepEqual))
+                                        removedLeftIndex - commonHead /* Deleted in left */,
+                                        i - commonHead /* Current in right */,
+                                        out var isDeepEqual))
                                 {
                                     delta.ArrayMoveFromDeleted(removedLeftIndex, i);
 
@@ -178,7 +178,7 @@ namespace System.Text.Json.JsonDiffPatch
             static void AddDiffResult(
                 ref JsonDiffDelta delta,
                 ref ArrayItemMatchContext context,
-                JsonDiffOptions options)
+                JsonDiffOptions? options)
             {
                 if (context.IsDeepEqual)
                 {
@@ -194,7 +194,7 @@ namespace System.Text.Json.JsonDiffPatch
             }
         }
 
-        internal static bool MatchArrayItem(ref ArrayItemMatchContext context, JsonDiffOptions options,
+        internal static bool MatchArrayItem(ref ArrayItemMatchContext context, JsonDiffOptions? options,
             in JsonComparerOptions comparerOptions)
         {
             if (context.Left.DeepEquals(context.Right, comparerOptions))
@@ -203,7 +203,8 @@ namespace System.Text.Json.JsonDiffPatch
                 return true;
             }
 
-            if (context.Left is JsonObject or JsonArray && context.Right is JsonObject or JsonArray)
+            if (options is not null && context.Left is JsonObject or JsonArray &&
+                context.Right is JsonObject or JsonArray)
             {
                 if (FuzzyMatchArrayItem(ref context, options, out var fuzzyResult))
                 {
@@ -211,7 +212,7 @@ namespace System.Text.Json.JsonDiffPatch
                 }
             }
 
-            if (options.ArrayItemMatcher is not null)
+            if (options?.ArrayItemMatcher is not null)
             {
                 return options.ArrayItemMatcher(ref context);
             }
@@ -223,7 +224,7 @@ namespace System.Text.Json.JsonDiffPatch
             ref ArrayItemMatchContext context,
             ref JsonValueComparisonContext valueContextLeft,
             ref JsonValueComparisonContext valueContextRight,
-            JsonDiffOptions options,
+            JsonDiffOptions? options,
             in JsonComparerOptions comparerOptions)
         {
             if (valueContextLeft.DeepEquals(ref valueContextRight, comparerOptions))
@@ -232,7 +233,7 @@ namespace System.Text.Json.JsonDiffPatch
                 return true;
             }
 
-            if (options.ArrayItemMatcher is not null)
+            if (options?.ArrayItemMatcher is not null)
             {
                 return options.ArrayItemMatcher(ref context);
             }

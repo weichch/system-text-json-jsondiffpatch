@@ -36,7 +36,7 @@ namespace System.Text.Json.JsonDiffPatch
         public static bool DeepEquals(this JsonNode? left, JsonNode? right, IEqualityComparer<JsonValue> valueComparer)
         {
             _ = valueComparer ?? throw new ArgumentNullException(nameof(valueComparer));
-            return DeepEquals(left, right, new JsonComparerOptions(default, valueComparer));
+            return DeepEquals(left, right, new JsonComparerOptions(null, valueComparer));
         }
 
         /// <summary>
