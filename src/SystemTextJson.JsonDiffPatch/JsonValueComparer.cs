@@ -96,12 +96,12 @@ namespace System.Text.Json.JsonDiffPatch
 
                     return StringComparer.Ordinal.Compare(x.GetRawText(), y.GetRawText());
 
-                case JsonValueKind.Null:
-                case JsonValueKind.False:
                 case JsonValueKind.True:
-                    return 0;
-
+                case JsonValueKind.False:
+                case JsonValueKind.Null:
                 case JsonValueKind.Undefined:
+                    return 0;
+                
                 case JsonValueKind.Object:
                 case JsonValueKind.Array:
                 default:

@@ -69,6 +69,74 @@ namespace System.Text.Json.JsonDiffPatch
             };
         }
 
+        /// <summary>
+        /// Determines whether two <see cref="JsonElement"/> objects are deeply equal.
+        /// </summary>
+        /// <param name="left">The left value.</param>
+        /// <param name="right">The right value.</param>
+        /// <param name="jsonElementComparison">The JSON element comparison.</param>
+        public static bool DeepEquals(this JsonDocument? left, JsonDocument? right,
+            JsonElementComparison? jsonElementComparison = null)
+        {
+            if (ReferenceEquals(left, right))
+            {
+                return true;
+            }
+
+            if (left is null || right is null)
+            {
+                return false;
+            }
+
+            return left.RootElement.DeepEquals(right.RootElement, jsonElementComparison);
+        }
+
+        /// <summary>
+        /// Determines whether two <see cref="JsonElement"/> objects are deeply equal.
+        /// </summary>
+        /// <param name="left">The left value.</param>
+        /// <param name="right">The right value.</param>
+        /// <param name="jsonElementComparison">The JSON element comparison.</param>
+        public static bool DeepEquals(this in JsonElement left, in JsonElement right,
+            JsonElementComparison? jsonElementComparison = null)
+        {
+            if (left.ValueKind != right.ValueKind)
+            {
+                return false;
+            }
+
+            jsonElementComparison ??= DefaultDeepEqualsComparison;
+
+            switch (left.ValueKind)
+            {
+                case JsonValueKind.Number:
+                    return jsonElementComparison is JsonElementComparison.RawText
+                        ? string.Equals(left.GetRawText(), right.GetRawText())
+                        : new JsonNumber(left).CompareTo(new JsonNumber(right)) == 0;
+
+                case JsonValueKind.String:
+                    return jsonElementComparison is JsonElementComparison.RawText
+                        ? left.ValueEquals(right.GetString())
+                        : new JsonString(left).ValueEquals(new JsonString(right));
+                
+                case JsonValueKind.Object:
+                    return ObjectEquals(left, right, jsonElementComparison.Value);
+
+                case JsonValueKind.Array:
+                    return ArrayEquals(left, right, jsonElementComparison.Value);
+                
+                case JsonValueKind.True:
+                case JsonValueKind.False:
+                case JsonValueKind.Null:
+                case JsonValueKind.Undefined:
+                    return true;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(left.ValueKind),
+                        $"Unexpected JSON value kind {left.ValueKind:G}.");
+            }
+        }
+
         private static bool ObjectEquals(JsonObject obj1, JsonObject obj2, in JsonComparerOptions comparerOptions)
         {
             if (obj1.Count == 0 && obj2.Count == 0)
@@ -104,6 +172,57 @@ namespace System.Text.Json.JsonDiffPatch
             return true;
         }
 
+        private static bool ObjectEquals(in JsonElement x, in JsonElement y, JsonElementComparison elementComparison)
+        {
+            EnumerateProperty(x, out var propertiesX);
+            EnumerateProperty(y, out var propertiesY);
+
+            if (propertiesX is null && propertiesY is null)
+            {
+                return true;
+            }
+
+            if (propertiesX is null || propertiesY is null)
+            {
+                return false;
+            }
+
+            if (propertiesX.Count != propertiesY.Count)
+            {
+                return false;
+            }
+
+            foreach (var kvp in propertiesX)
+            {
+                if (!propertiesY.TryGetValue(kvp.Key, out var propertyY))
+                {
+                    return false;
+                }
+
+                if (!kvp.Value.Value.DeepEquals(propertyY.Value, elementComparison))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+
+            static void EnumerateProperty(in JsonElement element, out Dictionary<string, JsonProperty>? properties)
+            {
+                properties = null;
+
+                foreach (var property in element.EnumerateObject())
+                {
+                    if (properties is null)
+                    {
+                        properties = new Dictionary<string, JsonProperty>();
+                    }
+
+                    properties[property.Name] = property;
+                }
+            }
+        }
+
         private static bool ArrayEquals(JsonArray arr1, JsonArray arr2, in JsonComparerOptions comparerOptions)
         {
             if (arr1.Count == 0 && arr2.Count == 0)
@@ -124,6 +243,31 @@ namespace System.Text.Json.JsonDiffPatch
                     return false;
                 }
             }
+
+            return true;
+        }
+
+        private static bool ArrayEquals(in JsonElement x, in JsonElement y, JsonElementComparison elementComparison)
+        {
+            if (x.GetArrayLength() != y.GetArrayLength())
+            {
+                return false;
+            }
+
+            using var enumeratorX = x.EnumerateArray();
+            using var enumeratorY = y.EnumerateArray();
+
+            while (enumeratorX.MoveNext())
+            {
+                if (!enumeratorY.MoveNext() ||
+                    !enumeratorX.Current.DeepEquals(enumeratorY.Current, elementComparison))
+                {
+                    return false;
+                }
+            }
+
+            Debug.Assert(enumeratorX.MoveNext() == false);
+            Debug.Assert(enumeratorY.MoveNext() == false);
 
             return true;
         }

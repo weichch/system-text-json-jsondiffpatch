@@ -77,7 +77,8 @@ namespace System.Text.Json.JsonDiffPatch
             if (ValueType == typeof(sbyte))
                 return Convert.ToDecimal(ReadValue<sbyte>());
 
-            throw new ArgumentOutOfRangeException($"Unsupported value type '{ValueType?.FullName ?? "null"}'.");
+            throw new ArgumentOutOfRangeException(nameof(ValueType),
+                $"Unsupported value type '{ValueType?.FullName ?? "null"}'.");
         }
 
         public double GetDouble()
@@ -110,7 +111,8 @@ namespace System.Text.Json.JsonDiffPatch
             if (ValueType == typeof(sbyte))
                 return Convert.ToDouble(ReadValue<sbyte>());
 
-            throw new ArgumentOutOfRangeException($"Unsupported value type '{ValueType?.FullName ?? "null"}'.");
+            throw new ArgumentOutOfRangeException(nameof(ValueType),
+                $"Unsupported value type '{ValueType?.FullName ?? "null"}'.");
         }
 
         public long GetInt64()
@@ -143,7 +145,8 @@ namespace System.Text.Json.JsonDiffPatch
             if (ValueType == typeof(sbyte))
                 return Convert.ToInt64(ReadValue<sbyte>());
 
-            throw new ArgumentOutOfRangeException($"Unsupported value type '{ValueType?.FullName ?? "null"}'.");
+            throw new ArgumentOutOfRangeException(nameof(ValueType),
+                $"Unsupported value type '{ValueType?.FullName ?? "null"}'.");
         }
 
         public DateTime GetDateTime()
