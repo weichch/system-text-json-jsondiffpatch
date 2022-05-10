@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 
 namespace SystemTextJson.JsonDiffPatch.Benchmark
 {
+    [IterationCount(10)]
     public class QuickDeepEquals : JsonFileBenchmark
     {
         [Params(JsonFileSize.Small)]

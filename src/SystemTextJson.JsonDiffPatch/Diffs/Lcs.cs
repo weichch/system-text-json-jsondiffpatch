@@ -14,17 +14,17 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
         private readonly Dictionary<int, LcsEntry>? _lookupByRightIndex;
         private readonly int[]? _matrixRented;
         private readonly int[]? _matchMatrixRented;
-        private readonly JsonValueComparisonContext[]? _comparisonContextCacheRented;
+        private readonly JsonValueWrapper[]? _wrapperCacheRented;
         private readonly int _rowSize;
 
         private Lcs(List<LcsEntry> indices, int[] matrixRented, int[] matchMatrixRented,
-            JsonValueComparisonContext[]? comparisonContextCacheRented, int rowSize)
+            JsonValueWrapper[]? wrapperCacheRented, int rowSize)
         {
             _lookupByLeftIndex = indices.ToDictionary(entry => entry.LeftIndex);
             _lookupByRightIndex = indices.ToDictionary(entry => entry.RightIndex);
             _matrixRented = matrixRented;
             _matchMatrixRented = matchMatrixRented;
-            _comparisonContextCacheRented = comparisonContextCacheRented;
+            _wrapperCacheRented = wrapperCacheRented;
             _rowSize = rowSize;
         }
 
@@ -75,9 +75,9 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
                 ArrayPool<int>.Shared.Return(_matchMatrixRented);
             }
 
-            if (_comparisonContextCacheRented is not null)
+            if (_wrapperCacheRented is not null)
             {
-                ArrayPool<JsonValueComparisonContext>.Shared.Return(_comparisonContextCacheRented);
+                ArrayPool<JsonValueWrapper>.Shared.Return(_wrapperCacheRented);
             }
         }
 
@@ -98,19 +98,19 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             var matchMatrixSpan = matchMatrixRented.AsSpan(0, matrixLength);
             // For performance reasons, we set materialized values into a cache.
             // We only cache JSON values as they are more efficient to cache than objects and arrays.
-            var valueCacheRented = ArrayPool<JsonValueComparisonContext>.Shared.Rent(x.Length + y.Length);
-            var valueCacheSpan = valueCacheRented.AsSpan(0, x.Length + y.Length);
+            var wrapperCacheRented = ArrayPool<JsonValueWrapper>.Shared.Rent(x.Length + y.Length);
+            var wrapperCacheSpan = wrapperCacheRented.AsSpan(0, x.Length + y.Length);
             var comparerOptions = options?.CreateComparerOptions() ?? default;
 
             matrix.Fill(0);
             matchMatrixSpan.Fill(0);
-            valueCacheSpan.Fill(default);
+            wrapperCacheSpan.Fill(default);
 
             for (var i = 1; i < m; i++)
             {
                 if (x[i - 1] is JsonValue jsonValueX)
                 {
-                    valueCacheSpan[i - 1] = new JsonValueComparisonContext(jsonValueX, true);
+                    wrapperCacheSpan[i - 1] = new JsonValueWrapper(jsonValueX);
                 }
             }
 
@@ -118,7 +118,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             {
                 if (y[j - 1] is JsonValue jsonValueY)
                 {
-                    valueCacheSpan[x.Length + j - 1] = new JsonValueComparisonContext(jsonValueY, true);
+                    wrapperCacheSpan[x.Length + j - 1] = new JsonValueWrapper(jsonValueY);
                 }
             }
 
@@ -149,8 +149,8 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
                     if (x[i - 1] is JsonValue && y[j - 1] is JsonValue)
                     {
                         itemMatched = JsonDiffPatcher.MatchArrayItem(ref matchContext,
-                            ref valueCacheSpan[i - 1],
-                            ref valueCacheSpan[x.Length + j - 1],
+                            ref wrapperCacheSpan[i - 1],
+                            ref wrapperCacheSpan[x.Length + j - 1],
                             options,
                             comparerOptions);
                     }
@@ -222,7 +222,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
                 }
             }
 
-            return new Lcs(entries, matrixRented, matchMatrixRented, valueCacheRented, n);
+            return new Lcs(entries, matrixRented, matchMatrixRented, wrapperCacheRented, n);
         }
 
         internal readonly struct LcsEntry

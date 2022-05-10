@@ -222,12 +222,12 @@ namespace System.Text.Json.JsonDiffPatch
 
         internal static bool MatchArrayItem(
             ref ArrayItemMatchContext context,
-            ref JsonValueComparisonContext valueContextLeft,
-            ref JsonValueComparisonContext valueContextRight,
+            ref JsonValueWrapper wrapperLeft,
+            ref JsonValueWrapper wrapperRight,
             JsonDiffOptions? options,
             in JsonComparerOptions comparerOptions)
         {
-            if (valueContextLeft.DeepEquals(ref valueContextRight, comparerOptions))
+            if (wrapperLeft.DeepEquals(ref wrapperRight, comparerOptions))
             {
                 context.DeepEqual();
                 return true;

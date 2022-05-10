@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text.Json.Nodes;
+﻿using System.Text.Json.Nodes;
 
 namespace System.Text.Json.JsonDiffPatch
 {
@@ -30,84 +29,10 @@ namespace System.Text.Json.JsonDiffPatch
                 return 1;
             }
 
-            var contextX = new JsonValueComparisonContext(x);
-            var contextY = new JsonValueComparisonContext(y);
+            var wrapperX = new JsonValueWrapper(x);
+            var wrapperY = new JsonValueWrapper(y);
 
-            if (contextX.ValueKind != contextY.ValueKind)
-            {
-                return -((int) contextX.ValueKind - (int) contextY.ValueKind);
-            }
-
-            return Compare(contextX.ValueKind, ref contextX, ref contextY);
-        }
-
-        internal static int Compare(JsonValueKind valueKind, ref JsonValueComparisonContext x,
-            ref JsonValueComparisonContext y)
-        {
-            Debug.Assert(x.Value is not null);
-            Debug.Assert(y.Value is not null);
-            Debug.Assert(x.ValueKind == y.ValueKind);
-
-            switch (valueKind)
-            {
-                case JsonValueKind.Number:
-                    if (x.ValueType == typeof(decimal) || y.ValueType == typeof(decimal) ||
-                        x.ValueType == typeof(ulong) || y.ValueType == typeof(ulong))
-                    {
-                        return x.GetDecimal().CompareTo(y.GetDecimal());
-                    }
-
-                    if (x.ValueType == typeof(double) || y.ValueType == typeof(double) ||
-                        x.ValueType == typeof(float) || y.ValueType == typeof(float))
-                    {
-                        return CompareDouble(x.GetDouble(), y.GetDouble());
-                    }
-
-                    return x.GetInt64().CompareTo(y.GetInt64());
-
-                case JsonValueKind.String:
-                    if (x.StringValueKind == y.StringValueKind)
-                    {
-                        switch (x.StringValueKind)
-                        {
-                            case JsonStringValueKind.DateTime:
-                                return CompareDateTime(ref x, ref y);
-                            case JsonStringValueKind.Guid:
-                                return x.GetGuid().CompareTo(y.GetGuid());
-                            case JsonStringValueKind.String:
-                                if ((x.ValueType == typeof(string) || x.ValueType == typeof(char))
-                                    && (y.ValueType == typeof(string) || y.ValueType == typeof(char)))
-                                {
-                                    return StringComparer.Ordinal.Compare(x.GetString(), y.GetString());
-                                }
-                                // Because testing whether string is based64 encoded is expensive operation,
-                                // we only test it when comparing with a byte array. Otherwise, we compare raw text.
-                                else if (x.ValueType == typeof(byte[]) || y.ValueType == typeof(byte[]))
-                                {
-                                    if (TryCompareByteArray(ref x, ref y, out var compareResult))
-                                    {
-                                        return compareResult;
-                                    }
-                                }
-
-                                break;
-                        }
-                    }
-
-                    return StringComparer.Ordinal.Compare(x.GetRawText(), y.GetRawText());
-
-                case JsonValueKind.True:
-                case JsonValueKind.False:
-                case JsonValueKind.Null:
-                case JsonValueKind.Undefined:
-                    return 0;
-                
-                case JsonValueKind.Object:
-                case JsonValueKind.Array:
-                default:
-                    throw new ArgumentOutOfRangeException(
-                        nameof(valueKind), $"Unexpected value kind {valueKind:G}");
-            }
+            return wrapperX.CompareTo(ref wrapperY);
         }
     }
 }
