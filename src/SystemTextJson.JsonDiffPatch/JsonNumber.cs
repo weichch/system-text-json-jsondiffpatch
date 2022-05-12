@@ -220,6 +220,7 @@ namespace System.Text.Json.JsonDiffPatch
             return LongValue!.Value.CompareTo(another.LongValue!.Value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool RawTextEquals(ref JsonNumber another)
         {
             if (!HasElement || HasElement != another.HasElement)

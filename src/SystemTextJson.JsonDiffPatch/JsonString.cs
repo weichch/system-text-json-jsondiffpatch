@@ -332,6 +332,7 @@ namespace System.Text.Json.JsonDiffPatch
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool ValueEquals(ref JsonString another)
         {
             if (!HasElement || HasElement != another.HasElement)

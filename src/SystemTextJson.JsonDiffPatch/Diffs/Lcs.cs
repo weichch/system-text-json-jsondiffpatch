@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Nodes;
 
 namespace System.Text.Json.JsonDiffPatch.Diffs
@@ -17,6 +18,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
         private readonly JsonValueWrapper[]? _wrapperCacheRented;
         private readonly int _rowSize;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Lcs(List<LcsEntry> indices, int[] matrixRented, int[] matchMatrixRented,
             JsonValueWrapper[]? wrapperCacheRented, int rowSize)
         {
@@ -28,6 +30,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             _rowSize = rowSize;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool FindLeftIndex(int index, out LcsEntry result)
         {
             if (_lookupByLeftIndex is null)
@@ -39,6 +42,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             return _lookupByLeftIndex.TryGetValue(index, out result);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool FindRightIndex(int index, out LcsEntry result)
         {
             if (_lookupByRightIndex is null)
@@ -50,6 +54,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             return _lookupByRightIndex.TryGetValue(index, out result);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AreEqual(int indexX, int indexY, out bool deepEqual)
         {
             if (_matchMatrixRented is null)

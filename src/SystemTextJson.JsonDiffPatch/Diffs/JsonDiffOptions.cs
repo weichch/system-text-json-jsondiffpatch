@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text.Json.JsonDiffPatch.Diffs;
 using System.Text.Json.Nodes;
 
@@ -59,9 +60,7 @@ namespace System.Text.Json.JsonDiffPatch
         /// </summary>
         public IEqualityComparer<JsonValue>? ValueComparer { get; set; }
 
-        internal JsonComparerOptions CreateComparerOptions()
-        {
-            return new JsonComparerOptions(JsonElementComparison, ValueComparer);
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal JsonComparerOptions CreateComparerOptions() => new(JsonElementComparison, ValueComparer);
     }
 }
