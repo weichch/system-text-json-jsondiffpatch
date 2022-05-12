@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Nodes;
 
 namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
 {
+    [SuppressMessage("ReSharper", "HeapView.BoxingAllocation")]
     public class NodeTestData
     {
         public static IEnumerable<object[]> ElementRawTextEqual
