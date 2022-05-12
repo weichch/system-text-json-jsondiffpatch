@@ -24,6 +24,7 @@ namespace System.Text.Json.JsonDiffPatch
         // Keep as field to avoid copy
         public readonly JsonElement Element;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonString(in JsonElement element)
         {
             Debug.Assert(element.ValueKind is JsonValueKind.String,
@@ -42,42 +43,49 @@ namespace System.Text.Json.JsonDiffPatch
             _isValueRead = false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonString(JsonValue parent, DateTime value)
             : this(parent, JsonStringValueKind.DateTime)
         {
             _dateTimeValue = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonString(JsonValue parent, DateTimeOffset value)
             : this(parent, JsonStringValueKind.DateTime)
         {
             _dateTimeOffsetValue = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonString(JsonValue parent, Guid value)
             : this(parent, JsonStringValueKind.Guid)
         {
             _guidValue = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonString(JsonValue parent, char value)
             : this(parent, JsonStringValueKind.String)
         {
             _charValue = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonString(JsonValue parent, byte[] value)
             : this(parent, JsonStringValueKind.String)
         {
             _byteArrayValue = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonString(JsonValue parent, string value)
             : this(parent, JsonStringValueKind.String)
         {
             _stringValue = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private JsonString(JsonValue parent, JsonStringValueKind stringKind)
         {
             Debug.Assert(parent is not null);
@@ -100,6 +108,7 @@ namespace System.Text.Json.JsonDiffPatch
 
         private DateTime? DateTimeValue
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 CreateValue();
@@ -109,6 +118,7 @@ namespace System.Text.Json.JsonDiffPatch
 
         private DateTimeOffset? DateTimeOffsetValue
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 CreateValue();
@@ -118,6 +128,7 @@ namespace System.Text.Json.JsonDiffPatch
 
         private Guid? GuidValue
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 CreateValue();
@@ -127,6 +138,7 @@ namespace System.Text.Json.JsonDiffPatch
 
         private char? CharValue
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 CreateValue();
@@ -136,6 +148,7 @@ namespace System.Text.Json.JsonDiffPatch
 
         private byte[]? ByteArrayValue
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 CreateValue();
@@ -145,6 +158,7 @@ namespace System.Text.Json.JsonDiffPatch
 
         private string? StringValue
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 CreateValue();
@@ -154,6 +168,7 @@ namespace System.Text.Json.JsonDiffPatch
 
         public JsonStringValueKind StringKind
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 CreateValue();

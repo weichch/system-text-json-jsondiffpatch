@@ -14,8 +14,8 @@ namespace System.Text.Json.JsonDiffPatch
             ValueComparer = valueComparer;
         }
 
-        public JsonElementComparison JsonElementComparison =>
-            _jsonElementComparison ?? JsonDiffPatcher.DefaultDeepEqualsComparison;
+        public JsonElementComparison JsonElementComparison
+            => _jsonElementComparison ?? JsonDiffPatcher.DefaultComparison;
 
         public IEqualityComparer<JsonValue>? ValueComparer { get; }
     }

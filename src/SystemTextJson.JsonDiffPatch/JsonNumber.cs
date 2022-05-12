@@ -15,6 +15,7 @@ namespace System.Text.Json.JsonDiffPatch
         // Keep as field to avoid copy
         public readonly JsonElement Element;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonNumber(in JsonElement element)
         {
             Debug.Assert(element.ValueKind is JsonValueKind.Number,
@@ -30,72 +31,84 @@ namespace System.Text.Json.JsonDiffPatch
             _isValueRead = false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonNumber(JsonValue parent, int value)
             : this(parent)
         {
             _longValue = Convert.ToInt64(value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonNumber(JsonValue parent, long value)
             : this(parent)
         {
             _longValue = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonNumber(JsonValue parent, double value)
             : this(parent)
         {
             _doubleValue = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonNumber(JsonValue parent, short value)
             : this(parent)
         {
             _longValue = Convert.ToInt64(value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonNumber(JsonValue parent, decimal value)
             : this(parent)
         {
             _decimalValue = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonNumber(JsonValue parent, byte value)
             : this(parent)
         {
             _longValue = Convert.ToInt64(value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonNumber(JsonValue parent, float value)
             : this(parent)
         {
             _floatValue = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonNumber(JsonValue parent, uint value)
             : this(parent)
         {
             _longValue = Convert.ToInt64(value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonNumber(JsonValue parent, ushort value)
             : this(parent)
         {
             _longValue = Convert.ToInt64(value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonNumber(JsonValue parent, ulong value)
             : this(parent)
         {
             _decimalValue = Convert.ToDecimal(value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JsonNumber(JsonValue parent, sbyte value)
             : this(parent)
         {
             _longValue = Convert.ToInt64(value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private JsonNumber(JsonValue parent)
         {
             Debug.Assert(parent is not null);
@@ -115,6 +128,7 @@ namespace System.Text.Json.JsonDiffPatch
 
         private long? LongValue
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 CreateValue();
@@ -124,6 +138,7 @@ namespace System.Text.Json.JsonDiffPatch
 
         private decimal? DecimalValue
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 CreateValue();
@@ -133,6 +148,7 @@ namespace System.Text.Json.JsonDiffPatch
 
         private double? DoubleValue
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 CreateValue();
@@ -142,6 +158,7 @@ namespace System.Text.Json.JsonDiffPatch
 
         private float? FloatValue
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 CreateValue();

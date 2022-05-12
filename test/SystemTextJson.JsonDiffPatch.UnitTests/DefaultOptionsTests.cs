@@ -10,32 +10,32 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
 
         public DefaultOptionsTests()
         {
-            _comparisonMode = JsonDiffPatcher.DefaultDeepEqualsComparison;
+            _comparisonMode = JsonDiffPatcher.DefaultComparison;
         }
 
         [Fact]
         public void DefaultDeepEqualsComparison_ComparerOptions()
         {
-            JsonDiffPatcher.DefaultDeepEqualsComparison = JsonElementComparison.Semantic;
+            JsonDiffPatcher.DefaultComparison = JsonElementComparison.Semantic;
             
             JsonComparerOptions comparerOptions = default;
 
-            Assert.Equal(JsonDiffPatcher.DefaultDeepEqualsComparison, comparerOptions.JsonElementComparison);
+            Assert.Equal(JsonDiffPatcher.DefaultComparison, comparerOptions.JsonElementComparison);
         }
 
         [Fact]
         public void DefaultDeepEqualsComparison_DiffOptions()
         {
-            JsonDiffPatcher.DefaultDeepEqualsComparison = JsonElementComparison.Semantic;
+            JsonDiffPatcher.DefaultComparison = JsonElementComparison.Semantic;
 
             var diffOptions = new JsonDiffOptions();
 
-            Assert.Equal(JsonDiffPatcher.DefaultDeepEqualsComparison, diffOptions.JsonElementComparison);
+            Assert.Equal(JsonDiffPatcher.DefaultComparison, diffOptions.JsonElementComparison);
         }
 
         public void Dispose()
         {
-            JsonDiffPatcher.DefaultDeepEqualsComparison = _comparisonMode;
+            JsonDiffPatcher.DefaultComparison = _comparisonMode;
         }
     }
 }

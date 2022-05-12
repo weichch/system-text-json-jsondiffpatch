@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Nodes;
-
-namespace System.Text.Json.JsonDiffPatch
+﻿namespace System.Text.Json.JsonDiffPatch
 {
     /// <summary>
     /// Provides methods to diff and patch JSON objects.
@@ -13,8 +11,8 @@ namespace System.Text.Json.JsonDiffPatch
         public static Func<JsonDiffOptions>? DefaultOptions { get; set; }
 
         /// <summary>
-        /// Gets or sets the default comparison mode used when determine <see cref="JsonNode"/> deep equality.
+        /// Gets or sets the default comparison mode used by <c>DeepEquals</c> to compare <see cref="JsonElement"/>.
         /// </summary>
-        public static JsonElementComparison DefaultDeepEqualsComparison { get; set; } = JsonElementComparison.RawText;
+        public static JsonElementComparison DefaultComparison { get; set; } = JsonElementComparison.RawText;
     }
 }

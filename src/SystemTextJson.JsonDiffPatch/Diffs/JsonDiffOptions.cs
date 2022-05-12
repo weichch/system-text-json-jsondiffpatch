@@ -50,7 +50,7 @@ namespace System.Text.Json.JsonDiffPatch
         /// </summary>
         public JsonElementComparison JsonElementComparison
         {
-            get => _jsonElementComparison ?? JsonDiffPatcher.DefaultDeepEqualsComparison;
+            get => _jsonElementComparison ?? JsonDiffPatcher.DefaultComparison;
             set => _jsonElementComparison = value;
         }
 

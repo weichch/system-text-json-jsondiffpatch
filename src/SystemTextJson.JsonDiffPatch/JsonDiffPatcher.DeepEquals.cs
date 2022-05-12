@@ -105,7 +105,7 @@ namespace System.Text.Json.JsonDiffPatch
                 return false;
             }
 
-            jsonElementComparison ??= DefaultDeepEqualsComparison;
+            jsonElementComparison ??= DefaultComparison;
 
             switch (left.ValueKind)
             {
