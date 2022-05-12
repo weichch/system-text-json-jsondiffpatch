@@ -1,9 +1,8 @@
 ﻿using System.Text.Json.JsonDiffPatch;
 using System.Text.Json.Nodes;
-using SystemTextJson.JsonDiffPatch.UnitTests.TestData;
 using Xunit;
 
-namespace SystemTextJson.JsonDiffPatch.UnitTests
+namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
 {
     public class JsonElementDeepEqualsTests
     {

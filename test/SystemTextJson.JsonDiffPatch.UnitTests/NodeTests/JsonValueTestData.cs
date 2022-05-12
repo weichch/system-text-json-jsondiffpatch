@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
 
-namespace SystemTextJson.JsonDiffPatch.UnitTests.TestData
+namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
 {
     public class JsonValueTestData
     {
