@@ -4,7 +4,7 @@ using Xunit;
 
 namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
 {
-    public class JsonElementDeepEqualsTests
+    public class ElementDeepEqualsTests
     {
         [Fact]
         public void Object_Identical()
@@ -115,21 +115,21 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
         }
 
         [Theory]
-        [MemberData(nameof(JsonValueTestData.ElementRawTextEqual), MemberType = typeof(JsonValueTestData))]
+        [MemberData(nameof(NodeTestData.ElementRawTextEqual), MemberType = typeof(NodeTestData))]
         public void Value_RawText(JsonValue json1, JsonValue json2, bool expected)
         {
             Assert.Equal(expected, json1.DeepEquals(json2));
         }
         
         [Theory]
-        [MemberData(nameof(JsonValueTestData.ElementSemanticEqual), MemberType = typeof(JsonValueTestData))]
+        [MemberData(nameof(NodeTestData.ElementSemanticEqual), MemberType = typeof(NodeTestData))]
         public void Value_Semantic(JsonValue json1, JsonValue json2, bool expected)
         {
             Assert.Equal(expected, json1.DeepEquals(json2, JsonElementComparison.Semantic));
         }
 
         [Theory]
-        [MemberData(nameof(JsonValueTestData.ElementObjectSemanticEqual), MemberType = typeof(JsonValueTestData))]
+        [MemberData(nameof(NodeTestData.ElementObjectSemanticEqual), MemberType = typeof(NodeTestData))]
         public void Value_ElementObjectSemanticEqual(JsonValue json1, JsonValue json2, bool expected)
         {
             Assert.Equal(expected, json1.DeepEquals(json2));

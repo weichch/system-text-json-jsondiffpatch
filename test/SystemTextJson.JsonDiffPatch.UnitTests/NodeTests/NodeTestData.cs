@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json.Nodes;
 
 namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
 {
-    public class JsonValueTestData
+    public class NodeTestData
     {
         public static IEnumerable<object[]> ElementRawTextEqual
         {
@@ -318,7 +317,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
         
         private static JsonValue Json(string jsonValue)
         {
-            return JsonNode.Parse($"[{jsonValue}]")!.AsArray().First()!.AsValue();
+            return JsonNode.Parse($"{jsonValue}")!.AsValue();
         }
     }
 }
