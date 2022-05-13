@@ -4,7 +4,7 @@ using System.Text.Json.JsonDiffPatch.Diffs.Formatters;
 using System.Text.Json.Nodes;
 using Xunit;
 
-namespace SystemTextJson.JsonDiffPatch.UnitTests.Formatters
+namespace SystemTextJson.JsonDiffPatch.UnitTests.FormatterTests
 {
     public class JsonPatchDeltaFormatterTests
     {

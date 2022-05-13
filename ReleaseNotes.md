@@ -1,5 +1,12 @@
 # Release Notes
 
+## 1.3.0
+
+- **Added `DeepEquals` implementation for `JsonDocument` and `JsonElement`**
+- Performance improvements in raw text comparison mode
+- Removed unnecessary allocation when default diff option is used
+- Removed one `DeepEquals` overload that was accidentally exposed as a public method
+
 ## 1.2.0
 
 - Major performance improvement in array comparison

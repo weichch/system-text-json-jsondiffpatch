@@ -45,12 +45,17 @@ namespace System.Text.Json.JsonDiffPatch
         private static bool IsLongText(
             JsonNode? left,
             JsonNode? right,
-            JsonDiffOptions options,
+            JsonDiffOptions? options,
             out string? leftText,
             out string? rightText)
         {
             leftText = null;
             rightText = null;
+
+            if (options is null)
+            {
+                return false;
+            }
 
             if (left is not JsonValue || right is not JsonValue)
             {

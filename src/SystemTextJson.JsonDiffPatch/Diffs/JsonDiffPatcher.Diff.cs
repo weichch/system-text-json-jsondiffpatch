@@ -200,6 +200,7 @@ namespace System.Text.Json.JsonDiffPatch
             JsonDiffOptions? options)
         {
             var delta = new JsonDiffDelta();
+            options ??= DefaultOptions?.Invoke();
             DiffInternal(ref delta, left, right, options);
 
             if (formatter is not null)
@@ -223,8 +224,6 @@ namespace System.Text.Json.JsonDiffPatch
         {
             Debug.Assert(delta.Document is null);
 
-            options ??= DefaultOptions?.Invoke() ?? JsonDiffOptions.Default;
-
             left ??= "";
             right ??= "";
 
@@ -246,13 +245,14 @@ namespace System.Text.Json.JsonDiffPatch
             // Compare two long texts
             if (IsLongText(left, right, options, out var leftText, out var rightText))
             {
-                DiffLongText(ref delta, leftText!, rightText!, options);
+                Debug.Assert(options is not null);
+                DiffLongText(ref delta, leftText!, rightText!, options!);
                 return;
             }
 
             // None of the above methods returned a result, fallback to check if both values are deeply equal
             // This should also handle DateTime and other CLR types that are strings in JSON
-            ref var comparerOptions = ref options.CreateComparerOptions();
+            var comparerOptions = options?.CreateComparerOptions() ?? default;
             if (!left.DeepEquals(right, comparerOptions))
             {
                 delta.Modified(left, right);

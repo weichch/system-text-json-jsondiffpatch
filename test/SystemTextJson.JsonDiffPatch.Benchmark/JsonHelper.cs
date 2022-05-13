@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Buffers;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace SystemTextJson.JsonDiffPatch.Benchmark
 {
-    public static class JsonNodeHelper
+    internal static class JsonHelper
     {
         public static JsonNode? Parse(string json)
         {
@@ -66,5 +68,32 @@ namespace SystemTextJson.JsonDiffPatch.Benchmark
 
             throw new ArgumentException("Cannot parse JSON element.");
         }
+
+#if NET
+        public static JsonElementWrapper ParseElement(string json)
+        {
+            var jsonChars = json.AsSpan();
+            var byteCount = Encoding.UTF8.GetByteCount(jsonChars);
+            var buffer = ArrayPool<byte>.Shared.Rent(byteCount);
+            var length = Encoding.UTF8.GetBytes(jsonChars, buffer);
+            var reader = new Utf8JsonReader(buffer.AsSpan().Slice(0, length));
+            return new JsonElementWrapper
+            {
+                Value = JsonElement.ParseValue(ref reader),
+                Buffer = buffer
+            };
+        }
+
+        public ref struct JsonElementWrapper
+        {
+            public JsonElement Value;
+            public byte[] Buffer;
+
+            public void Dispose()
+            {
+                ArrayPool<byte>.Shared.Return(Buffer, true);
+            }
+        }
+#endif
     }
 }

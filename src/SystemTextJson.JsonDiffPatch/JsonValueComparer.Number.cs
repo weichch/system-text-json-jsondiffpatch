@@ -20,7 +20,7 @@
             return false;
         }
 
-        private static int CompareDouble(double x, double y)
+        internal static int CompareDouble(double x, double y)
         {
             return AreDoubleClose(x, y) ? 0 : x.CompareTo(y);
         }

@@ -1,12 +1,17 @@
 ﻿using System.Text.Json.JsonDiffPatch;
 using System.Text.Json.Nodes;
-using SystemTextJson.JsonDiffPatch.UnitTests.TestData;
 using Xunit;
 
-namespace SystemTextJson.JsonDiffPatch.UnitTests
+namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
 {
     public class ObjectDeepEqualsTests
     {
+        [Fact]
+        public void Default()
+        {
+            Assert.True(default(JsonNode).DeepEquals(default));
+        }
+
         [Fact]
         public void Object_Identical()
         {
@@ -136,7 +141,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
         }
         
         [Theory]
-        [MemberData(nameof(JsonValueTestData.ObjectSemanticEqual), MemberType = typeof(JsonValueTestData))]
+        [MemberData(nameof(NodeTestData.ObjectSemanticEqual), MemberType = typeof(NodeTestData))]
         public void Value_ObjectSemanticEqual(JsonValue json1, JsonValue json2, bool expected)
         {
             Assert.Equal(expected, json1.DeepEquals(json2));
