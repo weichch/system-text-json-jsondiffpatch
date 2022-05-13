@@ -8,13 +8,14 @@ High-performance, low-allocating JSON object diff and patch extension for System
 
 - Compatible with [jsondiffpatch delta format](https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md)
 - Support generating patch document in RFC 6902 JSON Patch format
-- Target latest .NET Standard and .NET Framework 4.6.1 (for legacy apps) and leverage latest .NET features
+- Target latest **.NET Standard** and **.NET Framework 4.6.1** (for legacy apps) and leverage latest .NET features
 - Alternative to [jsondiffpatch.net](https://github.com/wbish/jsondiffpatch.net) which is based on Newtonsoft.Json
 - Fast large JSON document diffing with less memory consumption (see [benchmark](https://github.com/weichch/system-text-json-jsondiffpatch/blob/main/Benchmark.md))
 - Support smart array diffing (e.g. move detect) using LCS (Longest Common Subsequence) and custom array item matcher
 - _(Only when not using RFC 6902 format)_ Support diffing long text using [google-diff-match-patch](http://code.google.com/p/google-diff-match-patch/), or write your own diff algorithm
-- Bonus `JsonNode.DeepClone` and `JsonNode.DeepEquals` methods
-- Bouns [`JsonValueComparer`](https://github.com/weichch/system-text-json-jsondiffpatch/blob/main/src/SystemTextJson.JsonDiffPatch/JsonValueComparer.cs) that implements semantic comparison of two `JsonValue` objects (including `JsonValue` backed by `JsonElement`)
+- Bonus `DeepEquals` method for comparing `JsonDocument`, `JsonElement` and `JsonNode`
+- Bonus `DeepClone` method
+- Bonus [`JsonValueComparer`](https://github.com/weichch/system-text-json-jsondiffpatch/blob/main/src/SystemTextJson.JsonDiffPatch/JsonValueComparer.cs) that implements semantic comparison of two `JsonValue` objects
 - JSON assert for xUnit, MSTest v2 and NUnit with customizable delta output
 
 ## Install
@@ -22,25 +23,25 @@ High-performance, low-allocating JSON object diff and patch extension for System
 #### JsonDiffPatch
 
 ```
-Install-Package SystemTextJson.JsonDiffPatch
+PM> Install-Package SystemTextJson.JsonDiffPatch
 ```
 
 #### xUnit Assert
 
 ```
-Install-Package SystemTextJson.JsonDiffPatch.Xunit
+PM> Install-Package SystemTextJson.JsonDiffPatch.Xunit
 ```
 
 #### MSTest v2 Assert
 
 ```
-Install-Package SystemTextJson.JsonDiffPatch.MSTest
+PM> Install-Package SystemTextJson.JsonDiffPatch.MSTest
 ```
 
 #### NUnit Assert
 
 ```
-Install-Package SystemTextJson.JsonDiffPatch.NUnit
+PM> Install-Package SystemTextJson.JsonDiffPatch.NUnit
 ```
 
 ## Usage
@@ -81,12 +82,19 @@ JsonNode? cloned = node.DeepClone();
 ### DeepEquals
 
 ```csharp
-var node1 = JsonNode.Parse("{\"foo\":1.0}");
-var node2 = JsonNode.Parse("{\"foo\":1}");
-// equal is false
-bool equal = node1.DeepEquals(node2);
-// semanticEqual is true
-bool semanticEqual = node1.DeepEquals(node2, JsonElementComparison.Semantic);
+// JsonDocument
+var doc1 = JsonDocument.Parse("{\"foo\":1}");
+var doc2 = JsonDocument.Parse("{\"foo\":1.0}");
+var equal = doc1.DeepEquals(doc2);
+var textEqual = doc1.DeepEquals(doc2, JsonElementComparison.RawText);
+var semanticEqual = doc1.DeepEquals(doc2, JsonElementComparison.Semantic);
+
+// JsonNode
+var node1 = JsonNode.Parse("{\"foo\":1}");
+var node2 = JsonNode.Parse("{\"foo\":1.0}");
+var equal = node1.DeepEquals(node2);
+var textEqual = node1.DeepEquals(node2, JsonElementComparison.RawText);
+var semanticEqual = node1.DeepEquals(node2, JsonElementComparison.Semantic);
 ```
 
 ### Semantic Value Comparison
@@ -121,10 +129,14 @@ node1.ReversePatchNew(diff);
 ### Default Options
 
 ```csharp
+// Default diff options
 JsonDiffPatcher.DefaultOptions = () => new JsonDiffOptions
 {
     JsonElementComparison = JsonElementComparison.Semantic
 };
+
+// Default comparison mode for DeepEquals
+JsonDiffPatcher.DefaultComparison = JsonElementComparison.Semantic;
 ```
 
 ### Assert (Unit Testing)
