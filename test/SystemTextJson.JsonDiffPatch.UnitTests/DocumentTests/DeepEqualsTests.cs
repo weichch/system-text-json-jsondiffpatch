@@ -7,6 +7,12 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.DocumentTests
     public class DeepEqualsTests
     {
         [Fact]
+        public void Default()
+        {
+            Assert.True(default(JsonDocument).DeepEquals(default));
+        }
+
+        [Fact]
         public void Object_Identical()
         {
             using var json1 = JsonDocument.Parse("{\"foo\":\"bar\",\"baz\":\"qux\"}");

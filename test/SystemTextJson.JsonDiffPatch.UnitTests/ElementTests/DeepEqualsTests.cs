@@ -7,6 +7,12 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.ElementTests
     public class DeepEqualsTests
     {
         [Fact]
+        public void Default()
+        {
+            Assert.True(default(JsonElement).DeepEquals(default));
+        }
+
+        [Fact]
         public void Object_Identical()
         {
             var json1 = JsonSerializer.Deserialize<JsonElement>("{\"foo\":\"bar\",\"baz\":\"qux\"}");

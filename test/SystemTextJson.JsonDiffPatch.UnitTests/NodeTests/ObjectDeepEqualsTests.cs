@@ -7,6 +7,12 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
     public class ObjectDeepEqualsTests
     {
         [Fact]
+        public void Default()
+        {
+            Assert.True(default(JsonNode).DeepEquals(default));
+        }
+
+        [Fact]
         public void Object_Identical()
         {
             var json1 = new JsonObject

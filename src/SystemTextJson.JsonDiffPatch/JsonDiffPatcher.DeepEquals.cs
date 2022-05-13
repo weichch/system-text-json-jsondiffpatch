@@ -74,9 +74,9 @@ namespace System.Text.Json.JsonDiffPatch
         /// </summary>
         /// <param name="left">The left value.</param>
         /// <param name="right">The right value.</param>
-        /// <param name="jsonElementComparison">The JSON element comparison.</param>
+        /// <param name="elementComparison">The JSON element comparison.</param>
         public static bool DeepEquals(this JsonDocument? left, JsonDocument? right,
-            JsonElementComparison? jsonElementComparison = null)
+            JsonElementComparison? elementComparison = null)
         {
             if (ReferenceEquals(left, right))
             {
@@ -88,7 +88,7 @@ namespace System.Text.Json.JsonDiffPatch
                 return false;
             }
 
-            return left.RootElement.DeepEquals(right.RootElement, jsonElementComparison);
+            return left.RootElement.DeepEquals(right.RootElement, elementComparison);
         }
 
         /// <summary>
@@ -96,16 +96,16 @@ namespace System.Text.Json.JsonDiffPatch
         /// </summary>
         /// <param name="left">The left value.</param>
         /// <param name="right">The right value.</param>
-        /// <param name="jsonElementComparison">The JSON element comparison.</param>
+        /// <param name="elementComparison">The JSON element comparison.</param>
         public static bool DeepEquals(this in JsonElement left, in JsonElement right,
-            JsonElementComparison? jsonElementComparison = null)
+            JsonElementComparison? elementComparison = null)
         {
             if (left.ValueKind != right.ValueKind)
             {
                 return false;
             }
 
-            jsonElementComparison ??= DefaultComparison;
+            elementComparison ??= DefaultComparison;
 
             switch (left.ValueKind)
             {
@@ -113,7 +113,7 @@ namespace System.Text.Json.JsonDiffPatch
                     var leftNumber = new JsonNumber(left);
                     var rightNumber = new JsonNumber(right);
 
-                    return jsonElementComparison is JsonElementComparison.RawText
+                    return elementComparison is JsonElementComparison.RawText
                         ? leftNumber.RawTextEquals(ref rightNumber)
                         : leftNumber.CompareTo(ref rightNumber) == 0;
 
@@ -121,15 +121,15 @@ namespace System.Text.Json.JsonDiffPatch
                     var leftString = new JsonString(left);
                     var rightString = new JsonString(right);
 
-                    return jsonElementComparison is JsonElementComparison.RawText
+                    return elementComparison is JsonElementComparison.RawText
                         ? leftString.ValueEquals(ref rightString)
                         : leftString.Equals(ref rightString);
                 
                 case JsonValueKind.Object:
-                    return ObjectEquals(left, right, jsonElementComparison.Value);
+                    return ObjectEquals(left, right, elementComparison.Value);
 
                 case JsonValueKind.Array:
-                    return ArrayEquals(left, right, jsonElementComparison.Value);
+                    return ArrayEquals(left, right, elementComparison.Value);
                 
                 case JsonValueKind.True:
                 case JsonValueKind.False:

@@ -11,7 +11,7 @@ namespace System.Text.Json.JsonDiffPatch
         // https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md#array-with-inner-changes
         private static void DiffArray(
             ref JsonDiffDelta delta,
-            JsonArray left, 
+            JsonArray left,
             JsonArray right,
             JsonDiffOptions? options)
         {
@@ -41,8 +41,8 @@ namespace System.Text.Json.JsonDiffPatch
             // Find common tail
             int commonTail;
             for (commonTail = 0;
-                commonHead + commonTail < left.Count && commonHead + commonTail < right.Count;
-                commonTail++)
+                 commonHead + commonTail < left.Count && commonHead + commonTail < right.Count;
+                 commonTail++)
             {
                 var leftIndex = left.Count - 1 - commonTail;
                 var rightIndex = right.Count - 1 - commonTail;
@@ -67,21 +67,21 @@ namespace System.Text.Json.JsonDiffPatch
 
                 // Otherwise, the left is shorter, so there were items added to the middle of the right array
                 for (var i = commonHead /* pointed to the first non-equal item */;
-                    i + commonTail < right.Count;
-                    i++)
+                     i + commonTail < right.Count;
+                     i++)
                 {
                     delta.ArrayChange(i, false, JsonDiffDelta.CreateAdded(right[i]));
                 }
 
                 return;
             }
-            
+
             if (commonHead + commonTail == right.Count)
             {
                 // The right is shorter, so there were items removed from the middle of left array
                 for (var i = commonHead /* pointed to the first non-equal item */;
-                    i + commonTail < left.Count;
-                    i++)
+                     i + commonTail < left.Count;
+                     i++)
                 {
                     delta.ArrayChange(i, true, JsonDiffDelta.CreateDeleted(left[i]));
                 }
