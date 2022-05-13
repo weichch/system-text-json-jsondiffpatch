@@ -52,31 +52,40 @@ PM> Install-Package SystemTextJson.JsonDiffPatch.NUnit
 // Diff JsonNode
 var node1 = JsonNode.Parse("{\"foo\":\"bar\"}");
 var node2 = JsonNode.Parse("{\"baz\":\"qux\", \"foo\":\"bar\"}");
-JsonNode? diff = node1.Diff(node2);
+var diff = node1.Diff(node2);
 // Diff with options
-JsonNode? diff = node1.Diff(node2, new JsonDiffOptions
+var diff = node1.Diff(node2, new JsonDiffOptions
 {
     JsonElementComparison = JsonElementComparison.Semantic
 });
 // Diff and convert delta into RFC 6902 JSON Patch format
-JsonNode? diff = node1.Diff(node2, new JsonPatchDeltaFormatter());
+var diff = node1.Diff(node2, new JsonPatchDeltaFormatter());
 // Diff JSON files
-JsonNode? diff = JsonDiffPatcher.DiffFile(file1, file2);
+var diff = JsonDiffPatcher.DiffFile(file1, file2);
 // Diff Span<byte>
-JsonNode? diff = JsonDiffPatcher.Diff(span1, span2);
+var diff = JsonDiffPatcher.Diff(span1, span2);
 // Diff streams
-JsonNode? diff = JsonDiffPatcher.Diff(stream1, stream2);
+var diff = JsonDiffPatcher.Diff(stream1, stream2);
 // Diff JSON strings
-JsonNode? diff = JsonDiffPatcher.Diff(json1, json2);
+var diff = JsonDiffPatcher.Diff(json1, json2);
 // Diff JSON readers
-JsonNode? diff = JsonDiffPatcher.Diff(ref reader1, ref reader2);
+var diff = JsonDiffPatcher.Diff(ref reader1, ref reader2);
 ```
 
-### DeepClone
+### Patch & Unpatch
 
 ```csharp
-var node = JsonNode.Parse("{\"foo\":\"bar\"}");
-JsonNode? cloned = node.DeepClone();
+var node1 = JsonNode.Parse("{\"foo\":\"bar\"}");
+var node2 = JsonNode.Parse("{\"baz\":\"qux\", \"foo\":\"bar\"}");
+var diff = node1.Diff(node2);
+// In-place patch
+JsonDiffPatcher.Patch(ref node1, diff);
+// Clone & patch
+var patched = node1.PatchNew(diff);
+// In-place unpatch
+JsonDiffPatcher.ReversePatch(ref node1, diff);
+// Clone & unpatch
+var patched = node1.ReversePatchNew(diff);
 ```
 
 ### DeepEquals
@@ -97,33 +106,11 @@ var textEqual = node1.DeepEquals(node2, JsonElementComparison.RawText);
 var semanticEqual = node1.DeepEquals(node2, JsonElementComparison.Semantic);
 ```
 
-### Semantic Value Comparison
-```csharp
-var node1 = JsonNode.Parse("\"2019-11-27\"");
-var node2 = JsonNode.Parse("\"2019-11-27T00:00:00.000\"");
-// dateCompare is 0
-var dateCompare = JsonValueComparer.Compare(node1, node2);
-
-var node3 = JsonNode.Parse("1");
-var node4 = JsonNode.Parse("1.00");
-// numCompare is 0
-var numCompare = JsonValueComparer.Compare(node3, node4);
-```
-
-### Patch & Unpatch
+### DeepClone
 
 ```csharp
-var node1 = JsonNode.Parse("{\"foo\":\"bar\"}");
-var node2 = JsonNode.Parse("{\"baz\":\"qux\", \"foo\":\"bar\"}");
-JsonNode? diff = node1.Diff(node2);
-// In-place patch
-JsonDiffPatcher.Patch(ref node1, diff);
-// Clone & patch
-node1.PatchNew(diff);
-// In-place unpatch
-JsonDiffPatcher.ReversePatch(ref node1, diff);
-// Clone & unpatch
-node1.ReversePatchNew(diff);
+var node = JsonNode.Parse("{\"foo\":\"bar\"}");
+var cloned = node.DeepClone();
 ```
 
 ### Default Options
@@ -137,6 +124,19 @@ JsonDiffPatcher.DefaultOptions = () => new JsonDiffOptions
 
 // Default comparison mode for DeepEquals
 JsonDiffPatcher.DefaultComparison = JsonElementComparison.Semantic;
+```
+
+### Semantic Value Comparison
+```csharp
+var node1 = JsonNode.Parse("\"2019-11-27\"");
+var node2 = JsonNode.Parse("\"2019-11-27T00:00:00.000\"");
+// dateCompare is 0
+var dateCompare = JsonValueComparer.Compare(node1, node2);
+
+var node3 = JsonNode.Parse("1");
+var node4 = JsonNode.Parse("1.00");
+// numCompare is 0
+var numCompare = JsonValueComparer.Compare(node3, node4);
 ```
 
 ### Assert (Unit Testing)
@@ -190,4 +190,4 @@ Delta:
 
 ## Benchmark
 
-[Benchmark results](https://github.com/weichch/system-text-json-jsondiffpatch/blob/main/Benchmark.md) were generated using example objects [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/Examples) and benchmark tests [here](https://github.com/weichch/system-text-json-jsondiffpatch/tree/main/test/SystemTextJson.JsonDiffPatch.Benchmark/).
+See detailed [benchmark results](https://github.com/weichch/system-text-json-jsondiffpatch/blob/main/Benchmark.md).
