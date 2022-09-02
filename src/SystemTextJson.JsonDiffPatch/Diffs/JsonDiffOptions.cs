@@ -60,6 +60,12 @@ namespace System.Text.Json.JsonDiffPatch
         /// </summary>
         public IEqualityComparer<JsonValue>? ValueComparer { get; set; }
 
+        /// <summary>
+        /// Gets or sets the filter function to ignore JSON property. To ignore a property,
+        /// implement this function and return <c>false</c>.
+        /// </summary>
+        public Func<string, JsonDiffContext, bool>? PropertyFilter { get; set; }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal JsonComparerOptions CreateComparerOptions() => new(JsonElementComparison, ValueComparer);
     }
