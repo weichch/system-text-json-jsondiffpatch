@@ -49,5 +49,76 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
 
             Assert.Equal("{\"_t\":\"a\",\"_0\":[\"\",1,3]}", diff!.ToJsonString());
         }
+
+        [Fact]
+        public void PropertyFilter_LeftProperty()
+        {
+            var left = JsonNode.Parse("{\"a\":1}");
+            var right = JsonNode.Parse("{}");
+
+            var diff = left.Diff(right, new JsonDiffOptions
+            {
+                PropertyFilter = (prop, _) => !string.Equals(prop, "a")
+            });
+
+            Assert.Null(diff);
+        }
+
+        [Fact]
+        public void PropertyFilter_RightProperty()
+        {
+            var left = JsonNode.Parse("{}");
+            var right = JsonNode.Parse("{\"a\":1}");
+
+            var diff = left.Diff(right, new JsonDiffOptions
+            {
+                PropertyFilter = (prop, _) => !string.Equals(prop, "a")
+            });
+
+            Assert.Null(diff);
+        }
+
+        [Fact]
+        public void PropertyFilter_NestedProperty()
+        {
+            var left = JsonNode.Parse("{\"foo\":{\"bar\":{\"a\":1}}}");
+            var right = JsonNode.Parse("{\"foo\":{\"bar\":{\"a\":2}}}");
+
+            var diff = left.Diff(right, new JsonDiffOptions
+            {
+                PropertyFilter = (prop, _) => !string.Equals(prop, "a")
+            });
+
+            Assert.Null(diff);
+        }
+
+        [Fact]
+        public void PropertyFilter_ArrayItem()
+        {
+            var left = JsonNode.Parse("[{\"a\":1}]");
+            var right = JsonNode.Parse("[{\"a\":2}]");
+
+            var diff = left.Diff(right, new JsonDiffOptions
+            {
+                PropertyFilter = (prop, _) => !string.Equals(prop, "a")
+            });
+
+            Assert.Null(diff);
+        }
+
+        [Fact]
+        public void PropertyFilter_ArrayItem_ExplicitFallbackMatch()
+        {
+            var left = JsonNode.Parse("[{\"a\":1}]");
+            var right = JsonNode.Parse("[{\"a\":2}]");
+
+            var diff = left.Diff(right, new JsonDiffOptions
+            {
+                ArrayObjectItemMatchByPosition = true,
+                PropertyFilter = (prop, _) => !string.Equals(prop, "a")
+            });
+
+            Assert.Null(diff);
+        }
     }
 }
