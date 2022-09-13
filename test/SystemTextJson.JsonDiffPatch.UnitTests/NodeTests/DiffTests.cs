@@ -51,6 +51,28 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
         }
 
         [Fact]
+        public void Diff_NullProperty()
+        {
+            var left = JsonNode.Parse("{\"a\":1}");
+            var right = JsonNode.Parse("{\"a\":null}");
+
+            var diff = left.Diff(right);
+
+            Assert.Equal("{\"a\":[1,null]}", diff!.ToJsonString());
+        }
+
+        [Fact]
+        public void Diff_NullArrayItem()
+        {
+            var left = JsonNode.Parse("[1]");
+            var right = JsonNode.Parse("[null]");
+
+            var diff = left.Diff(right);
+
+            Assert.Equal("{\"_t\":\"a\",\"_0\":[1,0,0],\"0\":[null]}", diff!.ToJsonString());
+        }
+
+        [Fact]
         public void PropertyFilter_LeftProperty()
         {
             var left = JsonNode.Parse("{\"a\":1}");

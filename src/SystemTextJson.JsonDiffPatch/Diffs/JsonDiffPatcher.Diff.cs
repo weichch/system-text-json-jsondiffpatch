@@ -224,37 +224,49 @@ namespace System.Text.Json.JsonDiffPatch
         {
             Debug.Assert(delta.Document is null);
 
-            left ??= "";
-            right ??= "";
+            // Fast diff scenarios
 
-            // Compare two objects
+            if (ReferenceEquals(left, right))
+            {
+                return;
+            }
+
+            if (left is null || right is null)
+            {
+                delta.Modified(left, right);
+                return;
+            }
+
+            // Full diff scenarios
+
             if (left is JsonObject leftObj && right is JsonObject rightObj)
             {
                 DiffObject(ref delta, leftObj, rightObj, options);
-                return;
             }
-
-            // Compare two arrays
-            if (left is JsonArray leftArr && right is JsonArray rightArr)
+            else if (left is JsonArray leftArr && right is JsonArray rightArr)
             {
                 DiffArray(ref delta, leftArr, rightArr, options);
-                return;
             }
-
-            // For long texts
-            // Compare two long texts
-            if (IsLongText(left, right, options, out var leftText, out var rightText))
+            else if (left is JsonValue leftVal && right is JsonValue rightVal)
             {
-                Debug.Assert(options is not null);
-                DiffLongText(ref delta, leftText!, rightText!, options!);
-                return;
+                if (IsLongText(leftVal, rightVal, options, out var leftText, out var rightText))
+                {
+                    Debug.Assert(options is not null);
+                    DiffLongText(ref delta, leftText!, rightText!, options!);
+                }
+                else
+                {
+                    // Check value deep equality as per options, i.e. semantic or raw text equality
+                    var comparerOptions = options?.CreateComparerOptions() ?? default;
+                    if (!left.DeepEquals(right, comparerOptions))
+                    {
+                        delta.Modified(left, right);
+                    }
+                }
             }
-
-            // None of the above methods returned a result, fallback to check if both values are deeply equal
-            // This should also handle DateTime and other CLR types that are strings in JSON
-            var comparerOptions = options?.CreateComparerOptions() ?? default;
-            if (!left.DeepEquals(right, comparerOptions))
+            else
             {
+                Debug.Assert(left.GetType() != right.GetType(), "Json value type must not equal.");
                 delta.Modified(left, right);
             }
         }

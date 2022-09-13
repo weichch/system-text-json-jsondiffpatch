@@ -43,8 +43,8 @@ namespace System.Text.Json.JsonDiffPatch
         }
 
         private static bool IsLongText(
-            JsonNode? left,
-            JsonNode? right,
+            JsonValue left,
+            JsonValue right,
             JsonDiffOptions? options,
             out string? leftText,
             out string? rightText)
@@ -57,11 +57,6 @@ namespace System.Text.Json.JsonDiffPatch
                 return false;
             }
 
-            if (left is not JsonValue || right is not JsonValue)
-            {
-                return false;
-            }
-
             while (true)
             {
                 if (options.TextDiffMinLength <= 0)
@@ -70,8 +65,8 @@ namespace System.Text.Json.JsonDiffPatch
                 }
 
                 // Perf: This is slower than direct property access
-                var valueLeft = left.AsValue().GetValue<object>();
-                var valueRight = right.AsValue().GetValue<object>();
+                var valueLeft = left.GetValue<object>();
+                var valueRight = right.GetValue<object>();
 
                 if (valueLeft is JsonElement elementLeft && valueRight is JsonElement elementRight)
                 {
