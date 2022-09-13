@@ -16,24 +16,32 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
             _rightNode = right;
         }
 
+        /// <summary>
+        /// Gets the left value in comparison.
+        /// </summary>
+        /// <typeparam name="T">The type of left value.</typeparam>
         public T Left<T>()
         {
-            if (typeof(T) == typeof(JsonNode))
+            if (_leftNode is T leftValue)
             {
-                return (T) (object) _leftNode;
+                return leftValue;
             }
 
-            throw new InvalidOperationException($"Type must be '{nameof(JsonNode)}'.");
+            throw new InvalidOperationException($"Type must be '{nameof(JsonNode)}' or derived type.");
         }
 
+        /// <summary>
+        /// Gets the right value in comparison.
+        /// </summary>
+        /// <typeparam name="T">The type of right value.</typeparam>
         public T Right<T>()
         {
-            if (typeof(T) == typeof(JsonNode))
+            if (_rightNode is T rightValue)
             {
-                return (T) (object) _rightNode;
+                return rightValue;
             }
 
-            throw new InvalidOperationException($"Type must be '{nameof(JsonNode)}'.");
+            throw new InvalidOperationException($"Type must be '{nameof(JsonNode)}' or derived type.");
         }
     }
 }

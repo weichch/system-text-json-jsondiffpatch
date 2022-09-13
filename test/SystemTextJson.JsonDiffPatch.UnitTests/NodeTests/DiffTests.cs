@@ -129,6 +129,21 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
         }
 
         [Fact]
+        public void PropertyFilter_IgnoreByPath()
+        {
+            var left = JsonNode.Parse("{\"a\":{\"b\":{\"c\":1}}}");
+            var right = JsonNode.Parse("{\"a\":{\"b\":{\"c\":2}}}");
+
+            var diff = left.Diff(right, new JsonDiffOptions
+            {
+                PropertyFilter = (_, ctx) =>
+                    ctx.Left<JsonNode>().GetPath() != "$.a.b" && ctx.Right<JsonNode>().GetPath() != "$.a.b"
+            });
+
+            Assert.Null(diff);
+        }
+
+        [Fact]
         public void PropertyFilter_ArrayItem_ExplicitFallbackMatch()
         {
             var left = JsonNode.Parse("[{\"a\":1}]");
