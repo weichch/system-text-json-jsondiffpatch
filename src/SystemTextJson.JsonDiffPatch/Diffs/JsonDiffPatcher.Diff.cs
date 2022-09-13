@@ -258,9 +258,9 @@ namespace System.Text.Json.JsonDiffPatch
                 {
                     // Check value deep equality as per options, i.e. semantic or raw text equality
                     var comparerOptions = options?.CreateComparerOptions() ?? default;
-                    if (!left.DeepEquals(right, comparerOptions))
+                    if (!leftVal.DeepEquals(rightVal, comparerOptions))
                     {
-                        delta.Modified(left, right);
+                        delta.Modified(leftVal, rightVal);
                     }
                 }
             }
