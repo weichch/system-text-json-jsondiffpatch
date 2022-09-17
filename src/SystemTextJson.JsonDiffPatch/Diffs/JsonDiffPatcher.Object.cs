@@ -17,8 +17,20 @@ namespace System.Text.Json.JsonDiffPatch
             var leftProperties = (left as IDictionary<string, JsonNode?>).Keys;
             var rightProperties = (right as IDictionary<string, JsonNode?>).Keys;
 
+            JsonDiffContext? diffContext = null;
+            var propertyFilter = options?.PropertyFilter;
+            if (propertyFilter is not null)
+            {
+                diffContext = new JsonDiffContext(left, right);
+            }
+
             foreach (var prop in leftProperties)
             {
+                if (propertyFilter is not null && !propertyFilter(prop, diffContext!))
+                {
+                    continue;
+                }
+
                 var leftValue = left[prop];
                 if (!right.TryGetPropertyValue(prop, out var rightValue))
                 {
@@ -39,6 +51,11 @@ namespace System.Text.Json.JsonDiffPatch
 
             foreach (var prop in rightProperties)
             {
+                if (propertyFilter is not null && !propertyFilter(prop, diffContext!))
+                {
+                    continue;
+                }
+
                 var rightValue = right[prop];
                 if (!left.ContainsKey(prop))
                 {

@@ -1,5 +1,10 @@
 # Release Notes
 
+## 1.3.1
+
+- Added `PropertyFilter` to `JsonDiffOptions` (#29)
+- Fixed bug in diffing null-valued properties (#31)
+
 ## 1.3.0
 
 - **Added `DeepEquals` implementation for `JsonDocument` and `JsonElement`**

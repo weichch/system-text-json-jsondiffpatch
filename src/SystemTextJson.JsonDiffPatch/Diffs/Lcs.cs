@@ -153,7 +153,7 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
                     
                     if (x[i - 1] is JsonValue && y[j - 1] is JsonValue)
                     {
-                        itemMatched = JsonDiffPatcher.MatchArrayItem(ref matchContext,
+                        itemMatched = JsonDiffPatcher.MatchArrayValueItem(ref matchContext,
                             ref wrapperCacheSpan[i - 1],
                             ref wrapperCacheSpan[x.Length + j - 1],
                             options,

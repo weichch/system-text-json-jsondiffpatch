@@ -197,6 +197,8 @@ namespace System.Text.Json.JsonDiffPatch
         internal static bool MatchArrayItem(ref ArrayItemMatchContext context, JsonDiffOptions? options,
             in JsonComparerOptions comparerOptions)
         {
+            // Prefer DeepEquals because LCS is weighted as per deep equality, and deep equality
+            // usually generates smaller diff
             if (context.Left.DeepEquals(context.Right, comparerOptions))
             {
                 context.DeepEqual();
@@ -206,7 +208,7 @@ namespace System.Text.Json.JsonDiffPatch
             if (options is not null && context.Left is JsonObject or JsonArray &&
                 context.Right is JsonObject or JsonArray)
             {
-                if (FuzzyMatchArrayItem(ref context, options, out var fuzzyResult))
+                if (FallbackMatchArrayItem(ref context, options, out var fuzzyResult))
                 {
                     return fuzzyResult;
                 }
@@ -220,7 +222,7 @@ namespace System.Text.Json.JsonDiffPatch
             return false;
         }
 
-        internal static bool MatchArrayItem(
+        internal static bool MatchArrayValueItem(
             ref ArrayItemMatchContext context,
             ref JsonValueWrapper wrapperLeft,
             ref JsonValueWrapper wrapperRight,
@@ -241,11 +243,12 @@ namespace System.Text.Json.JsonDiffPatch
             return false;
         }
 
-        private static bool FuzzyMatchArrayItem(ref ArrayItemMatchContext context, JsonDiffOptions options,
+        private static bool FallbackMatchArrayItem(ref ArrayItemMatchContext context, JsonDiffOptions options,
             out bool result)
         {
             result = false;
 
+            // Scenario 1: keyed objects or arrays
             var keyFinder = options.ArrayObjectItemKeyFinder;
             if (keyFinder is not null)
             {
@@ -254,7 +257,6 @@ namespace System.Text.Json.JsonDiffPatch
 
                 if (keyX is null && keyY is null)
                 {
-                    // Use DeepEquals if both items are not keyed
                     return false;
                 }
 
@@ -262,6 +264,7 @@ namespace System.Text.Json.JsonDiffPatch
                 return true;
             }
 
+            // Scenario 2: match objects or arrays by position in parent array
             if (options.ArrayObjectItemMatchByPosition)
             {
                 if (context.LeftPosition == context.RightPosition)
@@ -269,10 +272,13 @@ namespace System.Text.Json.JsonDiffPatch
                     result = true;
                     return true;
                 }
+            }
 
-                // We don't return a result for objects at different position
-                // so that we could still compare them using DeepEquals, or
-                // return "not equal" if this method is called after.
+            // Scenario 3: force a later diff operation when property filter is set
+            if (options.PropertyFilter is not null)
+            {
+                result = true;
+                return true;
             }
 
             return false;
