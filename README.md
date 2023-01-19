@@ -1,6 +1,6 @@
 # SystemTextJson.JsonDiffPatch
 
-![GitHub](https://img.shields.io/github/license/weichch/system-text-json-jsondiffpatch?color=blueviolet) ![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/weichch/system-text-json-jsondiffpatch/build-and-test/main) [![JsonDiffPatch](https://img.shields.io/nuget/vpre/SystemTextJson.JsonDiffPatch?style=flat)](https://www.nuget.org/packages/SystemTextJson.JsonDiffPatch/) ![Nuget](https://img.shields.io/nuget/dt/SystemTextJson.JsonDiffPatch?color=important)
+![GitHub](https://img.shields.io/github/license/weichch/system-text-json-jsondiffpatch?color=blueviolet) ![GitHub Workflow Status (branch)](https://img.shields.io/github/actions/workflow/status/weichch/system-text-json-jsondiffpatch/build-and-test.yaml?branch=main) [![JsonDiffPatch](https://img.shields.io/nuget/vpre/SystemTextJson.JsonDiffPatch?style=flat)](https://www.nuget.org/packages/SystemTextJson.JsonDiffPatch/) ![Nuget](https://img.shields.io/nuget/dt/SystemTextJson.JsonDiffPatch?color=important)
 
 High-performance, low-allocating JSON object diff and patch extension for System.Text.Json.
 
