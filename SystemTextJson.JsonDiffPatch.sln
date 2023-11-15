@@ -3,6 +3,36 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3707B7E8-C345-4F67-9C37-56FF2A62B720}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		Benchmark.md = Benchmark.md
+		icon.png = icon.png
+		LICENSE = LICENSE
+		README.md = README.md
+		ReleaseNotes.md = ReleaseNotes.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".config", ".config", "{E9160ECA-64C8-44AC-8172-3CE535FCF02C}"
+	ProjectSection(SolutionItems) = preProject
+		.config\dotnet-tools.json = .config\dotnet-tools.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{2E4C38DE-0426-40A2-AB0B-507BF6F5B0A6}"
+	ProjectSection(SolutionItems) = preProject
+		.github\CODEOWNERS = .github\CODEOWNERS
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{3B8ADCDE-F7B8-41BD-8415-B0C1DEF1BB93}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\build-and-test.yaml = .github\workflows\build-and-test.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{29B23CE8-F9BF-49CD-873D-4786A081A29B}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+	EndProjectSection
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemTextJson.JsonDiffPatch", "src\SystemTextJson.JsonDiffPatch\SystemTextJson.JsonDiffPatch.csproj", "{2F8D59B0-53DE-4EE7-A704-D3F89A00D9DC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemTextJson.JsonDiffPatch.Xunit", "src\SystemTextJson.JsonDiffPatch.Xunit\SystemTextJson.JsonDiffPatch.Xunit.csproj", "{8CC0FE2E-297C-4427-8B66-B50E867823C3}"
@@ -12,6 +42,23 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemTextJson.JsonDiffPatch.NUnit", "src\SystemTextJson.JsonDiffPatch.NUnit\SystemTextJson.JsonDiffPatch.NUnit.csproj", "{194DF788-2210-444E-826B-C3A6C10F14F7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{AE524BA2-D5E2-4D5F-BC95-9AA064D46234}"
+	ProjectSection(SolutionItems) = preProject
+		test\Directory.Build.props = test\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{2066569A-C60A-42F6-B10A-C2F0D80143A3}"
+	ProjectSection(SolutionItems) = preProject
+		test\Examples\demo_diff.json = test\Examples\demo_diff.json
+		test\Examples\demo_diff_jsonpatch.json = test\Examples\demo_diff_jsonpatch.json
+		test\Examples\demo_diff_notext.json = test\Examples\demo_diff_notext.json
+		test\Examples\demo_left.json = test\Examples\demo_left.json
+		test\Examples\demo_right.json = test\Examples\demo_right.json
+		test\Examples\large_diff.json = test\Examples\large_diff.json
+		test\Examples\large_diff_jsonpatch.json = test\Examples\large_diff_jsonpatch.json
+		test\Examples\large_diff_notext.json = test\Examples\large_diff_notext.json
+		test\Examples\large_left.json = test\Examples\large_left.json
+		test\Examples\large_right.json = test\Examples\large_right.json
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemTextJson.JsonDiffPatch.UnitTests", "test\SystemTextJson.JsonDiffPatch.UnitTests\SystemTextJson.JsonDiffPatch.UnitTests.csproj", "{832E60B1-0225-48B3-9AAD-638A0F5AA15E}"
 EndProject
@@ -70,6 +117,12 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{3B8ADCDE-F7B8-41BD-8415-B0C1DEF1BB93} = {2E4C38DE-0426-40A2-AB0B-507BF6F5B0A6}
+		{2F8D59B0-53DE-4EE7-A704-D3F89A00D9DC} = {29B23CE8-F9BF-49CD-873D-4786A081A29B}
+		{8CC0FE2E-297C-4427-8B66-B50E867823C3} = {29B23CE8-F9BF-49CD-873D-4786A081A29B}
+		{B2E4B8B6-9F55-4C99-8968-43144BEB809B} = {29B23CE8-F9BF-49CD-873D-4786A081A29B}
+		{194DF788-2210-444E-826B-C3A6C10F14F7} = {29B23CE8-F9BF-49CD-873D-4786A081A29B}
+		{2066569A-C60A-42F6-B10A-C2F0D80143A3} = {AE524BA2-D5E2-4D5F-BC95-9AA064D46234}
 		{832E60B1-0225-48B3-9AAD-638A0F5AA15E} = {AE524BA2-D5E2-4D5F-BC95-9AA064D46234}
 		{0F173CC9-EA04-4243-A506-E2C59C905A5E} = {AE524BA2-D5E2-4D5F-BC95-9AA064D46234}
 		{5AEAC978-7DD8-43BA-880E-D5B8B27EF7E7} = {AE524BA2-D5E2-4D5F-BC95-9AA064D46234}
