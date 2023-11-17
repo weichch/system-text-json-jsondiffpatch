@@ -28,8 +28,8 @@
 
   <PropertyGroup>
     <Version>$(JsonDiffPatchPackageVersion)</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyVersion>$(JsonDiffPatchPackageVersion).0</AssemblyVersion>
+    <FileVersion>$(JsonDiffPatchPackageVersion).0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
