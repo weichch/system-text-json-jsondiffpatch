@@ -16,9 +16,14 @@
     <Authors>Wei Chen</Authors>
     <PackageProjectUrl>https://github.com/weichch/system-text-json-jsondiffpatch</PackageProjectUrl>
     <Copyright>Copyright © Wei Chen 2024</Copyright>
+    <RepositoryUrl>https://github.com/weichch/system-text-json-jsondiffpatch.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Copyright>Copyright © Wei Chen 2022</Copyright>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReleaseNotes>https://github.com/weichch/system-text-json-jsondiffpatch/blob/$(JsonDiffPatchPackageVersion)/ReleaseNotes.md</PackageReleaseNotes>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -30,7 +35,7 @@
   <ItemGroup>
     <None Include="..\..\icon.png" Link="Packaging\icon.png" Pack="true" PackagePath="\" />
     <None Include="..\..\LICENSE" Link="Packaging\LICENSE" Pack="true" PackagePath="\" />
-	<None Include="..\..\THIRD-PARTY-NOTICES.txt" Link="Packaging\THIRD-PARTY-NOTICES.txt" Pack="true" PackagePath="\" />
+    <None Include="..\..\THIRD-PARTY-NOTICES.txt" Link="Packaging\THIRD-PARTY-NOTICES.txt" Pack="true" PackagePath="\" />
   </ItemGroup>
-  
+
 </Project>
