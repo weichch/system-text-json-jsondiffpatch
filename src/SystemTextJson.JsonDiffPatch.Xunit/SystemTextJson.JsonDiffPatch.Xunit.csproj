@@ -19,7 +19,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="xunit.assert" Version="2.4.1" />
+    <PackageReference Include="xunit.assert" Version="2.6.6" />
   </ItemGroup>
 
 </Project>
