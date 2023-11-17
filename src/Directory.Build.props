@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net7.0;net6.0;netstandard2.0;net462</TargetFrameworks>
@@ -6,9 +6,12 @@
     <LangVersion>latest</LangVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <DebugType>Embedded</DebugType>
+    <EmbedAllSources>True</EmbedAllSources>
   </PropertyGroup>
 
   <PropertyGroup>
+    <IsPackable>true</IsPackable>
     <JsonDiffPatchPackageVersion>2.0.0</JsonDiffPatchPackageVersion>
     <Authors>Wei Chen</Authors>
     <PackageProjectUrl>https://github.com/weichch/system-text-json-jsondiffpatch</PackageProjectUrl>
