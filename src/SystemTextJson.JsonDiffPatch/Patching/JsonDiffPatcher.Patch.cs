@@ -52,7 +52,7 @@ namespace System.Text.Json.JsonDiffPatch
         /// <param name="options">The patch options.</param>
         public static JsonNode? PatchNew(this JsonNode? left, JsonNode? patch, JsonPatchOptions options = default)
         {
-            var copy = left.DeepClone();
+            var copy = DeepClone(left);
             Patch(ref copy, patch, options);
             return copy;
         }
@@ -105,7 +105,7 @@ namespace System.Text.Json.JsonDiffPatch
         /// <param name="options">The patch options.</param>
         public static JsonNode? ReversePatchNew(this JsonNode? right, JsonNode? patch, JsonReversePatchOptions options = default)
         {
-            var copy = right.DeepClone();
+            var copy = DeepClone(right);
             ReversePatch(ref copy, patch, options);
             return copy;
         }

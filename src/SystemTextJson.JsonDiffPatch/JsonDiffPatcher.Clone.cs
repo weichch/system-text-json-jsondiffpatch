@@ -10,8 +10,15 @@ namespace System.Text.Json.JsonDiffPatch
         /// Creates a deep copy of the <see cref="JsonNode"/>.
         /// </summary>
         /// <param name="obj">The <see cref="JsonNode"/>.</param>
+#if HAVE_NEW_JSONNODE_METHODS
+        public static T? DeepClone<T>(T? obj) where T : JsonNode
+#else
         public static T? DeepClone<T>(this T? obj) where T : JsonNode
+#endif
         {
+#if HAVE_NEW_JSONNODE_METHODS
+            return obj is null ? null : (T)obj.DeepClone();
+#else
             return (T?)(obj switch
             {
                 null => (JsonNode?)null,
@@ -26,9 +33,10 @@ namespace System.Text.Json.JsonDiffPatch
             {
                 foreach (var kvp in obj)
                 {
-                    yield return new KeyValuePair<string, JsonNode?>(kvp.Key, kvp.Value.DeepClone());
+                    yield return new KeyValuePair<string, JsonNode?>(kvp.Key, DeepClone(kvp.Value));
                 }
             }
+#endif
         }
 
         private static JsonValue? CloneJsonValue(JsonValue? value)

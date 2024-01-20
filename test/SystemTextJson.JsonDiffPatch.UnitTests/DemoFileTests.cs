@@ -74,10 +74,10 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
             Assert.Null(left.Diff(originalLeft, diffOptions));
 
             JsonDiffPatcher.Patch(ref left, diff);
-            Assert.True(left.DeepEquals(right));
+            Assert.True(left.DeepEquals(right, default(JsonComparerOptions)));
 
             JsonDiffPatcher.ReversePatch(ref left, diff);
-            Assert.True(left.DeepEquals(originalLeft));
+            Assert.True(left.DeepEquals(originalLeft, default(JsonComparerOptions)));
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
                 @"Examples/demo_right.json",
                 new JsonPatchDeltaFormatter());
 
-            Assert.True(expectedDiff.DeepEquals(diff));
+            Assert.True(expectedDiff.DeepEquals(diff, default(JsonComparerOptions)));
         }
 
         [Fact]
@@ -121,10 +121,10 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
             Assert.Null(left.Diff(originalLeft, diffOptions));
 
             JsonDiffPatcher.Patch(ref left, diff);
-            Assert.True(left.DeepEquals(right));
+            Assert.True(left.DeepEquals(right, default(JsonComparerOptions)));
 
             JsonDiffPatcher.ReversePatch(ref left, diff);
-            Assert.True(left.DeepEquals(originalLeft));
+            Assert.True(left.DeepEquals(originalLeft, default(JsonComparerOptions)));
         }
 
         [Fact]
@@ -136,7 +136,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests
                 @"Examples/large_right.json",
                 new JsonPatchDeltaFormatter());
 
-            Assert.True(expectedDiff.DeepEquals(diff));
+            Assert.True(expectedDiff.DeepEquals(diff, default(JsonComparerOptions)));
         }
     }
 }

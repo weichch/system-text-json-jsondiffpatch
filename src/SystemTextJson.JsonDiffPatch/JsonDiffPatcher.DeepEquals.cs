@@ -13,7 +13,11 @@ namespace System.Text.Json.JsonDiffPatch
         /// <param name="right">The right value.</param>
         public static bool DeepEquals(this JsonNode? left, JsonNode? right)
         {
+#if HAVE_NEW_JSONNODE_METHODS
+            return JsonNode.DeepEquals(left, right);
+#else
             return DeepEquals(left, right, default(JsonComparerOptions));
+#endif
         }
 
         /// <summary>
