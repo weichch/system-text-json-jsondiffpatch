@@ -2,15 +2,26 @@
 using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization.Metadata;
 
 namespace System.Text.Json.JsonDiffPatch
 {
     internal struct JsonString
     {
-        internal static readonly JsonSerializerOptions SerializerOptions = new()
+        internal static readonly JsonSerializerOptions SerializerOption;
+
+        private static readonly JsonSerializerOptions SerializerOptions;
+
+        static JsonString()
         {
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-        };
+            SerializerOptions = new()
+            {
+                TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+
+            SerializerOptions.MakeReadOnly();
+        }
 
         private DateTime? _dateTimeValue;
         private DateTimeOffset? _dateTimeOffsetValue;
