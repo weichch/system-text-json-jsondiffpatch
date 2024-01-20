@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         build-configuration: [ Debug, Release ]
-        test-target-framework: [ net6.0, net5.0, netcoreapp3.1 ]
+        test-target-framework: [ net8.0, net7.0, net6.0 ]
     name: Build And Test (${{ matrix.test-target-framework }}, ${{ matrix.build-configuration }})
     runs-on: ubuntu-latest
     steps:
@@ -20,9 +20,9 @@ jobs:
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: |
+            8.x
+            7.x
             6.x
-            5.x
-            3.1.x
       - name: Restore
         run: dotnet restore ${{ env.JsonDiffPatchSolutionPath }}
       - name: Build
