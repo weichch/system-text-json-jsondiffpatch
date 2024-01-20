@@ -1,5 +1,20 @@
 # Release Notes
 
+## 2.0.0
+
+- **[BREAKING CHANGE]** Targeting framework changes:
+  - Added: .NET 8, .NET 7, .NET 6, .NET Framework 4.6.2
+  - Removed: .NET Standard 2.1, .NET Framework 4.6.1
+- **[BREAKING CHANGE]** Minimum version of `System.Text.Json` required is bumped up to `8.0.0`.
+- **[BREAKING CHANGE]** When targeting `net8.0`, the following methods are changed to be a wrapper of the methods introduced to `JsonNode` in [this issue](https://github.com/dotnet/runtime/issues/56592):
+  - `JsonDiffPatcher.DeepEquals(JsonNode)`
+  - `JsonDiffPatcher.DeepClone(JsonNode)`
+
+  Those methods remain unchanged when targeting other frameworks
+
+- **[BREAKING CHANGE]** When targeting `net8.0`, `DeepClone` is no longer an extension method of `JsonNode`. The method is still accessible as static method from `JsonDiffPatcher` type, i.e. `JsonDiffPatcher.DeepClone`
+  
+
 ## 1.3.1
 
 - Added `PropertyFilter` to `JsonDiffOptions` (#29)
