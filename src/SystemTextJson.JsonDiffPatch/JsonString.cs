@@ -8,9 +8,7 @@ namespace System.Text.Json.JsonDiffPatch
 {
     internal struct JsonString
     {
-        internal static readonly JsonSerializerOptions SerializerOption;
-
-        private static readonly JsonSerializerOptions SerializerOptions;
+        internal static readonly JsonSerializerOptions SerializerOptions;
 
         static JsonString()
         {
