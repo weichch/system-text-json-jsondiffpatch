@@ -8,7 +8,7 @@ High-performance, low-allocating JSON object diff and patch extension for System
 
 - Compatible with [jsondiffpatch delta format](https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md)
 - Support generating patch document in RFC 6902 JSON Patch format
-- Target latest **.NET Standard** and **.NET Framework 4.6.1** (for legacy apps) and leverage latest .NET features
+- Support .NET and .NET Framework
 - Alternative to [jsondiffpatch.net](https://github.com/wbish/jsondiffpatch.net) which is based on Newtonsoft.Json
 - Fast large JSON document diffing with less memory consumption (see [benchmark](https://github.com/weichch/system-text-json-jsondiffpatch/blob/main/Benchmark.md))
 - Support smart array diffing (e.g. move detect) using LCS (Longest Common Subsequence) and custom array item matcher
@@ -106,7 +106,7 @@ var textEqual = node1.DeepEquals(node2, JsonElementComparison.RawText);
 var semanticEqual = node1.DeepEquals(node2, JsonElementComparison.Semantic);
 ```
 
-### DeepClone
+### DeepClone (.NET Framework and .NET 6 & 7)
 
 ```csharp
 var node = JsonNode.Parse("{\"foo\":\"bar\"}");
