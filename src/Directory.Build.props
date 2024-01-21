@@ -27,6 +27,7 @@
   <ItemGroup>
     <None Include="..\..\icon.png" Link="Packaging\icon.png" Pack="true" PackagePath="\" />
     <None Include="..\..\LICENSE" Link="Packaging\LICENSE" Pack="true" PackagePath="\" />
+	<None Include="..\..\THIRD-PARTY-NOTICES.txt" Link="Packaging\THIRD-PARTY-NOTICES.txt" Pack="true" PackagePath="\" />
   </ItemGroup>
   
 </Project>
