@@ -244,22 +244,22 @@ namespace System.Text.Json.JsonDiffPatch.Diffs
         {
             EnsureDeltaType(nameof(Added), count: 1);
             var arr = Document!.AsArray();
-            arr[0] = newValue.DeepClone();
+            arr[0] = newValue?.DeepClone();
         }
 
         public void Modified(JsonNode? oldValue, JsonNode? newValue)
         {
             EnsureDeltaType(nameof(Modified), count: 2);
             var arr = Document!.AsArray();
-            arr[0] = oldValue.DeepClone();
-            arr[1] = newValue.DeepClone();
+            arr[0] = oldValue?.DeepClone();
+            arr[1] = newValue?.DeepClone();
         }
 
         public void Deleted(JsonNode? oldValue)
         {
             EnsureDeltaType(nameof(Deleted), count: 3, opType: OpTypeDeleted);
             var arr = Document!.AsArray();
-            arr[0] = oldValue.DeepClone();
+            arr[0] = oldValue?.DeepClone();
             arr[1] = 0;
         }
 

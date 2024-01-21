@@ -7,13 +7,13 @@ namespace System.Text.Json.JsonDiffPatch
     static partial class JsonDiffPatcher
     {
         /// <summary>
-        /// Determines whether two <see cref="JsonNode"/> objects are deeply equal.
+        /// Invokes <see cref="JsonNode.DeepEquals(JsonNode?, JsonNode?)" /> method.
         /// </summary>
         /// <param name="left">The left value.</param>
         /// <param name="right">The right value.</param>
         public static bool DeepEquals(this JsonNode? left, JsonNode? right)
         {
-            return DeepEquals(left, right, default(JsonComparerOptions));
+            return JsonNode.DeepEquals(left, right);
         }
 
         /// <summary>

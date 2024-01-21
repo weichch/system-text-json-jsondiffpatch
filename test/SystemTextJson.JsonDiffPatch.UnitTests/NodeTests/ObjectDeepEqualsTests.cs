@@ -9,7 +9,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
         [Fact]
         public void Default()
         {
-            Assert.True(default(JsonNode).DeepEquals(default));
+            Assert.True(default(JsonNode).DeepEquals(default, default(JsonComparerOptions)));
         }
 
         [Fact]
@@ -26,7 +26,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
                 {"baz", "qux"}
             };
 
-            Assert.True(json1.DeepEquals(json2));
+            Assert.True(json1.DeepEquals(json2, default(JsonComparerOptions)));
         }
 
         [Fact]
@@ -43,7 +43,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
                 {"foo", "bar"}
             };
 
-            Assert.True(json1.DeepEquals(json2));
+            Assert.True(json1.DeepEquals(json2, default(JsonComparerOptions)));
         }
 
         [Fact]
@@ -60,7 +60,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
                 {"baz", "quz"}
             };
 
-            Assert.False(json1.DeepEquals(json2));
+            Assert.False(json1.DeepEquals(json2, default(JsonComparerOptions)));
         }
 
         [Fact]
@@ -76,7 +76,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
                 {"foo", "bar"}
             };
 
-            Assert.False(json1.DeepEquals(json2));
+            Assert.False(json1.DeepEquals(json2, default(JsonComparerOptions)));
         }
 
         [Fact]
@@ -92,7 +92,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
                 {"baz", "qux"}
             };
 
-            Assert.False(json1.DeepEquals(json2));
+            Assert.False(json1.DeepEquals(json2, default(JsonComparerOptions)));
         }
 
         [Fact]
@@ -101,7 +101,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
             var json1 = new JsonArray {1, 2, 3};
             var json2 = new JsonArray {1, 2, 3};
 
-            Assert.True(json1.DeepEquals(json2));
+            Assert.True(json1.DeepEquals(json2, default(JsonComparerOptions)));
         }
 
         [Fact]
@@ -110,7 +110,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
             var json1 = new JsonArray {1, 2, 3};
             var json2 = new JsonArray {1, 3, 2};
 
-            Assert.False(json1.DeepEquals(json2));
+            Assert.False(json1.DeepEquals(json2, default(JsonComparerOptions)));
         }
 
         [Fact]
@@ -119,7 +119,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
             var json1 = new JsonArray {1, 2, 3};
             var json2 = new JsonArray {1, 2, 5};
 
-            Assert.False(json1.DeepEquals(json2));
+            Assert.False(json1.DeepEquals(json2, default(JsonComparerOptions)));
         }
 
         [Fact]
@@ -128,7 +128,7 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
             var json1 = new JsonArray {1, 2, 3};
             var json2 = new JsonArray {1, 2};
 
-            Assert.False(json1.DeepEquals(json2));
+            Assert.False(json1.DeepEquals(json2, default(JsonComparerOptions)));
         }
 
         [Fact]
@@ -137,14 +137,14 @@ namespace SystemTextJson.JsonDiffPatch.UnitTests.NodeTests
             var json1 = new JsonArray {1, 2};
             var json2 = new JsonArray {1, 2, 3};
 
-            Assert.False(json1.DeepEquals(json2));
+            Assert.False(json1.DeepEquals(json2, default(JsonComparerOptions)));
         }
         
         [Theory]
         [MemberData(nameof(NodeTestData.ObjectSemanticEqual), MemberType = typeof(NodeTestData))]
         public void Value_ObjectSemanticEqual(JsonValue json1, JsonValue json2, bool expected)
         {
-            Assert.Equal(expected, json1.DeepEquals(json2));
+            Assert.Equal(expected, json1.DeepEquals(json2, default(JsonComparerOptions)));
         }
     }
 }
