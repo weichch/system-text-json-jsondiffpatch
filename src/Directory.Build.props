@@ -24,10 +24,6 @@
     <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <DefineConstants>$(DefineConstants);HAVE_NEW_JSONNODE_METHODS</DefineConstants>
-  </PropertyGroup>
-
   <ItemGroup>
     <None Include="..\..\icon.png" Link="Packaging\icon.png" Pack="true" PackagePath="\" />
     <None Include="..\..\LICENSE" Link="Packaging\LICENSE" Pack="true" PackagePath="\" />

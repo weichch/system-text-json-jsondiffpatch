@@ -14,7 +14,6 @@ High-performance, low-allocating JSON object diff and patch extension for System
 - Support smart array diffing (e.g. move detect) using LCS (Longest Common Subsequence) and custom array item matcher
 - _(Only when not using RFC 6902 format)_ Support diffing long text using [google-diff-match-patch](http://code.google.com/p/google-diff-match-patch/), or write your own diff algorithm
 - Bonus `DeepEquals` method for comparing `JsonDocument`, `JsonElement` and `JsonNode`
-- Bonus `DeepClone` method
 - Bonus [`JsonValueComparer`](https://github.com/weichch/system-text-json-jsondiffpatch/blob/main/src/SystemTextJson.JsonDiffPatch/JsonValueComparer.cs) that implements semantic comparison of two `JsonValue` objects
 - JSON assert for xUnit, MSTest v2 and NUnit with customizable delta output
 
@@ -44,7 +43,7 @@ PM> Install-Package SystemTextJson.JsonDiffPatch.MSTest
 PM> Install-Package SystemTextJson.JsonDiffPatch.NUnit
 ```
 
-## Usage
+## Examples
 
 ### Diff
 
@@ -104,13 +103,6 @@ var node2 = JsonNode.Parse("{\"foo\":1.0}");
 var equal = node1.DeepEquals(node2);
 var textEqual = node1.DeepEquals(node2, JsonElementComparison.RawText);
 var semanticEqual = node1.DeepEquals(node2, JsonElementComparison.Semantic);
-```
-
-### DeepClone (.NET Framework and .NET 6 & 7)
-
-```csharp
-var node = JsonNode.Parse("{\"foo\":\"bar\"}");
-var cloned = node.DeepClone();
 ```
 
 ### Default Options

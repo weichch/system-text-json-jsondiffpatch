@@ -2,19 +2,17 @@
 
 ## 2.0.0
 
-- **[BREAKING CHANGE]** Targeting framework changes:
-  - Added: .NET 8, .NET 7, .NET 6, .NET Framework 4.6.2
-  - Removed: .NET Standard 2.1, .NET Framework 4.6.1
-- **[BREAKING CHANGE]** Minimum version of `System.Text.Json` required is bumped up to `8.0.0`.
-- **[BREAKING CHANGE]** When targeting `net8.0`, the following methods are changed to be a wrapper of the methods introduced to `JsonNode` in [this issue](https://github.com/dotnet/runtime/issues/56592):
-  - `JsonDiffPatcher.DeepEquals(JsonNode)`
-  - `JsonDiffPatcher.DeepClone(JsonNode)`
-
-  Those methods remain unchanged when targeting other frameworks
-
-- **[BREAKING CHANGE]** When targeting `net8.0`, `DeepClone` is no longer an extension method of `JsonNode`. The method is still accessible as static method from `JsonDiffPatcher` type, i.e. `JsonDiffPatcher.DeepClone`
+- This version contains several **BREAKING CHANGES**:
+  - **Targeting framework changes**:
+    - Added: .NET 8, .NET 7, .NET 6, .NET Framework 4.6.2
+    - Removed: .NET Standard 2.1, .NET Framework 4.6.1
+  - Minimum version of `System.Text.Json` required is bumped up to `8.0.0`
+  - `JsonDiffPatcher.DeepEquals(JsonNode)` now simply calls `JsonNode.DeepEquals(JsonNode, JsonNode)` method introduced in [this issue](https://github.com/dotnet/runtime/issues/56592)
+    - `JsonDiffPatcher.Diff` method is unchanged because it does not use `JsonNode.DeepEquals(JsonNode, JsonNode)` method internally
+    - You can still use `JsonDiffPatcher.DeepEquals` method when invoked with custom comparison options
+    - When invoked against `JsonDocument` and `JsonElement`, `DeepEquals` method is unchanged
+  - Removed `JsonDiffPatcher.DeepClone` method. You can migrate to `JsonNode.DeepClone` method introduced in [this issue](https://github.com/dotnet/runtime/issues/56592)
   
-
 ## 1.3.1
 
 - Added `PropertyFilter` to `JsonDiffOptions` (#29)
