@@ -10,8 +10,8 @@ namespace SystemTextJson.JsonDiffPatch.NUnit.Tests
         [Test]
         public void AreEqual_String()
         {
-            var json1 = "{\"foo\":\"bar\",\"baz\":\"qux\"}";
-            var json2 = "{\"baz\":\"qux\",\"foo\":\"bar\"}";
+            const string json1 = "{\"foo\":\"bar\",\"baz\":\"qux\"}";
+            const string json2 = "{\"baz\":\"qux\",\"foo\":\"bar\"}";
 
             JsonAssert.AreEqual(json1, json2);
         }
@@ -43,7 +43,7 @@ namespace SystemTextJson.JsonDiffPatch.NUnit.Tests
             var error = Assert.Throws<AssertionException>(
                 () => JsonAssert.AreEqual(json1, json2));
 
-            StringAssert.Contains("JsonAssert.AreEqual() failure.", error!.Message);
+            Assert.That(error!.Message, Does.Contain("JsonAssert.AreEqual() failure."));
         }
 
         [Test]
@@ -55,10 +55,13 @@ namespace SystemTextJson.JsonDiffPatch.NUnit.Tests
             var error = Assert.Throws<AssertionException>(
                 () => JsonAssert.AreEqual(json1, json2, true));
 
-            StringAssert.Contains("JsonAssert.AreEqual() failure.", error!.Message);
-            StringAssert.Contains("Expected:", error.Message);
-            StringAssert.Contains("Actual:", error.Message);
-            StringAssert.Contains("Delta:", error.Message);
+            Assert.Multiple(() =>
+            {
+                Assert.That(error!.Message, Does.Contain("JsonAssert.AreEqual() failure."));
+                Assert.That(error.Message, Does.Contain("Expected:"));
+                Assert.That(error.Message, Does.Contain("Actual:"));
+                Assert.That(error.Message, Does.Contain("Delta:"));
+            });
         }
 
         [Test]
@@ -70,15 +73,18 @@ namespace SystemTextJson.JsonDiffPatch.NUnit.Tests
             var error = Assert.Throws<AssertionException>(() => JsonAssert.AreEqual(json1,
                 json2, _ => "Custom message"));
 
-            StringAssert.Contains("JsonAssert.AreEqual() failure.", error!.Message);
-            StringAssert.Contains("Custom message", error.Message);
+            Assert.Multiple(() =>
+            {
+                Assert.That(error!.Message, Does.Contain("JsonAssert.AreEqual() failure."));
+                Assert.That(error.Message, Does.Contain("Custom message"));
+            });
         }
 
         [Test]
         public void AreNotEqual_String()
         {
-            var json1 = "{\"foo\":\"bar\",\"baz\":\"qux\"}";
-            var json2 = "{\"foo\":\"baz\"}";
+            const string json1 = "{\"foo\":\"bar\",\"baz\":\"qux\"}";
+            const string json2 = "{\"foo\":\"baz\"}";
         
             JsonAssert.AreNotEqual(json1, json2);
         }
@@ -100,8 +106,8 @@ namespace SystemTextJson.JsonDiffPatch.NUnit.Tests
         
             var error = Assert.Throws<AssertionException>(
                 () => JsonAssert.AreNotEqual(json1, json2));
-        
-            Assert.IsNotNull(error);
+
+            Assert.That(error, Is.Not.Null);
         }
 
         [Test]
@@ -113,7 +119,7 @@ namespace SystemTextJson.JsonDiffPatch.NUnit.Tests
             var error = Assert.Throws<AssertionException>(
                 () => JsonAssert.AreNotEqual(json1, json2));
 
-            StringAssert.Contains("JsonAssert.AreNotEqual() failure.", error!.Message);
+            Assert.That(error!.Message, Does.Contain("JsonAssert.AreNotEqual() failure."));
         }
     }
 }

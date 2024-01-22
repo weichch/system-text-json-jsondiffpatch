@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "davidanson.vscode-markdownlint",
+    "dotjoshjohnson.xml",
+    "editorconfig.editorconfig",
+    "esbenp.prettier-vscode",
+    "github.vscode-pull-request-github",
+    "jebbs.markdown-extended",
+    "jrieken.md-navigate",
+    "ms-dotnettools.csdevkit",
+    "yzhang.markdown-all-in-one"
+  ]
+}

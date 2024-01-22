@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net7.0;net6.0;netstandard2.0;net462</TargetFrameworks>
@@ -6,28 +6,36 @@
     <LangVersion>latest</LangVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <DebugType>Embedded</DebugType>
+    <EmbedAllSources>True</EmbedAllSources>
   </PropertyGroup>
 
   <PropertyGroup>
+    <IsPackable>true</IsPackable>
     <JsonDiffPatchPackageVersion>2.0.0</JsonDiffPatchPackageVersion>
     <Authors>Wei Chen</Authors>
     <PackageProjectUrl>https://github.com/weichch/system-text-json-jsondiffpatch</PackageProjectUrl>
     <Copyright>Copyright © Wei Chen 2024</Copyright>
+    <RepositoryUrl>https://github.com/weichch/system-text-json-jsondiffpatch.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Copyright>Copyright © Wei Chen 2022</Copyright>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReleaseNotes>https://github.com/weichch/system-text-json-jsondiffpatch/blob/$(JsonDiffPatchPackageVersion)/ReleaseNotes.md</PackageReleaseNotes>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 
   <PropertyGroup>
     <Version>$(JsonDiffPatchPackageVersion)</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyVersion>$(JsonDiffPatchPackageVersion).0</AssemblyVersion>
+    <FileVersion>$(JsonDiffPatchPackageVersion).0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\..\icon.png" Link="Packaging\icon.png" Pack="true" PackagePath="\" />
     <None Include="..\..\LICENSE" Link="Packaging\LICENSE" Pack="true" PackagePath="\" />
-	<None Include="..\..\THIRD-PARTY-NOTICES.txt" Link="Packaging\THIRD-PARTY-NOTICES.txt" Pack="true" PackagePath="\" />
+    <None Include="..\..\THIRD-PARTY-NOTICES.txt" Link="Packaging\THIRD-PARTY-NOTICES.txt" Pack="true" PackagePath="\" />
   </ItemGroup>
-  
+
 </Project>

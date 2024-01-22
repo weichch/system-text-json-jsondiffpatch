@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [ main ]
 env:
-  JsonDiffPatchSolutionPath: src/SystemTextJson.JsonDiffPatch.sln
+  JsonDiffPatchSolutionPath: ./SystemTextJson.JsonDiffPatch.sln
 jobs:
   build:
     strategy:
